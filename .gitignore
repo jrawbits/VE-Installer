@@ -1,0 +1,8 @@
+runtime/models/
+runtime/VEGUI/
+runtime/ve-lib/
+*.RData
+www/R/src/
+www/R/bin/
+www/*.zip
+built-packages/
