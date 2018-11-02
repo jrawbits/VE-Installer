@@ -18,7 +18,6 @@ Rscript build-miniCRAN.R     || exit # the miniCRAN lives in a
 Rscript build-external.R     || exit # build the package(s) from an external submodule
 Rscript install-velib.R	     || exit # install the required VE packages to ve-lib
 Rscript build-packages.R     || exit # Prepare installable visioneval; has a number of annoying user dependencies like rhdf5
-bash unstage-built-files.sh  || exit # a lot of crud is checked in that never should have been - we'll skip the .rda files
 Rscript addVE-to-miniCRAN.R  || exit # add the VE (and local) packages we just built to miniCRAN and ve-lib
 Rscript setup-sources.R      || exit # copy the modules and VEGUI to the install/runtime staging area
 bash build-installers.sh     || exit # these also land in a web-ready location

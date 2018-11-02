@@ -3,5 +3,5 @@
 # If you are starting build from a running R session (instead of a new one), just source this file
 
 ve.root <- "c:\\Users\\jeremy.DESKTOP-OLMEAON\\Documents\\Git-Repos\\VisionEval-JR"
-ve.install <- "c:\\Users\\jeremy.DESKTOP-OLMEAON\\Documents\\Git-Repos\\VisionEval-JR\\install"
+ve.install <- "c:\\Users\\jeremy.DESKTOP-OLMEAON\\Documents\\Git-Repos\\VisionEval-install"
 .libPaths("C:/Users/jeremy.DESKTOP-OLMEAON/Documents/R/win-library/3.5") # Push local library to .libPaths()

@@ -1,6 +1,4 @@
-runtime/models/
-runtime/VEGUI/
-runtime/ve-lib/
+runtime/
 *.RData
 www/R/src/
 www/R/bin/

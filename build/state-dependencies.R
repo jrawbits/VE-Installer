@@ -47,7 +47,8 @@ if (!exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
 	cat("Missing ve.install - set in .RProfile to root of installer tree\n")
 	stop("Missing configuration")
 }
-ve.lib <- file.path(ve.install,"runtime","ve-lib")
+ve.runtime <- file.path(ve.install,"runtime")
+ve.lib <- file.path(ve.runtime,"ve-lib")
 ve.built <- file.path(ve.install,"built-packages")
 path.miniCRAN <- file.path(ve.install,"www","R")
 
@@ -97,6 +98,7 @@ save(
 	,check.VE.environment
 	,ve.root
 	,ve.install
+	,ve.runtime
 	,ve.lib
 	,ve.built
 	,path.miniCRAN

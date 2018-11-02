@@ -18,6 +18,7 @@ if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build en
 # a Windows installation and a source (e.g. Linux/Docker) installation
 options(install.packages.compile.from.source="never")
 
+if ( ! dir.exists(ve.runtime) ) dir.create(ve.runtime)
 if ( ! dir.exists(ve.lib) ) dir.create(ve.lib)
 
 ve.repos <- repo.miniCRAN()

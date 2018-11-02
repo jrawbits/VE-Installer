@@ -12,9 +12,12 @@
 
 VE_INSTALLER=../www/VE-installer.zip
 VE_WINDOWS=../www/VE-installer-windows-R3.5.1.zip
+RUNTIME_PATH="../runtime" # change as necessary
 
-cd ../runtime
-[ -f $VE_INSTALLER ] && rm $VE_INSTALLER
+cd ${RUNTIME_PATH}
+
+[ -f ${VE_INSTALLER} ] && rm ${VE_INSTALLER}
+[ -f ${VE_WINDOWS} ] && rm ${VE_WINDOWS}
 
 zip --recurse-paths ${VE_INSTALLER} .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R models vegui
 
