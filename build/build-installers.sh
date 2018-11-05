@@ -10,19 +10,26 @@
 # will actually be a source installer...  Could live with just changing the
 # name of the installer zip file.
 
-VE_INSTALLER=../www/VE-installer.zip
-VE_WINDOWS=../www/VE-installer-windows-R3.5.1.zip
-RUNTIME_PATH="../runtime" # change as necessary
+# TODO: Add Dockerfile / image construction
+
+VE_OUTPUT=$(Rscript -e "load('dependencies.RData'); cat(ve.output)")
+VE_INSTALLER=${VE_OUTPUT}/VE-installer.zip
+VE_WINDOWS=${VE_OUTPUT}/VE-installer-windows-R3.5.1.zip
+RUNTIME_PATH="${VE_OUTPUT}/runtime" # change as necessary
 
 cd ${RUNTIME_PATH}
 
 [ -f ${VE_INSTALLER} ] && rm ${VE_INSTALLER}
 [ -f ${VE_WINDOWS} ] && rm ${VE_WINDOWS}
 
+echo "Building online installer: ${VE_INSTALLER}"
 zip --recurse-paths ${VE_INSTALLER} .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R models vegui
 
 # Windows installer
+echo "Building offline (Windows) installer: ${VE_WINDOWS}"
 zip --recurse-paths --output-file=${VE_WINDOWS} ${VE_INSTALLER} ve-lib
+
+echo "Done building installers."
 
 # TODO; review the insanely huge number of dependencies and streamline
 # them.  There's probably a lot of cruft that some careful thinking

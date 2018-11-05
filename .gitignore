@@ -1,6 +1,5 @@
-runtime/
 *.RData
-www/R/src/
-www/R/bin/
-www/*.zip
-built-packages/
+installer_*/
+.Rproj.user
+.Rhistory
+plan.txt

@@ -2,7 +2,7 @@ This folder contains items that need to be installed but are not built
 as part of VisionEval itself.  There are some scripts that will bring
 in and build external components:
 
-* namedCapture (Github package installed as a submodule
+* namedCapture (Github package)
 * rsync (developer tool; only needed for website synchronization)
 
 We could put installers for consistent versions of R and Rtools for

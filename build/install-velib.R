@@ -22,6 +22,7 @@ if ( ! dir.exists(ve.runtime) ) dir.create(ve.runtime)
 if ( ! dir.exists(ve.lib) ) dir.create(ve.lib)
 
 ve.repos <- repo.miniCRAN()
+
 sought.pkgs <- miniCRAN::pkgDep( c(pkgs.CRAN,pkgs.BioC), repos=ve.repos, suggests=FALSE )
 base.repos <- dirname(find.package("MASS")) # looking for recommended packages; picking one that is required
 pkgs.BaseR <- as.vector(installed.packages(lib.loc=base.repos,priority=c("base","recommended"))[,"Package"])
@@ -36,6 +37,7 @@ new.pkgs <- sought.pkgs[!(sought.pkgs %in% installed.packages(lib.loc=ve.lib)[,"
 if(length(new.pkgs)>0) {
     cat("---Still missing these packages:\n")
     print(sort(new.pkgs))
+	print(ve.lib)
     cat("---End of missing packages---\n")
     install.packages(
         new.pkgs,

@@ -1,5 +1,10 @@
-# Build the namedCapture package
+# Build the external packages (namedCapture)
 # Use 'state-dependencies.R' to set up the required packages and VE directories.
+
+# Intent here is to pick up packages installed from github.  Those should be cloned
+# as submodules, ideally in the VisionEval tree, not here in the installer - if they
+# are in VisionEval, we can just treat them as any other package though might want to
+# skip tests.  Currenly only have one of those (namedCapture).
 
 print(getwd())
 load("dependencies.RData")
@@ -17,13 +22,21 @@ if ( nrow(pkgs.external)> 0 ) {
 	pkgs <- file.path(ve.install,pkgs.external[,"Path"],pkgs.external[,"Package"])
 
 	# Always build as source packages
-	for (pkg in pkgs) devtools::build(pkg,path=built.path.src)
+	for (pkg in pkgs) {
+		if ( ! module.exists(pkg, built.path.src) ) {
+			devtools::build(pkg,path=built.path.src)
+		}
+	}
 
 	# Build as binary package if the developer platform is windows
 	cat("source build\n")
 	build.type <- .Platform$pkgType
 	if ( build.type == "win.binary" ) {
-		for (pkg in pkgs) devtools::build(pkg,path=built.path.binary,binary=TRUE)
+		for (pkg in pkgs) {
+			if ( ! module.exists(pkg, built.path.binary) ) {
+				devtools::build(pkg,path=built.path.binary,binary=TRUE)
+			}
+		}
 	}
 } else {
 	cat("No external packages to build\n")

@@ -1,16 +1,8 @@
 # Build and (optionally) Check the VE packages
-# parameter "ve.root" should be set to the root folder of the VisionEval repository clone
-# parameter "ve.install" should be set to the root folder of the installer (parent of build)
-# Set up an .Rprofile in this folder and source it (e.g. by starting a fresh R)
 
 # Very important to set up VE-dependencies.csv correctly (see state-dependencies.R)
 # If there is a dependency order among the VE modules, they must be listed in VE-dependencies.csv
 # in the order in which they will be built
-
-# Start the final package library (this will eventually get rolled up in the offline Windows installer)
-
-# Test invocation: Rscript build-packages.R 2>&1 | tee build.log | grep -i "error"
-# Monitor progress in a separate bash windows: tail -f build.log
 
 # We're not going to rebuild from source if the binary is outdated and compilation is required
 # (stringi as of 10/9 does not build correctly...)
@@ -40,9 +32,13 @@ if (interactive() && askYesNo("Comprehensively check packages (Warning: PAINFUL)
 	for (module in package.paths) devtools::check(module)
 }
 
-# Always build the framework and modules as source packages (though ask if interacvtive)
+# Always build the framework and modules as source packages (though ask if interactive)
 if ( ! interactive() || askYesNo("Build source packages)",default=TRUE)) {
-	for (module in package.paths) devtools::build(module,path=built.path.src)
+	for (module in package.paths) {
+		if ( ! module.exists(module, built.path.src) ) {
+			devtools::build(module,path=built.path.src)
+		}
+	}
 }
 
 # Build the framework and modules as binary packages if the local system wants win.binary (ask if interactive)
@@ -51,7 +47,11 @@ if ( build.type == "win.binary" && ( ! interactive() ||  askYesNo("Build binary 
 	require(withr)
 	with_temp_libpaths( action="prefix" , {
 		for (module in package.paths) {
-			built.package <- devtools::build(module,path=built.path.binary,binary=TRUE)
+			if ( ! module.exists(module, built.path.binary) ) {
+				built.package <- devtools::build(module,path=built.path.binary,binary=TRUE)
+			} else {
+				built.package <- file.path(built.path.binary,module.path(module,built.path.binary))
+			}
 			install.packages(built.package,repos=NULL) # so they will be available for later modules
 		}
 	})

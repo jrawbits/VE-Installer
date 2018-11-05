@@ -15,45 +15,32 @@
 # If there is a dependency order among the VE modules, they must be listed in
 # VE-dependencies.csv in the order in which they will be built
 
-check.VE.environment <- function() {
-	if (!exists("ve.root") || is.na(ve.root) || !file.exists(ve.root) ) {
-		cat("Missing ve.root - set in .RProfile to root of VE repository\n")
-		return(0)
-	} else if (!exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
-		cat("Missing ve.install - set in .RProfile to root of installer tree\n")
-		return(0)
-	} else if (!exists("ve.lib") || is.na(ve.lib) ) {
-		cat("Missing ve.lib definition; run state-dependencies.R\n")
-		return(0)
-	} else if (!exists("path.miniCRAN") || is.na(path.miniCRAN) ) {
-		cat("Missing path.miniCRAN definition; run state-dependencies.R\n")
-		return(0)
-	}
-	return(1)
-}
+# Can override ve.install in .Rprofile (default presumes the working
+# directory is the "build" subdirectory of the installer root)
 
-.First <- function() {
-	if ( ! exists("check.VE.environment") || ! check.VE.environment() ) {
-		stop("Please set ve.root and ve.install in .Rprofile, then source('state-depedencies.R')")
-	}
-}
-
-repo.miniCRAN <- function() {
-	paste("file:",path.miniCRAN,sep="")
-}
-
-# Set up derivative folders (ve.lib, ve.built, path.miniCRAN)
 if (!exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
-	cat("Missing ve.install - set in .RProfile to root of installer tree\n")
-	stop("Missing configuration")
+	ve.install <- sub("My Documents","Documents",normalizePath(file.path(getwd(),".."))) # Hack to fix path problem
 }
-ve.runtime <- file.path(ve.install,"runtime")
+ve.dependencies <- file.path(ve.install,"dependencies")
+source(file.path(ve.dependencies,"VE-config.R"))
+
+if (!exists("ve.output") || is.na(ve.output) || !file.exists(ve.output) ) {
+	ve.output <- file.path(ve.install,paste("installer",format(Sys.time(),"%y%m%d"),sep="_"))
+}
+	
+ve.runtime <- file.path(ve.output,"runtime")
 ve.lib <- file.path(ve.runtime,"ve-lib")
-ve.built <- file.path(ve.install,"built-packages")
-path.miniCRAN <- file.path(ve.install,"www","R")
+ve.built <- file.path(ve.output,"built-packages")
+ve.miniCRAN <- file.path(ve.output,"miniCRAN")
+
+# Create the basic output tree
+dir.create(ve.runtime,recursive=TRUE,showWarnings=FALSE)
+dir.create(ve.lib,recursive=TRUE,showWarnings=FALSE)
+dir.create(ve.built,recursive=TRUE,showWarnings=FALSE)
+dir.create(ve.miniCRAN,recursive=TRUE,showWarnings=FALSE)
 
 # Produce the various package lists for retrieval
-pkgs.db <- read.csv(file.path(ve.install,"dependencies","VE-dependencies.csv"))
+pkgs.db <- read.csv(file.path(ve.dependencies,"VE-dependencies.csv"))
 pkglist <- function(repos="",path=FALSE) {
 	if ( !path ) {
 		as.character(
@@ -91,6 +78,43 @@ pkgs.copy       <- pkglist("copy",path=TRUE)
 # 	,"VEReports"
 # 	)
  
+# Create a series of utility functions
+check.VE.environment <- function() {
+	if (!exists("ve.root") || is.na(ve.root) || !file.exists(ve.root) ) {
+		cat("Missing ve.root - set in .RProfile to root of VE repository\n")
+		return(0)
+	} else if (!exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
+		cat("Missing ve.install - set in .RProfile to root of installer tree\n")
+		return(0)
+	} else if (!exists("ve.lib") || is.na(ve.lib) ) {
+		cat("Missing ve.lib definition; run state-dependencies.R\n")
+		return(0)
+	} else if (!exists("ve.miniCRAN") || is.na(ve.miniCRAN) ) {
+		cat("Missing ve.miniCRAN definition; run state-dependencies.R\n")
+		return(0)
+	}
+	return(1)
+}
+
+.First <- function() {
+	if ( ! exists("check.VE.environment") || ! check.VE.environment() ) {
+		stop("Please set ve.root and ve.install in .Rprofile, then source('state-depedencies.R')")
+	}
+}
+
+repo.miniCRAN <- function() {
+	paste("file:",ve.miniCRAN,sep="")
+}
+
+module.path <- function( module,path ) {
+	mods <- dir(path)
+	result <- mods[grep(paste("^",basename(module),"_",sep=""),mods)]
+}
+
+module.exists <- function( module,path ) {
+	length(module.path(module,path))>0
+}
+
 # Save out the basic setup that is used in later build scripts
 save(
 	file="dependencies.RData"
@@ -98,10 +122,13 @@ save(
 	,check.VE.environment
 	,ve.root
 	,ve.install
+	,ve.output
 	,ve.runtime
 	,ve.lib
 	,ve.built
-	,path.miniCRAN
+	,ve.miniCRAN
+	,module.path
+	,module.exists
 	,repo.miniCRAN
 	,pkgs.db
 	,pkgs.all
