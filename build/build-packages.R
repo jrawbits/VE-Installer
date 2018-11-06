@@ -44,7 +44,9 @@ if ( ! interactive() || askYesNo("Build source packages)",default=TRUE)) {
 # Build the framework and modules as binary packages if the local system wants win.binary (ask if interactive)
 build.type <- .Platform$pkgType
 if ( build.type == "win.binary" && ( ! interactive() ||  askYesNo("Build binary packages (Warning: SLOW)",default=FALSE)) ) {
-	require(withr)
+	if (!suppressWarnings(require(withr))) {
+		install.packages("miniCRAN",repos=CRAN.mirror)
+	}
 	with_temp_libpaths( action="prefix" , {
 		for (module in package.paths) {
 			if ( ! module.exists(module, built.path.binary) ) {

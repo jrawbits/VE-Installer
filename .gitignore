@@ -3,3 +3,5 @@ installer_*/
 .Rproj.user
 .Rhistory
 plan.txt
+www/R/bin
+www/R/src
