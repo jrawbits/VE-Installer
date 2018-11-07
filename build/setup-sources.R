@@ -6,8 +6,6 @@
 load("dependencies.RData") # for the folders...
 if (! check.VE.environment() ) stop("Run state-dependencies.R and make sure earlier steps have all been run.")
 
-dir.create( ve.runtime, showWarnings=FALSE )
-
 # Copy the runtime boilerplate
 boilerplate <- file.path(ve.install,"boilerplate")
 bp.files <- file.path(boilerplate,dir(boilerplate,all=TRUE,no..=TRUE))

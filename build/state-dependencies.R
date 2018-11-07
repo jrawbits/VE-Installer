@@ -15,9 +15,11 @@
 # If there is a dependency order among the VE modules, they must be listed in
 # VE-dependencies.csv in the order in which they will be built
 
-# Can override ve.install in .Rprofile (default presumes the working
-# directory is the "build" subdirectory of the installer root)
+# Pick the CRAN mirror to use for retrieving dependency packages
+CRAN.mirror <- "https://cran.rstudio.org"
 
+# Can override ve.install in .Rprofile (default presumes the working
+# directory is the "build" subdirectory of the ve.install root)
 if (!exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
 	ve.install <- sub("My Documents","Documents",normalizePath(file.path(getwd(),".."))) # Hack to fix path problem
 }
@@ -29,14 +31,12 @@ if (!exists("ve.output") || is.na(ve.output) || !file.exists(ve.output) ) {
 }
 	
 ve.runtime <- file.path(ve.output,"runtime")
-ve.lib <- file.path(ve.runtime,"ve-lib")
-ve.built <- file.path(ve.output,"built-packages")
+ve.lib <- file.path(ve.output,"ve-lib")
 ve.miniCRAN <- file.path(ve.output,"miniCRAN")
 
 # Create the basic output tree
 dir.create(ve.runtime,recursive=TRUE,showWarnings=FALSE)
 dir.create(ve.lib,recursive=TRUE,showWarnings=FALSE)
-dir.create(ve.built,recursive=TRUE,showWarnings=FALSE)
 dir.create(ve.miniCRAN,recursive=TRUE,showWarnings=FALSE)
 
 # Produce the various package lists for retrieval
@@ -54,9 +54,9 @@ pkglist <- function(repos="",path=FALSE) {
 		pkgs.db[which(pkgs.db["Type"]==repos),c("Package","Path")]
 	}
 }
-pkgs.all		<- pkglist()
-pkgs.CRAN		<- pkglist("CRAN")
-pkgs.BioC		<- pkglist("BioConductor")
+pkgs.all	<- pkglist()
+pkgs.CRAN	<- pkglist("CRAN")
+pkgs.BioC	<- pkglist("BioConductor")
 pkgs.external	<- pkglist("install",path=TRUE)
 pkgs.visioneval	<- pkglist("visioneval",path=TRUE)
 pkgs.copy       <- pkglist("copy",path=TRUE)
@@ -106,6 +106,8 @@ repo.miniCRAN <- function() {
 	paste("file:",ve.miniCRAN,sep="")
 }
 
+# The following two helpers extract modules from built packages
+# Used in the scripts to detect whether a module has been built yet.
 module.path <- function( module,path ) {
 	mods <- dir(path)
 	result <- mods[grep(paste("^",basename(module),"_",sep=""),mods)]
@@ -113,6 +115,10 @@ module.path <- function( module,path ) {
 
 module.exists <- function( module,path ) {
 	length(module.path(module,path))>0
+}
+
+update.miniCRAN <- function( type = "source" ) {
+	dir.to.update <- contrib.url(ve.miniCRAN,"source")
 }
 
 # Save out the basic setup that is used in later build scripts
@@ -125,8 +131,8 @@ save(
 	,ve.output
 	,ve.runtime
 	,ve.lib
-	,ve.built
 	,ve.miniCRAN
+	,CRAN.mirror
 	,module.path
 	,module.exists
 	,repo.miniCRAN

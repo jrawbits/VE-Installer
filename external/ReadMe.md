@@ -10,7 +10,7 @@ Windows here if we decide not to track the current R release for some
 reason.
 
 If the namedCapture submodule is empty, do this:
-cd install/external/namedCapture
+cd external/namedCapture
 git submodule update --init --recursive
 
 When installing from source on an Ubuntu 16.04 machine (running X,

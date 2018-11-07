@@ -1,12 +1,11 @@
 #!/bin/R
 # This script installs required R packages from CRAN and BioConductor
 
-# Pick the CRAN mirror to use for the packages
-CRAN.mirror <- "https://cran.rstudio.org"
-
+print(.libPaths())
 if (!suppressWarnings(require(miniCRAN))) {
 	install.packages("miniCRAN",repos=CRAN.mirror)
 }
+require(tools)
 
 # BioConductor setup
 # They're moving 2018-11 to a new version that is not, as yet, compatible with miniCRAN
@@ -31,13 +30,35 @@ if ( !exists("pkgs.CRAN") || !exists("pkgs.BioC") ) {
 # Base R packages (so we can ignore those as dependencies)
 base.lib <- dirname(find.package("MASS")) # looking for recommended packages; picking one that is required
 pkgs.BaseR <- as.vector(installed.packages(lib.loc=base.lib,priority=c("base","recommended"))[,"Package"])
-cat("Base packages:\n")
-print(pkgs.BaseR)
 
-cat("\nComputing dependencies:\n")
-# miniCRAN additions (if we want miniCRAN itself in the repository - there's no need)
-# pkgs.miniCRAN <- miniCRAN::pkgDep("miniCRAN",repos=CRAN.mirror,suggests=FALSE)
+# Fix up any partially complete repository stuff (this will happen, e.g., if build-miniCRAN.R is interrupted)
+# And it will save us re-downloading packages that happen already to be in the miniCRAN.
 
+have.packages <- function() {
+	src.contrib <- contrib.url(ve.miniCRAN,type="source")
+	bin.contrib <- contrib.url(ve.miniCRAN,type="win.binary")
+	got.src <- FALSE
+	got.bin <- FALSE
+	if ( dir.exists(file.path(ve.miniCRAN,"src")) ) {
+		if ( ! file.exists(file.path(src.contrib,"PACKAGES")) ) {
+			cat("Updating miniCRAN source PACKAGES files\n")
+			got.src <- (write_PACKAGES(src.contrib,type="source")>0)
+		} else {
+			got.src <- TRUE
+		}
+	}
+	if ( dir.exists(file.path(ve.miniCRAN,"bin")) ) {
+		if ( ! file.exists(file.path(bin.contrib,"PACKAGES")) ) {
+			cat("Updating miniCRAN win.binary PACKAGES files\n")
+			got.bin <- (write_PACKAGES(bin.contrib,type="win.binary")>0)
+		} else {
+			got.bin <- TRUE
+		}
+	}
+	got.src && got.bin
+}
+
+cat("\nComputing dependencies.\n")
 pkgs.CRAN <- miniCRAN::pkgDep(pkgs.CRAN,repos=CRAN.mirror,suggests=FALSE)
 pkgs.CRAN <-  setdiff(pkgs.CRAN,pkgs.BaseR) # don't keep base packages
 
@@ -46,7 +67,7 @@ pkgs.BioC <- setdiff( pkgs.BioC, pkgs.CRAN ) # Possible risk here: don't double-
 
 # Attempt a minimal build of the miniCRAN (adding just new packages if we already have the whole thing)
 # We won't attempt to delete - cleanup just by rebuilding when cruft gets to be too much.
-if ( dir.exists(file.path(ve.miniCRAN,"src")) && dir.exists(file.path(ve.miniCRAN,"bin")) ) {
+if ( have.packages() ) {
 	ap <- available.packages(repos=repo.miniCRAN())
 	pkgs.present <- ap[,"Package"]
 	pkgs.missing.CRAN <- setdiff(pkgs.CRAN, pkgs.present)
@@ -65,11 +86,12 @@ if ( dir.exists(file.path(ve.miniCRAN,"src")) && dir.exists(file.path(ve.miniCRA
 		pkgs.missing.BioC <- setdiff(pkgs.missing.BioC,pkgs.present)
 		miniCRAN::addPackage(pkgs.missing.BioC,path=ve.miniCRAN,repos=bioc,type=c("source","win.binary"),deps=FALSE)
 	}
+	cat("Existing miniCRAN is up to date.\n")
 } else {
-	cat("Building miniCRAN from CRAN packages, then adding
-	BioConductor\n")
+	cat("Building miniCRAN from CRAN packages\n")
 	miniCRAN::makeRepo(pkgs.CRAN,path=ve.miniCRAN,repos=CRAN.mirror,type=c("source","win.binary"))
 
+	cat("Adding BioConductor packages to new miniCRAN\n")
 	# BioConductor depends on some CRAN packages - no need to download those twice, so deps=FALSE
 	miniCRAN::addPackage(pkgs.BioC,path=ve.miniCRAN,repos=bioc,type=c("source","win.binary"),deps=FALSE)
 }

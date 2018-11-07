@@ -23,18 +23,16 @@ install.success <- FALSE
 ve.root <- getwd()
 
 # Put the library directory into ve.lib
-# Note that ve.lib is already present and fully provisioned if we've run the build process on this machine or previously installed
+# Note that ve.lib is already present and fully provisioned if we've unzipped the offline installer
 ve.lib <- file.path(ve.root,"ve-lib")
 
 if ( ! dir.exists(ve.lib) ) {
 	# We'll presume that if it's there, it has what we need (if not, delete it and re-run installation)
 	# That allows a "pure windows installer" with the lib directory pre-loaded
 
-	# Configure depending on installation source
+	# Configure repository depending on installation source
 	ve.remote <- "https://visioneval.jeremyraw.com/R/"
-	ve.local  <- file.path(ve.root,"R") # This is where the miniCRAN gets placed by the offline installer
-	if ( ! dir.exists(ve.local) )
-		ve.local <- normalizePath(file.path(ve.local,"../../www/R"),winslash="/",mustWork=FALSE)# see if the development environment is available
+	ve.local  <- normalizePath(file.path(ve.local,"..","miniCRAN"),winslash="/",mustWork=FALSE)# see if the development environment is available
 
 	dir.create(ve.lib)
 
@@ -43,58 +41,29 @@ if ( ! dir.exists(ve.lib) ) {
 	# Otherwise, reach for the default online server
 
 	ve.repos <- ifelse( dir.exists(ve.local), paste("file:",ve.local,sep=""), ve.remote )
-	VE.pkgs <-
-	c(	 "visioneval"
-		,"VE2001NHTS"
-		,"VESyntheticFirms"
-		,"VESimHouseholds"
-		,"VELandUse"
-		,"VETransportSupply"
-		,"VETransportSupplyUse"
-		,"VEHouseholdTravel"
-		,"VEHouseholdVehicles"
-		,"VEPowertrainsAndFuels"
-		,"VETravelPerformance"
-		,"VEReports"
-	# Also need dependencies for VEGUI
-		,"data.table"
-		,"DT"
-		,"envDocument"
-		,"future"
-		,"jsonlite"
-		,"namedCapture"
-		,"rhandsontable"
-		,"rhdf5"
-		,"shiny"
-		,"shinyAce"
-		,"shinyBS"
-		,"shinyFiles"
-		,"shinyjs"
-		,"shinyTree"
-		,"testit"
-	)
+	VE.pkgs <- available.packages(repos=ve.repos)[,"Package"] # Installation list is everything in the miniCRAN
 
+	# Don't do dependencies because they should all be in the miniCRAN
 	install.packages(
 		VE.pkgs,
 		lib=ve.lib,
 		repos=ve.repos,
-		dependencies=TRUE
+		quite=TRUE
 	)
 	install.success <- TRUE
 }
 
 # Construct "RunVisionEval.Rdata"
-# In principle, we could do this in .Rprofile below, but this
-# gives us something to "double-click" for a rapid happy start
-# in RGui.
+# Something to "double-click" for a rapid happy start in RGui.
 
 # TODO: We'll want to do some better library-finding
 # I'd recommend blowing away all the library paths except the
 # one that has the base packages, then forcing ve.lib to the
-# front of the list as is done here
+# front of the list as is done here.  But it's rather hard
+# to get R to throw away libraries it already knows about.
 
 .First <- function() {
-	.libPaths(c(ve.lib,.libPaths()))
+	.libPaths(ve.lib)
 	if ( install.success <- require(visioneval) ) {
 		setwd(ve.root)
 		cat("Welcome to VisionEval!\n")
@@ -103,7 +72,10 @@ if ( ! dir.exists(ve.lib) ) {
 }
 install.success <- .First()
 
-# The following convenience functions have not been well-tested
+# The following convenience functions have not been well-tested.
+# They probably don't work, e.g., for the RSG development branch
+
+# Function starts the VEGUI
 vegui <- function() {
 	require("shiny")
 	full_path <- file.path(ve.root,"VEGUI")
@@ -130,7 +102,14 @@ verspm <- function() {
 }
 
 if ( install.success ) {
-	save(ve.root,ve.lib,.First,vegui, verpat, verspm, file="RunVisionEval.RData")
+	save(file="RunVisionEval.RData"
+		,ve.root
+		,ve.lib
+		,.First
+		,vegui
+		,verpat
+		,verspm
+	)
 } else {
 	cat("Installation failed - check error and warning messages.\n")
 }

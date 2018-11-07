@@ -79,10 +79,10 @@ edit VE-config.R     # set ve.root to the VisionEval clone to install
 edit VE-dependencies # list dependencies (see ReadMe.md in that folder)
 popd
 pushd build
-nohup bash one-stop-build.sh >build.out 2>&1 & tail -f build.out
+nohup bash Build.sh >build.out 2>&1 & tail -f build.out
 ```
 
-I recommend the "nohup" line (rather than just "bash one-stop-build.sh") because it will
+I recommend the "nohup" line (rather than just "bash Build.sh") because it will
 let you close the bash window, and the redirection will save errors and warnings so you
 can mull over what went wrong.  You don't need the "tail -f build.out" addendum; it's
 handy to have the output show up in near-realtime if you're impatient.

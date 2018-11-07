@@ -27,6 +27,7 @@ zip --recurse-paths ${VE_INSTALLER} .Rprofile Install-VisionEval.bat Install-Vis
 
 # Windows installer
 echo "Building offline (Windows) installer: ${VE_WINDOWS}"
+cd ${VE_OUTPUT}
 zip --recurse-paths --output-file=${VE_WINDOWS} ${VE_INSTALLER} ve-lib
 
 echo "Done building installers."
