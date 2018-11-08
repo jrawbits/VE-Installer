@@ -32,12 +32,12 @@ if ( ! dir.exists(ve.lib) ) {
 
 	# Configure repository depending on installation source
 	ve.remote <- "https://visioneval.jeremyraw.com/R/"
-	ve.local  <- normalizePath(file.path(ve.local,"..","miniCRAN"),winslash="/",mustWork=FALSE)# see if the development environment is available
+	ve.local  <- normalizePath(file.path(ve.root,"..","pkg-repository"),winslash="/",mustWork=FALSE)
 
 	dir.create(ve.lib)
 
 	# Install the VE packages and dependencies
-	# If it looks like we have suitable 'src' and 'bin' in a local 'R' folder, use that for packages
+	# If it looks like we have suitable 'src' and 'bin' in a local repository, use that for packages
 	# Otherwise, reach for the default online server
 
 	ve.repos <- ifelse( dir.exists(ve.local), paste("file:",ve.local,sep=""), ve.remote )
@@ -48,7 +48,7 @@ if ( ! dir.exists(ve.lib) ) {
 		VE.pkgs,
 		lib=ve.lib,
 		repos=ve.repos,
-		quite=TRUE
+		quiet=TRUE
 	)
 	install.success <- TRUE
 }

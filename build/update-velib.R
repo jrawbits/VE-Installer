@@ -3,9 +3,7 @@
 load("dependencies.RData")
 if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
 
-ve.repos <- repo.miniCRAN()
-
-sought.pkgs <- available.packages(repos=ve.repos)[,"Package"]
+sought.pkgs <- available.packages(repos=ve.repo.url)[,"Package"]
 installed.pkgs <- installed.packages(lib.loc=ve.lib)[,"Package"]
 new.pkgs <- setdiff(sought.pkgs,installed.pkgs)
 
@@ -16,7 +14,7 @@ if(length(new.pkgs)>0) {
     install.packages(
         new.pkgs,
         lib=ve.lib,
-        repos=ve.repos,
+        repos=ve.repo.url,
         dependencies=c("Depends","Imports","LinkingTo")
     )
     cat("---Finished installing---\n")

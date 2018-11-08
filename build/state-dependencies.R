@@ -1,5 +1,5 @@
 # This script just compiles all the VisionEval dependencies and makes
-# them available to other scripts such as build-miniCRAN.R
+# them available to other scripts such as build-repository.R
 
 # Required input:  VE-dependencies.csv in ve.install/dependencies
 #   with columns "Package","Type","Path"
@@ -32,12 +32,13 @@ if (!exists("ve.output") || is.na(ve.output) || !file.exists(ve.output) ) {
 	
 ve.runtime <- file.path(ve.output,"runtime")
 ve.lib <- file.path(ve.output,"ve-lib")
-ve.miniCRAN <- file.path(ve.output,"miniCRAN")
+ve.repository <- file.path(ve.output,"pkg-repository")
+ve.repo.url <- paste("file:",ve.repository,sep="")
 
 # Create the basic output tree
 dir.create(ve.runtime,recursive=TRUE,showWarnings=FALSE)
 dir.create(ve.lib,recursive=TRUE,showWarnings=FALSE)
-dir.create(ve.miniCRAN,recursive=TRUE,showWarnings=FALSE)
+dir.create(ve.repository,recursive=TRUE,showWarnings=FALSE)
 
 # Produce the various package lists for retrieval
 pkgs.db <- read.csv(file.path(ve.dependencies,"VE-dependencies.csv"))
@@ -89,8 +90,8 @@ check.VE.environment <- function() {
 	} else if (!exists("ve.lib") || is.na(ve.lib) ) {
 		cat("Missing ve.lib definition; run state-dependencies.R\n")
 		return(0)
-	} else if (!exists("ve.miniCRAN") || is.na(ve.miniCRAN) ) {
-		cat("Missing ve.miniCRAN definition; run state-dependencies.R\n")
+	} else if (!exists("ve.repository") || is.na(ve.repository) ) {
+		cat("Missing ve.repository definition; run state-dependencies.R\n")
 		return(0)
 	}
 	return(1)
@@ -100,10 +101,6 @@ check.VE.environment <- function() {
 	if ( ! exists("check.VE.environment") || ! check.VE.environment() ) {
 		stop("Please set ve.root and ve.install in .Rprofile, then source('state-depedencies.R')")
 	}
-}
-
-repo.miniCRAN <- function() {
-	paste("file:",ve.miniCRAN,sep="")
 }
 
 # The following two helpers extract modules from built packages
@@ -117,10 +114,6 @@ module.exists <- function( module,path ) {
 	length(module.path(module,path))>0
 }
 
-update.miniCRAN <- function( type = "source" ) {
-	dir.to.update <- contrib.url(ve.miniCRAN,"source")
-}
-
 # Save out the basic setup that is used in later build scripts
 save(
 	file="dependencies.RData"
@@ -131,11 +124,11 @@ save(
 	,ve.output
 	,ve.runtime
 	,ve.lib
-	,ve.miniCRAN
+	,ve.repository
 	,CRAN.mirror
 	,module.path
 	,module.exists
-	,repo.miniCRAN
+	,ve.repo.url
 	,pkgs.db
 	,pkgs.all
 	,pkgs.CRAN

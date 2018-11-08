@@ -7,7 +7,7 @@ if (!suppressWarnings(require(miniCRAN))) {
 	install.packages("miniCRAN",repos=CRAN.mirror)
 }
 # We install these locally prior to the VE package build process (as a backstop
-# to ensure that all required packages really are in the miniCRAN).
+# to ensure that all required packages really are in the VE repository).
 # NOTE: it is a bad idea to put the VE dependencies in your development environment
 # since you will not easily be able to tell if you missed on in the documentation
 
@@ -20,9 +20,7 @@ if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build en
 # a Windows installation and a source (e.g. Linux/Docker) installation
 options(install.packages.compile.from.source="never")
 
-ve.repos <- repo.miniCRAN()
-
-sought.pkgs <- miniCRAN::pkgDep( c(pkgs.CRAN,pkgs.BioC), repos=ve.repos, suggests=FALSE )
+sought.pkgs <- miniCRAN::pkgDep( c(pkgs.CRAN,pkgs.BioC), repos=ve.repo.url, suggests=FALSE )
 pkgs.BaseR <- as.vector(installed.packages(lib.loc=.Library,priority=c("base","recommended"))[,"Package"])
 
 sought.pkgs <- setdiff(sought.pkgs,pkgs.BaseR)
@@ -40,7 +38,7 @@ if(length(new.pkgs)>0) {
     install.packages(
         new.pkgs,
         lib=ve.lib,
-        repos=ve.repos,
+        repos=ve.repo.url,
         dependencies=c("Depends","Imports","LinkingTo")
     )
     cat("---Finished installing---\n")

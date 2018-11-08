@@ -29,8 +29,8 @@ package.paths <- file.path(ve.root,pkgs.visioneval[,"Path"],pkgs.visioneval[,"Pa
 
 # Where to put the built results (these should exist after build-miniCRAN.R)
 
-built.path.src <- contrib.url(ve.miniCRAN,type="source")
-built.path.binary <- contrib.url(ve.miniCRAN,type="win.binary")
+built.path.src <- contrib.url(ve.repository,type="source")
+built.path.binary <- contrib.url(ve.repository,type="win.binary")
 
 # Put the following in a separate build step (makefile)
 # # Check the packages (default not to in the full script, but ask if interactive)
@@ -45,19 +45,18 @@ for (module in package.paths) {
 }
 
 # Build the framework and modules as binary packages if the local system wants win.binary
+# Note that we'll just use the side-effect of build (that it installs
 build.type <- .Platform$pkgType
 if ( build.type == "win.binary" ) {
-    if (!suppressWarnings(require(withr))) {
-	    install.packages("withr",repos=CRAN.mirror)
-    }
-    with_temp_libpaths( action="prefix" , {
-	    for (module in package.paths) {
-		    if ( ! module.exists(module, built.path.binary) ) {
-			    built.package <- devtools::build(module,path=built.path.binary,binary=TRUE)
-		    } else {
-			    built.package <- file.path(built.path.binary,module.path(module,built.path.binary))
-		    }
-		    install.packages(built.package,repos=NULL) # so they will be available for later modules
-	    }
-    })
+	if (!suppressWarnings(require(withr))) {
+		install.packages("withr",repos=CRAN.mirror)
+	}
+	for (module in package.paths) {
+		if ( ! module.exists(module, built.path.binary) ) {
+			built.package <- devtools::build(module,path=built.path.binary,binary=TRUE)
+		} else {
+			built.package <- file.path(built.path.binary,module.path(module,built.path.binary))
+		}
+		install.packages(built.package,repos=NULL,lib=ve.lib) # so they will be available for later modules
+	}
 }

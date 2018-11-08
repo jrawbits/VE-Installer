@@ -24,13 +24,14 @@ do_step()
 }
 
 do_step "state-dependencies.R"	     # the master list of VE dependencies
-do_step "build-miniCRAN.R"			 # the miniCRAN lives locally
-do_step "build-external.R"			 # build any package(s) from an external (Github) submodule
+do_step "build-repository.R"		 # the VE repository lives locally
 do_step "install-velib.R"			 # install the required VE packages to ve-lib
+do_step "build-external.R"			 # build any package(s) from an external (Github) submodule
 do_step "build-packages.R"			 # Prepare installable visioneval; has a number of annoying user dependencies like rhdf5
-do_step "update-miniCRAN.R"			 # add the VE (and local) packages we just built to miniCRAN and ve-lib
+do_step "update-repository.R"		 # Update the VE repository PACKAGES list with built packages
 do_step "setup-sources.R"			 # copy the modules and VEGUI to the install/runtime staging area
 do_step "build-installers.sh" "bash" # these also land in a web-ready location
 
-# Website is currently set up as a clone of my git repository, so only the miniCRAN gets rsync'ed
-# bash publish-installers.R # Loads the miniCRAN directory out to the website
+# Website is currently set up as a clone of my git repository,
+# so only the repository gets rsync'ed
+# bash publish-installers.R # Loads the repository directory out to the website

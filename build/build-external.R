@@ -17,9 +17,11 @@ if (!suppressWarnings(require(devtools))) {
 if ( nrow(pkgs.external)> 0 ) {
 	cat("Building external packages\n")
 
-	# Where to put the built results (these should exist after build-miniCRAN.R)
-	built.path.src <- contrib.url(ve.miniCRAN,type="source")
-	built.path.binary <- contrib.url(ve.miniCRAN,type="win.binary")
+	.libPaths( ve.lib ) # push runtime library onto path stack
+
+	# Where to put the built results (these should exist after build-repository.R)
+	built.path.src <- contrib.url(ve.repository,type="source")
+	built.path.binary <- contrib.url(ve.repository,type="win.binary")
 
 	# External packages to build (possibly submodules)
 	pkgs <- file.path(ve.install,pkgs.external[,"Path"],pkgs.external[,"Package"])
@@ -33,7 +35,7 @@ if ( nrow(pkgs.external)> 0 ) {
 
 	# Build as binary package if the developer platform is windows
 	# May need earlier externals as dependencies
-	# TODO: automate examination of external package dependencies in build-miniCRAN.R
+	# TODO: automate examination of external package dependencies in build-repository.R
 	# TODO: workaround for now is to ensure those dependencies are included in VE-dependencies.csv
 
 	cat("source build\n")
@@ -42,16 +44,14 @@ if ( nrow(pkgs.external)> 0 ) {
 		if (!suppressWarnings(require(withr))) {
 			install.packages("withr",repos=CRAN.mirror)
 		}
-		with_temp_libpaths( action="prefix" , {
-			for (pkg in pkgs) {
-				if ( ! module.exists(pkg, built.path.binary) ) {
-					built.package <- devtools::build(pkg,path=built.path.binary,binary=TRUE)
-				} else {
-					built.package <- file.path(built.path.binary,module.path(pkg,built.path.binary))
-				}
-				install.packages(built.package,repos=NULL) # so they will be available for later modules
+		for (pkg in pkgs) {
+			if ( ! module.exists(pkg, built.path.binary) ) {
+				built.package <- devtools::build(pkg,path=built.path.binary,binary=TRUE)
+			} else {
+				built.package <- file.path(built.path.binary,module.path(pkg,built.path.binary))
 			}
-		} )
+			install.packages(built.package,repos=NULL,lib=ve.lib) # so they will be available for later modules
+		}
 	}
 } else {
 	cat("No external packages to build\n")

@@ -2,12 +2,11 @@ Documentation of Build Process
 
 1. Parse dependencies and begin building the miniCRAN
 	* `state-dependencies.R`
-	* `build-miniCRAN.R`  (both source and binary from CRAN and BioC only; will skip existing, add new, but not delete)
-	  (Use build-miniCRAN to update _dependencies_; it does not look at externals or packages - use `update-miniCRAN`
+	* `build-repository.R`  (both source and binary from CRAN and BioC only; will skip existing, add new, but not delete)
 2. Build source packages:
-	* `build-external-src.R` (put these directly into the miniCRAN src/contrib tree, then rewrite PACKAGES)
-	* `build-packages-src.R` (put these directly into the miniCRAN src/contrib tree, then rewrite PACKAGES)
-	* `update-miniCRAN.R` (examines the built-external and built-packages directories; uses miniCRAN::updatePkgs if already present)
+	* `build-external-src.R` (put these directly into the miniCRAN src/contrib tree)
+	* `build-packages-src.R` (put these directly into the miniCRAN src/contrib tree)
+	* `update-repository.R` (updates PACKAGES files)
 3. Build missing binaries (if local architecture is Windows)
 	* Check available.packages for "source" and "win.binary" and rebuild any that are in the former but not the latter
 	* `build-windows.R` (build from miniCRAN source if on Windows, and put built packages in miniCRAN win.binary, then rewrite PACKAGES)
