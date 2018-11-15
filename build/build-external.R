@@ -6,7 +6,6 @@
 # are in VisionEval, we can just treat them as any other package though might want to
 # skip tests.  Currenly only have one of those (namedCapture).
 
-print(getwd())
 load("dependencies.RData")
 if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
 
@@ -16,6 +15,8 @@ if (!suppressWarnings(require(devtools))) {
 
 if ( nrow(pkgs.external)> 0 ) {
 	cat("Building external packages\n")
+
+	require(tools)
 
 	.libPaths( ve.lib ) # push runtime library onto path stack
 
@@ -32,11 +33,10 @@ if ( nrow(pkgs.external)> 0 ) {
 			devtools::build(pkg,path=built.path.src)
 		}
 	}
+	write_PACKAGES(contrib.url(ve.repository,type="source"),type="source")
 
 	# Build as binary package if the developer platform is windows
 	# May need earlier externals as dependencies
-	# TODO: automate examination of external package dependencies in build-repository.R
-	# TODO: workaround for now is to ensure those dependencies are included in VE-dependencies.csv
 
 	cat("source build\n")
 	build.type <- .Platform$pkgType
@@ -51,6 +51,12 @@ if ( nrow(pkgs.external)> 0 ) {
 				built.package <- file.path(built.path.binary,module.path(pkg,built.path.binary))
 			}
 			install.packages(built.package,repos=NULL,lib=ve.lib) # so they will be available for later modules
+		}
+		write_PACKAGES(contrib.url(ve.repository,type="win.binary"),type="win.binary")
+	} else {
+		# install source package in whatever binary form works for the local environment
+		for (pkg in pkgs) {
+			install.packages(module.path(pkg,built.path.src),repos=NULL,lib=ve.lib,type="source")
 		}
 	}
 } else {

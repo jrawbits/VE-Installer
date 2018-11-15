@@ -76,7 +76,7 @@ if ( have.packages() ) {
 		print(pkgs.missing.CRAN)
 		pkgs.missing.CRAN <- miniCRAN::pkgDep(pkgs.missing.CRAN,repos=CRAN.mirror,suggests=FALSE)
 		pkgs.missing.CRAN <- setdiff(pkgs.missing.CRAN,pkgs.present)
-		miniCRAN::addPackage(pkgs.missing.CRAN,path=ve.repository,repos=CRAN.mirror,type=c("source","win.binary"))
+		miniCRAN::addPackage(pkgs.missing.CRAN,path=ve.repository,repos=CRAN.mirror,type=c("source","win.binary"),deps=FALSE)
 	}
 	pkgs.missing.BioC <- setdiff(pkgs.BioC, pkgs.present)
 	if ( length(pkgs.missing.BioC) ) {

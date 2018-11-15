@@ -1,5 +1,5 @@
 *.RData
-installer_*/
+install*/
 .Rproj.user
 .Rhistory
 plan.txt

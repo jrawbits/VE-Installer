@@ -11,6 +11,10 @@ options(install.packages.compile.from.source="never")
 load("dependencies.RData")
 if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
 
+require(tools)
+require(devtools)
+require(rstudioapi)
+
 # Reach for ve.lib first.
 # Could use this hack to squeeze out local libraries, but we still need devtools...
 # https://stackoverflow.com/questions/36873307/how-to-change-and-remove-default-library-location
@@ -32,7 +36,7 @@ package.paths <- file.path(ve.root,pkgs.visioneval[,"Path"],pkgs.visioneval[,"Pa
 built.path.src <- contrib.url(ve.repository,type="source")
 built.path.binary <- contrib.url(ve.repository,type="win.binary")
 
-# Put the following in a separate build step (makefile)
+# Put the following in a separate build step for checking the packages
 # # Check the packages (default not to in the full script, but ask if interactive)
 # if (interactive() && askYesNo("Comprehensively check packages (Warning: PAINFUL)",default=FALSE)) {
 # 	for (module in package.paths) devtools::check(module)
@@ -43,9 +47,9 @@ for (module in package.paths) {
 		devtools::build(module,path=built.path.src)
 	}
 }
+write_PACKAGES(contrib.url(ve.repository,type="source"),type="source")
 
 # Build the framework and modules as binary packages if the local system wants win.binary
-# Note that we'll just use the side-effect of build (that it installs
 build.type <- .Platform$pkgType
 if ( build.type == "win.binary" ) {
 	if (!suppressWarnings(require(withr))) {
@@ -58,5 +62,11 @@ if ( build.type == "win.binary" ) {
 			built.package <- file.path(built.path.binary,module.path(module,built.path.binary))
 		}
 		install.packages(built.package,repos=NULL,lib=ve.lib) # so they will be available for later modules
+	}
+	write_PACKAGES(contrib.url(ve.repository,type="win.binary"),type="win.binary")
+} else {
+	# install source package in whatever binary form works for the local environment
+	for (module in package.paths) {
+		install.packages(module.path(module,built.path.src),repos=NULL,lib=ve.lib,type="source")
 	}
 }

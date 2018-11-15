@@ -8,7 +8,7 @@ configuration files describing that version).
 
 This installer addresses two VisionEval use cases:
 	1. Enable developers to run and test VisionEval in an environment comparable to what end users would have
-	1. Enable end users to install VisionEval with little effort on any computer that supports R
+	1. Enable end users to install a runnable VisionEval with little effort on any computer that supports R
 
 The following outputs are available:
 	* Self-contained VisionEval "**local**" installation that will run on your development machine

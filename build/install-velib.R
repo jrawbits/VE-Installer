@@ -9,7 +9,7 @@ if (!suppressWarnings(require(miniCRAN))) {
 # We install these locally prior to the VE package build process (as a backstop
 # to ensure that all required packages really are in the VE repository).
 # NOTE: it is a bad idea to put the VE dependencies in your development environment
-# since you will not easily be able to tell if you missed on in the documentation
+# since you will not easily be able to tell if you missed one
 
 load("dependencies.RData")
 if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
@@ -30,6 +30,9 @@ sought.pkgs <- setdiff(sought.pkgs,pkgs.BaseR)
 
 new.pkgs <- sought.pkgs[!(sought.pkgs %in% installed.packages(lib.loc=ve.lib)[,"Package"])]
 
+build.type <- .Platform$pkgType
+if ( build.type != "win.binary" ) build.type <- "source"
+
 if(length(new.pkgs)>0) {
     cat("---Still missing these packages:\n")
     print(sort(new.pkgs))
@@ -39,7 +42,8 @@ if(length(new.pkgs)>0) {
         new.pkgs,
         lib=ve.lib,
         repos=ve.repo.url,
-        dependencies=c("Depends","Imports","LinkingTo")
+        dependencies=c("Depends","Imports","LinkingTo"),
+		type=build.type
     )
     cat("---Finished installing---\n")
 } else {

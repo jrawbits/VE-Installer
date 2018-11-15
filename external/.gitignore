@@ -1,3 +1,6 @@
 *.exe
 *.msi
 *.tar.xz
+namedCapture/
+webdriver/
+shinytest/

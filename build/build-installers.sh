@@ -12,9 +12,10 @@
 
 # TODO: Add Dockerfile / image construction
 
-VE_OUTPUT=$(Rscript -e "load('dependencies.RData'); cat(ve.output)")
-VE_INSTALLER=${VE_OUTPUT}/VE-installer.zip
-VE_WINDOWS=${VE_OUTPUT}/VE-installer-windows-R3.5.1.zip
+VE_OUTPUT="$(Rscript -e \"load\(\\\"dependencies.RData\\\"\)\; cat\(ve.output\)\")"
+VE_INSTALLER="${VE_OUTPUT}/VE-installer.zip"
+VE_OFFLINE_TYPE="$(Rscript -e 'cat(.Platform$OS.type)')"
+VE_WINDOWS="${VE_OUTPUT}/VE-installer-${VE_OFFLINE_TYPE}-R3.5.1.zip"
 RUNTIME_PATH="${VE_OUTPUT}/runtime" # change as necessary
 
 cd ${RUNTIME_PATH}

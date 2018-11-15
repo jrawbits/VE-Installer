@@ -26,7 +26,7 @@ if (!exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
 ve.dependencies <- file.path(ve.install,"dependencies")
 source(file.path(ve.dependencies,"VE-config.R"))
 
-if (!exists("ve.output") || is.na(ve.output) || !file.exists(ve.output) ) {
+if (!exists("ve.output") || is.na(ve.output) ) {
 	ve.output <- file.path(ve.install,paste("installer",format(Sys.time(),"%y%m%d"),sep="_"))
 }
 	
