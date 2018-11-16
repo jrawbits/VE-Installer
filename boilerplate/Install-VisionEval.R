@@ -27,34 +27,44 @@ ve.root <- getwd()
 ve.lib <- file.path(ve.root,"ve-lib")
 
 if ( ! dir.exists(ve.lib) ) {
-	# We'll presume that if it's there, it has what we need (if not, delete it and re-run installation)
-	# That allows a "pure windows installer" with the lib directory pre-loaded
+	# We'll presume that if ve-lib can be found, it has what we need
+	# If not, delete ve-lib and re-run installation
 
-	# Configure repository depending on installation source
-	ve.remote <- "https://visioneval.jeremyraw.com/R/"
-	ve.local  <- normalizePath(file.path(ve.root,"..","pkg-repository"),winslash="/",mustWork=FALSE)
+	# We can also look in the build environment for ve-lib
+	ve.lib.local <- normalizePath(file.path(ve.root,"..","ve-lib"),winslash="/",mustWork=FALSE)
 
-	dir.create(ve.lib)
+	if (! dir.exists(ve.lib.local) ) {
+		# It can't be found locally, so pull it in from a repository
 
-	# Install the VE packages and dependencies
-	# If it looks like we have suitable 'src' and 'bin' in a local repository, use that for packages
-	# Otherwise, reach for the default online server
+		# Configure repository depending on installation source
+		ve.remote <- "https://visioneval.jeremyraw.com/R/"
+		ve.local  <- normalizePath(file.path(ve.root,"..","pkg-repository"),winslash="/",mustWork=FALSE)
 
-	ve.repos <- ifelse( dir.exists(ve.local), paste("file:",ve.local,sep=""), ve.remote )
-	VE.pkgs <- available.packages(repos=ve.repos)[,"Package"] # Installation list is everything in the miniCRAN
+		dir.create(ve.lib)
 
-	# Don't do dependencies because they should all be in the miniCRAN
-	install.packages(
-		VE.pkgs,
-		lib=ve.lib,
-		repos=ve.repos,
-		quiet=TRUE
-	)
-	install.success <- TRUE
+		# Install the VE packages and dependencies
+		# If it looks like we have suitable 'src' and 'bin' in a local repository, use that for packages
+		# Otherwise, reach for the default online server
+
+		ve.repos <- ifelse( dir.exists(ve.local), paste("file:",ve.local,sep=""), ve.remote )
+		VE.pkgs <- available.packages(repos=ve.repos)[,"Package"] # Installation list is everything in the repository
+
+		# Don't do dependencies because they should all be in the miniCRAN
+		install.packages(
+			VE.pkgs,
+			lib=ve.lib,
+			repos=ve.repos,
+			quiet=TRUE
+		)
+		install.success <- TRUE
+	} else {
+		ve.lib <- ve.lib.local # Use the build environment installed library
+		install.success <- TRUE
+	}
 }
 
 # Construct "RunVisionEval.Rdata"
-# Something to "double-click" for a rapid happy start in RGui.
+# Something to "double-click" for a rapid happy start in RGui...
 
 # TODO: We'll want to do some better library-finding
 # I'd recommend blowing away all the library paths except the
@@ -79,9 +89,9 @@ install.success <- .First()
 vegui <- function() {
 	require("shiny")
 	full_path <- file.path(ve.root,"VEGUI")
-	setwd(full_path)
+	old.path <- setwd(full_path)
 	runApp('../VEGUI')
-	setwd(ve.root)
+	setwd(old.path)
 }
 
 # The following two functions run the command line version per the
@@ -89,16 +99,16 @@ vegui <- function() {
 
 verpat <- function() {
 	full_path = file.path(ve.root,"models/VERPAT")
-	setwd(full_path)
+	old.path <- setwd(full_path)
 	source("run_model.R")
-	setwd(ve.root)
+	setwd(old.path)
 }
 
-verspm <- function() {
-	full_path = file.path(ve.root,"models/VERSPM")
-	setwd(full_path)
+verspm <- function(which.rspm="Test1") {
+	full_path = file.path(ve.root,"models/VERSPM",which.rspm)
+	old.path <- setwd(full_path)
 	source("run_model.R")
-	setwd(ve.root)
+	setwd(old.path)
 }
 
 if ( install.success ) {
@@ -113,4 +123,3 @@ if ( install.success ) {
 } else {
 	cat("Installation failed - check error and warning messages.\n")
 }
-

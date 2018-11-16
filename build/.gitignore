@@ -1,3 +1,4 @@
 *.RData
 .Rprofile
 build.out
+Makefile

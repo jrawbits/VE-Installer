@@ -24,7 +24,7 @@ cd ${RUNTIME_PATH}
 [ -f ${VE_WINDOWS} ] && rm ${VE_WINDOWS}
 
 echo "Building online installer: ${VE_INSTALLER}"
-zip --recurse-paths ${VE_INSTALLER} .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R models vegui
+zip --recurse-paths ${VE_INSTALLER} .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R $(ls -d */ | sed -e 's!/*$!!')
 
 # Windows installer
 echo "Building offline (Windows) installer: ${VE_WINDOWS}"

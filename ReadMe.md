@@ -1,7 +1,9 @@
 # Building and Installing VisionEval
 
-The "build" folder contains R scripts and resources necessary to build a runnable
-VisionEval, using resources in the other folders.
+The `VisionEval-install` side project" makes a VisionEval source tree "installable".  To use
+it, just clone it, setup the configuration and dependency files, and run the build scripts in
+order. Full instructions are below, and documentation of the setup files is in the `dependencies`
+sub-directory along with examples.
 
 You can use this build process with any version of VisionEval (with appropriate changes to
 configuration files describing that version).
@@ -19,57 +21,60 @@ The following outputs are available:
 
 # Development Environment Pre-Requisites
 
-Prerequisites include the [current release version of R][currentR] for your development platform,
-and a suitable development environment.
+Prerequisites to build a VisionEval runtime environment or installser include the [current
+release version of R][currentR] for your development platform, and a suitable development
+environment.
 
 [currentR]: https://cran.r-project.org "Download and Install R"
 
-The scripting is driven by scripts for GNU bash, but the substantive work is done in R
-scripts that can be run interactively in R or using Rscript.  Just `setwd()` to the
-"build" subfolder and source the scripts, or go to the build directory and run Rscript in
-Powershell or Windows CMD.
+The scripting is summarized in a script (`Build.sh`) intended to run under GNU bash.
+However, the substantive work is done in R scripts that can be run interactively in R or
+from a command line using Rscript.  Just `setwd()` to the "build" subfolder and source the
+scripts, or go to the build directory and run `Rscript <scriptname.R>` in Powershell or
+Windows CMD.
 
 You can also initiate an [RStudio][getRstudio] project at the root of the installer
 directories (where this ReadMe.md file lives) and run the scripts from within RStudio.
 The self-contained VisionEval installation that results from this installer includes
-"VisionEval.Rproj" which you can double-click to interact with the end-user VisionEval
-environment.
+"VisionEval.Rproj" which a runtime user can double-click to interact with the end-user
+VisionEval environment using RStudio.
 
 [getRstudio]: https://www.rstudio.com/products/rstudio/download/ "Download RStudio"
 
 You can get GNU bash and a complete environment for managing VisionEval source code by
 installing [Git for Windows][Git4W].  On a Linux machine, GNU bash is the standard command
-line.
+line interpreter.
 
 [Git4W]: https://gitforwindows.org "Git for Windows"
 
 You will also need a few R packages, but the build scripts will install those if they
-don't have them (though you must provide a writable library directory to store them in -
-see below).
+don't have them (though you must have access to the internet and you must provide a
+writable library directory to store them in - see below).
 
 ## Pre-Requisite: RTools for Windows
 
 To build the packages and installers on a Windows system, you need to install
-[RTools][getRTools].  Installing RTools (or, for that matter, R itself, if installed just
-for the "current user") does not require administrator right.  But you will need to point
-the installer at a writable directory (i.e. one that you as a user have write permission
-for). It also helps to put the RTools bin directory at the head of your path (otherwise
-the repository build process may fail if the Git for Windows version of "tar" is called
-during the R package build process, rather than the RTools version).
+[RTools][getRTools].  Installing RTools does not require administrator right.  But you
+will need to point the installer at a writable directory (i.e. one that you as a user have
+write permission for). It also helps to put the RTools bin directory at the head of your
+path (otherwise the repository build process may fail if the Git for Windows version of
+"tar" is called during the R package build process, rather than the RTools version).
 
 [getRTools]: https://cran.r-project.org/bin/windows/Rtools/Rtools35.exe "RTools for R 3.5"
 
-## Linux build pre-requisites
+## Pre-Requisite: Linux environment
 
-In order to install from source on Linux, some additional system-level dependencies
-exist (required libraries that some of the binary dependency packages use).  This
-ReadMe.md does not review how to install R itself on Linux - you just need to make
-sure you have the "dev"(elopment) version so you get the compilers and libraries
-needed to compile the dependencies from source.
+A standard R installation on Linux (whether from a package repository or directly from
+the R project) will include all the development tools needed to install source packages.
 
-On Ubuntu 16.04, installing the following packages will be needed (plus X11 and a few
-other odds and ends - watch for errors when the build scripts try to build the externals
-and packages).
+However, some additional system-level dependencies exist (required libraries that some of
+the binary dependency packages use).  This ReadMe.md does not review how to install R
+itself on Linux - standard installatons will include the compilers and related tools
+needed to build the VisionEval dependencies from source.
+
+On Ubuntu 18.04, installing the following packages will probably be needed (plus X11 and a
+few other odds and ends - watch for errors when the build scripts try to build the
+externals and packages).
 
 To build "cairo" (used for nice image rendering):
 
@@ -81,7 +86,7 @@ sudo apt-get install libcairo2-dev
 To build "V8" (used for who knows what):
 
 ```bash
-sudo apt-get libv8-dev
+sudo apt-get install libv8-dev
 ```
 
 # Steps to Build
@@ -99,23 +104,48 @@ to have them already.
 
 To support that, you may need to set up .Rprofile/.Renviron/environment variables that
 makes a writable R library (for your development tools) available.  See Rprofile-sample
-for an example of what might do the trick. R has extensive documentation on this
-requirement.
+for an example of what might do the trick. R has [extensive documentation][RStartup] on
+setting up the environment through startup files.
+
+[RStartup]: https://stat.ethz.ch/R-manual/R-devel/library/base/html/Startup.html "R Startup"
 
 ## Deciding which VisionEval to build
 
 In the "dependencies" directory, you will need to create VE-config.R.  The samples you
 will find there have comments explaining what you must set up and what is optional.  The
 key is to point at the VisionEval source tree that you have cloned or downloaded from
-Github or some other repository location.
+Github or some other repository location.  You should also make sure that the VisionEval
+source tree has checked out the branch that you would like to build.
+
+The simplest way to get a VisionEval source tree to install is to clone it from Github.
+If you have Git for Windows (or just git on Linux), you can do this:
+
+```
+git clone --depth=1 -b master https://github.com/VisionEval/VisionEval.git VE-master
+```
+
+Using `depth=1` saves you copying gigabytes of binary files that were produced in earlier
+test runs and committed unnecessarily to the repository.  Using the `-b` option (replace
+`master` with your chosen branch such as `develop`) selects a specific branch, which may
+often be necessary if the default is some obsolete version languishing in `master` or if
+it contains a documentation tree.  Naming the folder to clone into (`VE-master` in the
+example above) makes it simple to clone different branches to different places.
+
+Note that cloning with `--depth=1` only gets one branch, so you can't change branches
+within a repository clone created that way.  There are switches to change that behavior
+that you can look up for yourself.
+
+## Building, Rebuilding and Updating dependencies
 
 You'll also need to adjust VE-dependencies.csv to coincide with the needs of the VE you
 are planning to build.  VE-dependencides is a table of VisionEval dependencies and
-elements that will be built during the process. There are examples, and a ReadMe that
-explains the format.  The order is important only in that you should list dependencies
-first (particularly among the VisionEval packages themselves, which depend on each other).
-Follow the .travis.yml file in the VE repository, or look at the former install.R script.
-All important VE releases will eventually have working dependency files available here.
+elements that will be built into the runtime and installers. There are examples, and a
+ReadMe, that explain the format in the `dependencies` folder.  The order is important only
+in that you should list dependencies of the same type in the order you would like to build
+them.  That's especially true for the VisionEval packages themselves, which depend on each
+other. All important VE releases will eventually have working dependency files available
+here.  You can pivot off the existing examples, and use the .travis.yml or Install.R scripts
+(though these usually have dependencies listed that you may not actually need).
 
 Because the build process is rather smart about not rebuilding things that already exist
 in its output folders, it is easy to restart build.sh if something goes wrong (of course,
@@ -123,8 +153,13 @@ you do have to fix whatever failed).  But that's a pretty easy way to get the pa
 tell you what they need (just don't list any dependencies, wait for failure, add the ones
 that are missing, restart build.sh from the top).  That won't work for the model scripts or
 VEGUI, which are not currently packages - a simple "grep" through their .R files looking for
-"library" or "require" statements will turn them up (your text editor has command to comb
-across directories looking for terms like that, right?).
+"library" or "require" statements will reveal them (your text editor has command to comb
+across files and directories looking for terms like that, right?).
+
+If you want to remove a package from a build, you should explicitly delete the build target
+(e.g. built package, local repository, installer) and rerun the corresponding build script.
+It is always a good idea to re-run `state-dependencies.R` before you do anything else so
+you are sure to pick up any changes to the build configuration files.
 
 ## Running the build process
 
@@ -144,32 +179,43 @@ pushd build
 nohup bash Build.sh >build.out 2>&1 & tail -f build.out
 ```
 
-I recommend the `nohup` line (rather than just `bash Build.sh`) because it will
-let you close the bash window, and the redirection will save errors and warnings so you
-can mull over what went wrong.  You don't need the "tail -f build.out" addendum; it's
-handy to have the output show up in near-realtime if you're impatient.
+I recommend the `nohup` line (rather than just `bash Build.sh`) because it will let you
+close the bash window, and the redirection will save errors and warnings so you can later
+mull over what went wrong.  You don't need the "tail -f build.out" addendum; it's just a way
+to look at the build output while the background process is running.
 
 You can run the build steps individual, as long as the earlier steps have already been
 successfully completed.  Just execute the `Rscript xxx.R` command from a bash command line
 with the working directory set to "build".  Do the scripts in the order listed in Build.sh.
+Note that the step that builds the installer zip files is a Bash script, not an R script.
+If you don't have Bash, you can easily put an installer together manually:
 
-Once you have completed the steps leading up to `Rscript build-packages.R` you don't need
-to do those again unless the project dependencies chanage.  So you can fiddle with
-VisionEval modules or models and then just pick up the build process from
-`build-packages.R`.  You should empty out the built installer's `runtime` folder prior to
-rerunning the scripts (as written, the scripts will not overwrite anything that's already
-there).  You don't have to delete the `VE-Installer*.zip` files because they are always
-built from scratch.
+	* the online installer just wraps up the contents of the `runtime` folder from the
+	  installer build output (with `runtime` as the working directory).
+	* The offline installer just adds the `ve-lib` folder from the installer build
+	  output as if it were a sub-directory of `runtime`.
+
+Once you have completed the steps leading up to `Rscript build-packages.R` (which build
+the local repository and the install dependencies) you don't need to do those again unless
+the project dependencies change.  So you can fiddle with VisionEval modules or models and
+then just pick up the build process from `build-packages.R`.  You should empty out the
+built installer's `runtime` folder prior to rerunning the scripts (as written, the scripts
+will not overwrite anything that's already there).  You don't have to delete the
+`VE-Installer*.zip` files because they are always built from scratch.
+
+If you are plannign to distribute one of the .zip installers, you should build from
+scratch (set a new ve.output directory, or delete everything in the current one).
+Otherwise you risk including obsolete dependencies. That's probably harmless; it just
+makes the installer bigger than necessary.
 
 # Key outputs of the build process
 
 The build process constructs your VisionEval runtime, installers and supporting files in a
-directory called `installer_YYMMDD`, where YYMMDD is the date you ran the installation
+directory called (by default) `installer_YYMMDD`, where YYMMDD is the date you ran the installation
 program.  You can define `ve.output` to something different in your R profile (e.g. changing
 the name to match the version of VisionEval you're installing).
 
-Note that the default naming scheme may change.  Inside the `ve.output` folder, you will
-find the following:
+Inside the `ve.output` folder, you will find the following:
 
 Item | Contents
 --------- | --------
@@ -178,6 +224,10 @@ ve-lib | Library of installed packages for Windows (used to build "offline" inst
 runtime | the VisionEval folder with the installed / installable elements (see below)
 VE-installer.zip | the online installer (needs access to a miniCRAN)
 VE-installer-windows-R3.5.1.zip | the offline Windows installer
+
+If you build on a Linux system, you'll get `VE-installer-unix-R3.5.1.zip` as the offline
+binary installer instead.  In practice, you'll want to install from source on Linux or
+Mac systems.
 
 # Running VisionEval locally
 
@@ -189,17 +239,21 @@ right up with "Welcome to VisionEval!", you can "kick" it by doing this:
     source("Install-VisionEval.R")
     load("RunVisionEval.RData")
 
+The installation is very fast on Windows, but on other systems you get a "source"
+installation, which entails compiling some large dependencies and VisionEval itself, which
+can take a while.
+
 Later, you can start VisionEval just by changing to the runtime directory and
 starting R (or setting up an R shortcut with the "Start In" folder set to your runtime).
 
 Alternatively, on Windows, you can run the Install-VisionEval.bat file, then double-click
 RunVisionEval.RData.
 
-Eventually, there may be an InnoSetup installer for Windows as well as a Docker image.
+Eventually, there may be an InnoSetup installer for Windows as well as Docker images.
 
 # Publishing the installers
 
 The .zip files that you'll find in your "installer" root directory (where all the built
 stuff is) can be published to the web.  I've included a bash script in the build directory
-that I use to push the updated installers and miniCRAN to my website,
+that I use to push the updated installers and package repository to my website,
 visioneval.jeremyraw.com.

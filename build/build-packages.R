@@ -21,7 +21,7 @@ require(rstudioapi)
 #   old.lib.loc <- get(".lib.loc",envir=environment(.libPaths))
 #   assign(".lib.loc",c(ve.lib,.Library),envir=environment(.libPaths))
 
-.libPaths( ve.lib ) # push runtime library onto path stack
+.libPaths( c(ve.lib,.libPaths()) ) # push runtime library onto path stack
 
 # NOTE: developers are discouraged from putting any/too many depedencies into their
 # development environment, especially when adding dependencies - those should always
@@ -52,9 +52,6 @@ write_PACKAGES(contrib.url(ve.repository,type="source"),type="source")
 # Build the framework and modules as binary packages if the local system wants win.binary
 build.type <- .Platform$pkgType
 if ( build.type == "win.binary" ) {
-	if (!suppressWarnings(require(withr))) {
-		install.packages("withr",repos=CRAN.mirror)
-	}
 	for (module in package.paths) {
 		if ( ! module.exists(module, built.path.binary) ) {
 			built.package <- devtools::build(module,path=built.path.binary,binary=TRUE)

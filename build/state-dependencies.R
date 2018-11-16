@@ -29,6 +29,7 @@ source(file.path(ve.dependencies,"VE-config.R"))
 if (!exists("ve.output") || is.na(ve.output) ) {
 	ve.output <- file.path(ve.install,paste("installer",format(Sys.time(),"%y%m%d"),sep="_"))
 }
+ve.output <- gsub("\\\\","/",ve.output)
 	
 ve.runtime <- file.path(ve.output,"runtime")
 ve.lib <- file.path(ve.output,"ve-lib")

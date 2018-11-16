@@ -1,7 +1,6 @@
 #!/bin/R
 # This script installs required R packages from CRAN and BioConductor
 
-print(.libPaths())
 if (!suppressWarnings(require(miniCRAN))) {
 	install.packages("miniCRAN",repos=CRAN.mirror)
 }
