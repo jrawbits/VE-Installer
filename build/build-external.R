@@ -28,12 +28,14 @@ if ( nrow(pkgs.external)> 0 ) {
 	pkgs <- file.path(ve.install,pkgs.external[,"Path"],pkgs.external[,"Package"])
 
 	# Always build as source packages
+    num.built <- 0
 	for (pkg in pkgs) {
 		if ( ! module.exists(pkg, built.path.src) ) {
 			devtools::build(pkg,path=built.path.src)
+            num.built <- num.built+1
 		}
 	}
-	write_PACKAGES(contrib.url(ve.repository,type="source"),type="source")
+    if (num.built>0) write_PACKAGES(contrib.url(ve.repository,type="source"),type="source")
 
 	# Build as binary package if the developer platform is windows
 	# May need earlier externals as dependencies
@@ -56,7 +58,7 @@ if ( nrow(pkgs.external)> 0 ) {
 	} else {
 		# install source package in whatever binary form works for the local environment
 		for (pkg in pkgs) {
-			install.packages(module.path(pkg,built.path.src),repos=NULL,lib=ve.lib,type="source")
+			install.packages(pkg,repos=NULL,lib=ve.lib,type="source")
 		}
 	}
 } else {

@@ -67,6 +67,7 @@ if ( build.type == "win.binary" ) {
 } else {
 	# install source package in whatever binary form works for the local environment
 	for (module in package.paths) {
-		install.packages(module.path(module,built.path.src),repos=NULL,lib=ve.lib,type="source")
+        # TODO: check if module already exists
+		install.packages(module,repos=NULL,lib=ve.lib,type="source")
 	}
 }

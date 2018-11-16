@@ -12,9 +12,9 @@ This installer addresses two VisionEval use cases:
 
 The following outputs are available:
 	* Self-contained VisionEval "**local**" installation that will run on your development machine
-	* Windows "**offline**" installer
+	* Windows "**offline**" installer (or the equivalent for your development system architecture)
 	* Multi-Platform "**online**" installer that will get everything it needs from the web
-	* [Under Construction] **Docker image** for any system running Docker
+	* [Under Construction] **Docker images** for any system running Docker
 	* A **local R repository** with all the required VisionEval packages (including VisionEval itself)
 
 # Development Environment Pre-Requisites
@@ -25,13 +25,13 @@ and a suitable development environment.
 [currentR]: https://cran.r-project.org "Download and Install R"
 
 The scripting is driven by scripts for GNU bash, but the substantive work is done in R
-scripts that can be run interactively in R.  Just `setwd()` to the "build" subfolder and
-source the scripts, or go to the build directory and run Rscript in Powershell or Windows
-CMD).
+scripts that can be run interactively in R or using Rscript.  Just `setwd()` to the
+"build" subfolder and source the scripts, or go to the build directory and run Rscript in
+Powershell or Windows CMD.
 
-You can also initiate an [RStudio][getRstudio] project at the root of the installer directories (where
-this ReadMe.md file lives) and run the scripts from within RStudio.  The
-self-contained VisionEval installation that results from this installer includes
+You can also initiate an [RStudio][getRstudio] project at the root of the installer
+directories (where this ReadMe.md file lives) and run the scripts from within RStudio.
+The self-contained VisionEval installation that results from this installer includes
 "VisionEval.Rproj" which you can double-click to interact with the end-user VisionEval
 environment.
 
@@ -49,13 +49,13 @@ see below).
 
 ## Pre-Requisite: RTools for Windows
 
-To build the installers on a Windows system, you need to install [RTools][getRTools].
-Installing RTools (or, for that matter, R itself if installed just for the "current user")
-does not require administrator rights, but you will need to point the installer at a
-writable directory (i.e. one that you as a user have write permission for). It also
-helps to put the RTools bin directory at the head of your path (otherwise the repository
-build process may fail if the Git for Windows version of "tar" is called during the R
-package build process, rather than the RTools version).
+To build the packages and installers on a Windows system, you need to install
+[RTools][getRTools].  Installing RTools (or, for that matter, R itself, if installed just
+for the "current user") does not require administrator right.  But you will need to point
+the installer at a writable directory (i.e. one that you as a user have write permission
+for). It also helps to put the RTools bin directory at the head of your path (otherwise
+the repository build process may fail if the Git for Windows version of "tar" is called
+during the R package build process, rather than the RTools version).
 
 [getRTools]: https://cran.r-project.org/bin/windows/Rtools/Rtools35.exe "RTools for R 3.5"
 
@@ -68,7 +68,8 @@ sure you have the "dev"(elopment) version so you get the compilers and libraries
 needed to compile the dependencies from source.
 
 On Ubuntu 16.04, installing the following packages will be needed (plus X11 and a few
-other odds and ends - watch for errors when you try to run the "offline" installation).
+other odds and ends - watch for errors when the build scripts try to build the externals
+and packages).
 
 To build "cairo" (used for nice image rendering):
 
@@ -96,9 +97,10 @@ runtime environment are pretty cleanly separated.  You'll need some packages to 
 installer, though the scripts will attempt to install them from CRAN if you happen not
 to have them already.
 
-To support that, you may need to set up an .Rprofile/.Renviron/environment variables that
+To support that, you may need to set up .Rprofile/.Renviron/environment variables that
 makes a writable R library (for your development tools) available.  See Rprofile-sample
-for an example of what might do the trick. R has extensive documentation on this requiremenet.
+for an example of what might do the trick. R has extensive documentation on this
+requirement.
 
 ## Deciding which VisionEval to build
 
@@ -110,15 +112,19 @@ Github or some other repository location.
 You'll also need to adjust VE-dependencies.csv to coincide with the needs of the VE you
 are planning to build.  VE-dependencides is a table of VisionEval dependencies and
 elements that will be built during the process. There are examples, and a ReadMe that
-explains the format.  The order is important only int that you should list dependencies
+explains the format.  The order is important only in that you should list dependencies
 first (particularly among the VisionEval packages themselves, which depend on each other).
-Follow the .travis.yml file in the VE repository, or look at the install.R script.  All
-important VE releases will eventually have working dependency files available here.
+Follow the .travis.yml file in the VE repository, or look at the former install.R script.
+All important VE releases will eventually have working dependency files available here.
 
-I'm also working on an R script that will comb the VE source tree and automatically find
-the R dependencies.  It's harder to automated recognition of VisionEval code for the models,
-but for now, it just takes the `sources/models` directory in toto and presumes something
-good will come of that.  Stay tuned...
+Because the build process is rather smart about not rebuilding things that already exist
+in its output folders, it is easy to restart build.sh if something goes wrong (of course,
+you do have to fix whatever failed).  But that's a pretty easy way to get the packages to
+tell you what they need (just don't list any dependencies, wait for failure, add the ones
+that are missing, restart build.sh from the top).  That won't work for the model scripts or
+VEGUI, which are not currently packages - a simple "grep" through their .R files looking for
+"library" or "require" statements will turn them up (your text editor has command to comb
+across directories looking for terms like that, right?).
 
 ## Running the build process
 
@@ -126,7 +132,7 @@ The script-based build process is hosted in the "build" subdirectory.
 
 The master build script can be run in Linux or Git for Windows Bash (or more generally, in
 the MSys for Windows Bash). Here's a complete summary of the required steps for initiating
-a build
+a build (in bash):
 
 ```bash
 pwd # should be the root of your VisionEval-install clone
