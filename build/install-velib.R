@@ -24,9 +24,6 @@ sought.pkgs <- miniCRAN::pkgDep( c(pkgs.CRAN,pkgs.BioC), repos=ve.repo.url, sugg
 pkgs.BaseR <- as.vector(installed.packages(lib.loc=.Library,priority=c("base","recommended"))[,"Package"])
 
 sought.pkgs <- setdiff(sought.pkgs,pkgs.BaseR)
-# cat("Final sought packages:\n")
-# print(sort(sought.pkgs))
-# cat("---End of revised sought.pkgs---\n")
 
 new.pkgs <- sought.pkgs[!(sought.pkgs %in% installed.packages(lib.loc=ve.lib)[,"Package"])]
 

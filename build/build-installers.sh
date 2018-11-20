@@ -27,9 +27,12 @@ echo "Building online installer: ${VE_INSTALLER}"
 zip --recurse-paths ${VE_INSTALLER} .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R $(ls -d */ | sed -e 's!/*$!!')
 
 # Windows installer
-echo "Building offline (Windows) installer: ${VE_WINDOWS}"
 cd ${VE_OUTPUT}
-zip --recurse-paths --output-file=${VE_WINDOWS} ${VE_INSTALLER} ve-lib
+if [ -d ve-lib ] && [ ! -z "$(ls -A ve-lib)" ]
+then
+    echo "Building offline (Windows) installer: ${VE_WINDOWS}"
+    zip --recurse-paths --output-file=${VE_WINDOWS} ${VE_INSTALLER} ve-lib
+fi
 
 echo "Done building installers."
 

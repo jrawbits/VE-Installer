@@ -25,12 +25,20 @@ do_step()
 
 do_step "state-dependencies.R"	     # the master list of VE dependencies
 do_step "build-repository.R"		 # the VE repository lives locally
-do_step "install-velib.R"			 # install the required VE packages to ve-lib
-do_step "build-external.R"			 # build any package(s) from an external (Github) submodule
-do_step "build-packages.R"			 # Prepare installable visioneval; has a number of annoying user dependencies like rhdf5
+do_step "build-external-src.R"       # external (Github) packages as configured
+do_step "build-packages-src.R"       # VisionEval packages as configured
 do_step "setup-sources.R"			 # copy the modules and VEGUI to the install/runtime staging area
+# do_step "build-docker.sh" "bash"   # build the docker image
+
+# Need the following for local installation, or for building the Windows installer
+do_step "install-velib.R"			 # install the required VE packages to ve-lib
+do_step "build-external-bin.R"       # Build binary external packages
+do_step "build-packages-bin.R"		 # Build binary Windows / local packages
+
+# Can do the following step with or without the local/Windows installation
+# If ve-lib is not installed, then it will only build the online installer
 do_step "build-installers.sh" "bash" # these also land in a web-ready location
 
 # Website is currently set up as a clone of my git repository,
 # so only the repository gets rsync'ed
-# bash publish-installers.R # Loads the repository directory out to the website
+# do_step "publish-installers.sh" "bash"  # Push the package repository directory to the website

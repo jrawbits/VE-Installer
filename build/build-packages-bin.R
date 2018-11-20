@@ -13,7 +13,6 @@ if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build en
 
 require(tools)
 require(devtools)
-require(rstudioapi)
 
 # Reach for ve.lib first.
 # Could use this hack to squeeze out local libraries, but we still need devtools...
@@ -33,21 +32,7 @@ package.paths <- file.path(ve.root,pkgs.visioneval[,"Path"],pkgs.visioneval[,"Pa
 
 # Where to put the built results (these should exist after build-miniCRAN.R)
 
-built.path.src <- contrib.url(ve.repository,type="source")
 built.path.binary <- contrib.url(ve.repository,type="win.binary")
-
-# Put the following in a separate build step for checking the packages
-# # Check the packages (default not to in the full script, but ask if interactive)
-# if (interactive() && askYesNo("Comprehensively check packages (Warning: PAINFUL)",default=FALSE)) {
-# 	for (module in package.paths) devtools::check(module)
-# }
-
-for (module in package.paths) {
-	if ( ! module.exists(module, built.path.src) ) {
-		devtools::build(module,path=built.path.src)
-	}
-}
-write_PACKAGES(contrib.url(ve.repository,type="source"),type="source")
 
 # Build the framework and modules as binary packages if the local system wants win.binary
 build.type <- .Platform$pkgType
@@ -60,11 +45,11 @@ if ( build.type == "win.binary" ) {
 		}
 		install.packages(built.package,repos=NULL,lib=ve.lib) # so they will be available for later modules
 	}
-	write_PACKAGES(contrib.url(ve.repository,type="win.binary"),type="win.binary")
+	write_PACKAGES(built.path.binary,type="win.binary")
 } else {
 	# install source package in whatever binary form works for the local environment
 	for (module in package.paths) {
-        # TODO: check if module already exists
 		install.packages(module,repos=NULL,lib=ve.lib,type="source")
 	}
 }
+cat("Done installing VisionEval binary packages.\n")

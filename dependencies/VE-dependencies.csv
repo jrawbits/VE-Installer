@@ -26,7 +26,7 @@
 "VEPowertrainsAndFuels","visioneval","sources/modules"
 "VETravelPerformance","visioneval","sources/modules"
 "VEReports","visioneval","sources/modules"
-"VEGui","copy","sources"
+"VEGUI","copy","sources"
 "data.table","CRAN",NA
 "DT","CRAN",NA
 "envDocument","CRAN",NA

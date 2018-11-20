@@ -14,38 +14,23 @@ if (!suppressWarnings(require(devtools))) {
 }
 
 if ( nrow(pkgs.external)> 0 ) {
-	cat("Building external packages\n")
+	cat("Building external packages (binary)\n")
 
 	require(tools)
 
-	.libPaths( ve.lib ) # push runtime library onto path stack
+	.libPaths( c(ve.lib,.libPaths()) ) # push runtime library onto path stack
 
 	# Where to put the built results (these should exist after build-repository.R)
-	built.path.src <- contrib.url(ve.repository,type="source")
 	built.path.binary <- contrib.url(ve.repository,type="win.binary")
 
 	# External packages to build (possibly submodules)
 	pkgs <- file.path(ve.install,pkgs.external[,"Path"],pkgs.external[,"Package"])
 
-	# Always build as source packages
-    num.built <- 0
-	for (pkg in pkgs) {
-		if ( ! module.exists(pkg, built.path.src) ) {
-			devtools::build(pkg,path=built.path.src)
-            num.built <- num.built+1
-		}
-	}
-    if (num.built>0) write_PACKAGES(contrib.url(ve.repository,type="source"),type="source")
-
-	# Build as binary package if the developer platform is windows
-	# May need earlier externals as dependencies
-
-	cat("source build\n")
 	build.type <- .Platform$pkgType
 	if ( build.type == "win.binary" ) {
-		if (!suppressWarnings(require(withr))) {
-			install.packages("withr",repos=CRAN.mirror)
-		}
+#		if (!suppressWarnings(require(withr))) {
+#			install.packages("withr",repos=CRAN.mirror)
+#		}
 		for (pkg in pkgs) {
 			if ( ! module.exists(pkg, built.path.binary) ) {
 				built.package <- devtools::build(pkg,path=built.path.binary,binary=TRUE)
@@ -54,13 +39,14 @@ if ( nrow(pkgs.external)> 0 ) {
 			}
 			install.packages(built.package,repos=NULL,lib=ve.lib) # so they will be available for later modules
 		}
-		write_PACKAGES(contrib.url(ve.repository,type="win.binary"),type="win.binary")
+		write_PACKAGES(built.path.binary,type="win.binary")
 	} else {
 		# install source package in whatever binary form works for the local environment
 		for (pkg in pkgs) {
 			install.packages(pkg,repos=NULL,lib=ve.lib,type="source")
 		}
+    cat("Done installing external binary packages.\n")
 	}
 } else {
-	cat("No external packages to build\n")
+	cat("No external packages to build (binary)\n")
 }

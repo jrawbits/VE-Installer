@@ -1,28 +1,24 @@
 Documentation of Build Process
 
-1. Parse dependencies and begin building the miniCRAN
-	* `state-dependencies.R`
-	* `build-repository.R`  (both source and binary from CRAN and BioC only; will skip existing, add new, but not delete)
-2. Build source packages:
-	* `build-external-src.R` (put these directly into the miniCRAN src/contrib tree)
-	* `build-packages-src.R` (put these directly into the miniCRAN src/contrib tree)
-	* `update-repository.R` (updates PACKAGES files)
-3. Build missing binaries (if local architecture is Windows)
-	* Check available.packages for "source" and "win.binary" and rebuild any that are in the former but not the latter
-	* `build-windows.R` (build from miniCRAN source if on Windows, and put built packages in miniCRAN win.binary, then rewrite PACKAGES)
-	3. (FOR LATER) Build Windows binaries using external service
-		* `build-external-winbuilder.R` (win-builder.r-project.org - place results in built-external/bin)
-		* `build-packages-winbuilder.R` (win-builder.r-project.org - place results in build-packages/bin)
-		* `update-miniCRAN.R` (rewrites the packages file)
-4. Install VisionEval into velib-local (if local architecture is source) or velib-windows (if local architecture is Windows)
-	* `install-velib.R` (from miniCRAN, CRAN and BioC only)
-	* `install-external.R` (from built-external/bin or built-external/src, depending on local architecture)
-	* `install-packages.R` (from built-external/bin or built-external/src, depending on local architecture)
-	4. Create Windows Library as velib-windows (if windows is not local architecture)
-		* `install-velib-windows.R` (installs all the .zip files in Windows architecture directly from the miniCRAN)
-6. Create installers
-	* `build-installer.sh` (Options, possibly more than one: `local`, `online`, `windows`)
-		* `local`: places velib-local into runtime as velib
-		* `online`: does not have velib-* (install on runtime machine from online miniCRAN; boilerplate goes to online)
-		* `windows`: zips suitable files into windows-installer (including velib-windows as velib)
-	   
+0. Configure build
+    * Edit VE-config.R (VE source tree, optional output directory name)
+    * Edit VE-dependencies.csv (based on VE source tree needs)
+    * Run state-dependencies.R (creates build/dependencies.RData)
+1. Build Dependency Repository
+    * Run build-repository.R
+    * Retrieves CRAN and BioConductor packages (source and binary)
+2. Build Source Packages
+    * Run build-external-src.R (builds external source packages)
+    * Run build-packages-src.R (builds VisionEval source packages)
+    * Packages are built directly into the source repository
+    * R PACKAGES file is updated
+3. Set up sources
+    * Run setup-sources.R (copies boilperplate to runtime folder)
+4. Build Binary Packages (optional)
+    * Run install-velib.R (constructs binary dependency library, needed for binary build)
+    * Run build-external-bin.R
+    * Run build-packages-bin.R
+5. Make installers
+    * Run build-installers.sh (constructs online installer, offline if available)
+6. Make docker image
+    * Run build-docker.sh (constructs VE docker image)
