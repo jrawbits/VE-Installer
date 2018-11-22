@@ -1,0 +1,25 @@
+Targets for docker images:
+
+Construct a base image that is just the visioneval framework and modules
+for running models.  Add commands to run RPAT or RSPM.  If nothing is
+in the user's "model" volume, just run a test model (for RSPM, that will
+be "Test1", but with an optional parameter).
+
+We can get this to work by creating another models sub-directory ("UserModel")
+which is the bind-mount volume point.  Empty by default.  If it is not empty,
+then pre-empty running VERPAT or VERSPM and instead read the model and data
+from the UserModel directory.
+
+Even though BG has allowed for configurable input directory, the default
+models don't do that.  The models need to be changed.
+
+Add a Volume for the user to attach their model.
+By default, run VERPAT.
+For RSPM, run Test1 (with an option for Test2 as an extra parameter)
+
+Create a separate image to run VEGUI, which exposes the test models.
+Also allow the user to mount their model just as for the base, so it
+becomes one of the choices.
+
+Separate out the dependencies needed for VE itself from the dependencies
+needed for VEGUI (to keep the runtimes small).

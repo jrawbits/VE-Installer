@@ -1,4 +1,5 @@
 *.RData
 .Rprofile
 build.out
+docker.out
 Makefile
