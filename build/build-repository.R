@@ -58,11 +58,13 @@ have.packages <- function() {
 }
 
 cat("\nComputing dependencies.\n")
-pkgs.CRAN <- miniCRAN::pkgDep(pkgs.CRAN,repos=CRAN.mirror,suggests=FALSE)
+pkgs.CRAN.all <- pkgs.CRAN <- miniCRAN::pkgDep(pkgs.CRAN,repos=CRAN.mirror,suggests=FALSE)
 pkgs.CRAN <-  setdiff(pkgs.CRAN,pkgs.BaseR) # don't keep base packages
 
-pkgs.BioC <- miniCRAN::pkgDep(pkgs.BioC,repos=bioc,suggests=FALSE)
+pkgs.BioC.all <- pkgs.BioC <- miniCRAN::pkgDep(pkgs.BioC,repos=bioc,suggests=FALSE)
 pkgs.BioC <- setdiff( pkgs.BioC, pkgs.CRAN ) # Possible risk here: don't double-install packages
+
+save(pkgs.CRAN.all,pkgs.BioC.all,file="all-dependencies.RData")
 
 # Attempt a minimal build of the repository (adding just new packages if we already have the whole thing)
 # We won't attempt to delete - cleanup just by rebuilding when cruft gets to be too much.

@@ -30,6 +30,9 @@ if (!exists("ve.output") || is.na(ve.output) ) {
 	ve.output <- file.path(ve.install,paste("installer",format(Sys.time(),"%y%m%d"),sep="_"))
 }
 ve.output <- gsub("\\\\","/",ve.output)
+make.target <- file("ve-output.make")
+writeLines(paste("VE_OUTPUT=",ve.output,sep=""),make.target)
+close(make.target)
 	
 ve.runtime <- file.path(ve.output,"runtime")
 ve.lib <- file.path(ve.output,"ve-lib")
