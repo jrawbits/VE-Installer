@@ -1,5 +1,4 @@
 *.RData
 .Rprofile
-build.out
+*.out
 ve-output.make
-docker.out

@@ -1,6 +1,6 @@
 include ve-output.make
 
-.PHONY: repository binary installers docker
+.PHONY: repository binary installers docker publish
 
 all: repository binary installers
 
@@ -25,6 +25,10 @@ binary: repository install-velib.R build-external-bin.R build-packages-bin.R
 	Rscript build-packages-bin.R
 
 installers: $(VE_OUTPUT)/VE-Installer.zip
+
+publish:
+	# Must set WWW_SSH_PORT and VE_WEBSITE based on target and credentials
+	bash publish-installers.sh
 
 $(VE_OUTPUT)/VE-Installer.zip: dependencies.RData setup-sources.R build-installers.sh
 	Rscript setup-sources.R
