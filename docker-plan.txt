@@ -10,8 +10,15 @@ which is the bind-mount volume point.  Empty by default.  If it is not empty,
 then pre-empty running VERPAT or VERSPM and instead read the model and data
 from the UserModel directory.
 
-Even though BG has allowed for configurable input directory, the default
-models don't do that.  The models need to be changed.
+Work on a small, unobtrusive pull request for the visioneval framework that
+allows the script to set a different directory for the model script.  Then
+we can start the script working in the user's directory and still have
+VE read it for the RunProcess statements.
+
+I'll need a small change in the visioneval framework itself, and an
+equally small change in the run_model scripts (just pointing to the
+script's actually location) - then we can source it from its location,
+have it identify itself, and there it is.
 
 Add a Volume for the user to attach their model.
 By default, run VERPAT.
@@ -19,7 +26,8 @@ For RSPM, run Test1 (with an option for Test2 as an extra parameter)
 
 Create a separate image to run VEGUI, which exposes the test models.
 Also allow the user to mount their model just as for the base, so it
-becomes one of the choices.
+becomes one of the choices.  The data/model separation can be pursued
+into VEGUI.
 
 Separate out the dependencies needed for VE itself from the dependencies
 needed for VEGUI (to keep the runtimes small).

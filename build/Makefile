@@ -1,4 +1,5 @@
 include ve-output.make
+# Defines VE_OUTPUT and VE_ROOT
 
 .PHONY: repository binary installers docker publish
 
@@ -35,10 +36,12 @@ $(VE_OUTPUT)/VE-Installer.zip: dependencies.RData setup-sources.R build-installe
 	bash build-installers.sh
 
 # Docker work all happens here (not in a separate shell script)
-VE_DOCKER=$(shell readlink -f ../docker)
+VE_DOCKER=$(VE_INSTALLER)/docker
 DOCKERFILE=$(VE_DOCKER)/Dockerfile
 
-docker: $(VE_DOCKER)/Dockerfile $(VE_DOCKER)/.dockerignore
+docker: $(VE_DOCKER)/Dockerfile $(VE_DOCKER)/.dockerignore dependencies.RData
+	cp -R $(VE_ROOT)/sources/models/VERSPM $(VE_ROOT)/sources/models/VERPAT \
+		$(VE_OUTPUT)/home/visioneval/
 	cp $(VE_DOCKER)/.dockerignore $(VE_OUTPUT)
 	cp -a $(VE_DOCKER)/home/. $(VE_OUTPUT)/home/
 	cd $(VE_OUTPUT); docker build -f ${DOCKERFILE} -t visioneval .

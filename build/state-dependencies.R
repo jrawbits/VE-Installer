@@ -31,7 +31,7 @@ if (!exists("ve.output") || is.na(ve.output) ) {
 }
 ve.output <- gsub("\\\\","/",ve.output)
 make.target <- file("ve-output.make")
-writeLines(paste("VE_OUTPUT=",ve.output,sep=""),make.target)
+writeLines(paste(c("VE_OUTPUT=","VE_ROOT=","VE_INSTALL"),c(ve.output,ve.root,ve.install),sep=""),make.target)
 close(make.target)
 	
 ve.runtime <- file.path(ve.output,"runtime")

@@ -82,10 +82,8 @@ if ( ! dir.exists(ve.lib) ) {
 }
 install.success <- .First()
 
-# The following convenience functions have not been well-tested.
-# They probably don't work, e.g., for the RSG development branch
-
 # Function starts the VEGUI
+# NOTE: This function has not been well-tested
 vegui <- function() {
 	require("shiny")
 	full_path <- file.path(ve.root,"VEGUI")
@@ -95,19 +93,23 @@ vegui <- function() {
 }
 
 # The following two functions run the command line version per the
-# Getting Started document
+# Getting Started document.  Supports using a subdirectory of the model
+# directory for alternate data input.
+# Run_Model.R must include the ModelScriptFile initialization parameter pointing
+# at the same place as the "full_path".
 
-verpat <- function() {
-	full_path = file.path(ve.root,"models/VERPAT")
+verpat <- function(which.rpat=NULL) {
+	full_path <- file.path(ve.root,"models/VERPAT")
+	if ( ! is.null(which.rpat) ) full_path <- file.path(full_path,which.rpat)
 	old.path <- setwd(full_path)
-	source("run_model.R")
+	source(file.path(ve.root,"models/VERPAT/Run_Model.R"))
 	setwd(old.path)
 }
 
 verspm <- function(which.rspm="Test1") {
-	full_path = file.path(ve.root,"models/VERSPM",which.rspm)
+	full_path <- file.path(ve.root,"models/VERSPM",which.rspm)
 	old.path <- setwd(full_path)
-	source("run_model.R")
+	source(file.path(ve.root,"models/VERSPM/Run_Model.R"))
 	setwd(old.path)
 }
 
