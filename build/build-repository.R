@@ -1,8 +1,11 @@
 #!/bin/R
 # This script installs required R packages from CRAN and BioConductor
 
+load("dependencies.RData")
+if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
+
 if (!suppressWarnings(require(miniCRAN))) {
-	install.packages("miniCRAN",repos=CRAN.mirror)
+	install.packages("miniCRAN",repos=CRAN.mirror,dependencies=NA)
 }
 require(tools)
 
@@ -18,9 +21,6 @@ if (!suppressWarnings(require(BiocInstaller))) {
 	})
 }
 bioc <- biocinstallRepos()
-
-load("dependencies.RData")
-if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
 
 if ( !exists("pkgs.CRAN") || !exists("pkgs.BioC") ) {
 	stop("Please run state-dependencies.R to build dependency lists")
@@ -64,7 +64,9 @@ pkgs.CRAN <-  setdiff(pkgs.CRAN,pkgs.BaseR) # don't keep base packages
 pkgs.BioC.all <- pkgs.BioC <- miniCRAN::pkgDep(pkgs.BioC,repos=bioc,suggests=FALSE)
 pkgs.BioC <- setdiff( pkgs.BioC, pkgs.CRAN ) # Possible risk here: don't double-install packages
 
-save(pkgs.CRAN.all,pkgs.BioC.all,file="all-dependencies.RData")
+cat("Dependencies:\n")
+all.dependencies <- as.character(c(pkgs.CRAN.all,pkgs.BioC.all))
+save(all.dependencies,file="all-dependencies.RData")
 
 # Attempt a minimal build of the repository (adding just new packages if we already have the whole thing)
 # We won't attempt to delete - cleanup just by rebuilding when cruft gets to be too much.

@@ -1,0 +1,31 @@
+#!/usr/bin/env r
+
+# This script runs VERSPM, possibly on user-supplied data.
+
+# VERSPM has multiple test data sets, already in subfolders
+
+# Use a similar logic to RPAT to figure out what data to use,
+# where to put it, and where to run the model and save results.
+
+if (is.null(argv))
+ | length(argv)>1) {
+  cat("Usage: installr.r pkg1 [pkg2 pkg3 ...]\n")
+  q()
+}
+
+full_path <- file.path(getwd(),"models/VERSPM",which.rspm)
+script_path <- file.path(getwd(),"models/VERSPM/Run_Model.R")
+old.path <- setwd(full_path)
+source(script_path)
+
+# If any argument, use the existing test data bundled alongside
+# the model script.
+
+# If UserData is not mounted, just run the bundled model and store
+# its results in the container (as if use provided Test argument)
+
+# If UserData is mounted and no argument, check for presence in
+# "UserData" directory of necessary pieces (defs, inputs).
+# If UserData is not suitable, fall back to running Test, but
+# copy the Test data to a subdirectory of UserData (VERPAT-Test)
+# (disambiguated with -1, -2, etc.) and run the model there.

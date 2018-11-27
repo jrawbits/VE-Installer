@@ -1,19 +1,44 @@
-FROM rocker/r-ver
+# Build dependencies first (compiling everything)
+# 
+FROM rocker/r-ver as VE-dependencies
 
-COPY /home/ /home/
 COPY /pkg-repository/src /home/visioneval/pkg-repository/src
+COPY /pkg-repository/*.lst /home/visioneval/
 
 WORKDIR /home/visioneval
+
 RUN apt-get update && apt-get install -y \
-    libcurl4-openssl-dev \
+	libcurl4-gnutls-dev \
+	libssh2-1-dev \
     libssl-dev \
     zlib1g-dev \
     libpng-dev \
-    libtool \
+	libgit2-dev \
+    libtool 
+
+RUN mkdir /home/visioneval/ve-lib \
 	&& install2.r \
     -r "file:pkg-repository" \
     -l "ve-lib" \
-    $(Rscript -e "as.character(available.packages(repos='file:pkg-repository',type='source')[,'Package'])") \
-	&& rm -rf /home/visioneval/pkg-repository
+    $(cat dependencies.lst) \
+	&& rm dependencies.lst
 
-CMD ["bash"]
+RUN install2.r \
+    -r "file:pkg-repository" \
+    -l "ve-lib" \
+    $(cat visioneval.lst) \
+	&& rm visioneval.lst
+
+CMD ["/bin/bash"]
+
+FROM rocker/r-ver as VisionEval
+
+WORKDIR /home/visioneval
+
+COPY /home/visioneval /home/visioneval
+COPY --from=VE-dependencies /home/visioneval/ve-lib /home/visioneval/ve-lib
+
+RUN chmod +x /home/visioneval/help
+
+CMD ["/home/visioneval/help"]
+

@@ -1,0 +1,15 @@
+#!/usr/bin/env r
+
+# This script runs VERPAT, possibly on user-supplied data.
+
+# If any argument, use the existing test data bundled alongside
+# the model script.
+
+# If UserData is not mounted, just run the bundled model and store
+# its results in the container (as if use provided Test argument)
+
+# If UserData is mounted and no argument, check for presence in
+# "UserData" directory of necessary pieces (defs, inputs).
+# If UserData is not suitable, fall back to running Test, but
+# copy the Test data to a subdirectory of UserData (VERPAT-Test)
+# (disambiguated with -1, -2, etc.) and run the model there.

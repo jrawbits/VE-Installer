@@ -9,6 +9,7 @@
 load("dependencies.RData")
 if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
 
+load("all-dependencies.RData")
 if ( nrow(pkgs.external)> 0 ) {
 	cat("Building external packages (source)\n")
 
@@ -22,6 +23,7 @@ if ( nrow(pkgs.external)> 0 ) {
 
 	# External packages to build (possibly submodules)
 	pkgs <- file.path(ve.install,pkgs.external[,"Path"],pkgs.external[,"Package"])
+	all.dependencies <- c( all.dependencies, as.character(pkgs) )
 
 	# Build missing source packages
     num.built <- 0
@@ -33,10 +35,12 @@ if ( nrow(pkgs.external)> 0 ) {
 	}
     if (num.built>0) {
         write_PACKAGES(contrib.url(ve.repository,type="source"),type="source")
-        cat(sprintf("Done printing %d external packages.\n", num.built))
+        cat(sprintf("Done building %d external packages.\n", num.built))
     } else {
         cat("No external packages requiring build.\n")
     }
 } else {
     cat("No external packages configured.\n")
 }
+write(paste(all.dependencies,collapse=" "),
+      file=file.path(ve.repository,"dependencies.lst"))

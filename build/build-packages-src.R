@@ -12,8 +12,12 @@ load("dependencies.RData")
 if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
 
 require(tools)
-require(devtools)
-require(rstudioapi)
+if (!suppressWarnings(require(devtools))) {
+	install.packages("devtools",repos=CRAN.mirror)
+}
+if (!suppressWarnings(require(knitr))) {
+	install.packages("knitr",repos=CRAN.mirror)
+}
 
 # Reach for ve.lib first.
 # Could use this hack to squeeze out local libraries, but we still need devtools...
@@ -23,7 +27,8 @@ require(rstudioapi)
 
 # Where to find the package sources (in the VisionEval repository)
 
-package.paths <- file.path(ve.root,pkgs.visioneval[,"Path"],pkgs.visioneval[,"Package"])
+ve.packages <- pkgs.visioneval[,"Package"]
+package.paths <- file.path(ve.root,pkgs.visioneval[,"Path"],ve.packages)
 
 # Where to put the built results (these should exist after build-miniCRAN.R)
 
@@ -48,3 +53,6 @@ if (num.built>0) {
 } else {
     cat("No VisionEval packages requiring build.\n")
 }
+write(paste(as.character(ve.packages),collapse=" "),
+      file=file.path(ve.repository,"visioneval.lst"))
+

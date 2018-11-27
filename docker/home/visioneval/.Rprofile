@@ -1,1 +1,3 @@
-load("RunVisionEval.Rdata")
+if (require(visioneval)) {
+	cat("Welcome to visioneval!\n")
+}

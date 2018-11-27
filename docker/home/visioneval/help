@@ -1,0 +1,29 @@
+#!/bin/bash
+cat <<EOF
+Welcome to VisionEval!
+
+This Docker image can run VERSPM or VERPAT on your data.  You can also use
+it to run a few canned models.
+
+To run it, do this:
+
+docker run -v MyData:/path/to/MyData VisionEval VERSPM # or VERPAT
+
+Your "MyData" folder should contain "defs" and "inputs" per the instructions
+for setting up the models.  If it does not, it will be as if you provided
+the default test data argument as described below.
+
+You can provide additional arguments to try out test models. So for example:
+
+docker run -v MyData:/path/to/MyData VisionEval VERSPM Test1 # or Test2
+docker run -v MyData:/path/to/MyData VisionEval VERPAT Test 
+
+If your "MyData" folder is empty or if you do not provide the -v (volume)
+parameter to link visioneval to your data, you will get a copy of the (default)
+test output right there.
+
+If your "MyData" has anything in it, docker will create a subdirectory
+(called e.g. "Test" or "Test1"), copy the test "defs" and "inputs" to it
+and run the model in that subdirectory.
+
+EOF

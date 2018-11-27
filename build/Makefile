@@ -1,7 +1,8 @@
 include ve-output.make
-# Defines VE_OUTPUT and VE_ROOT
+# Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER
+export
 
-.PHONY: repository binary installers docker publish
+.PHONY: repository binary installers docker publish clean docker-clean all
 
 all: repository binary installers
 
@@ -39,9 +40,14 @@ $(VE_OUTPUT)/VE-Installer.zip: dependencies.RData setup-sources.R build-installe
 VE_DOCKER=$(VE_INSTALLER)/docker
 DOCKERFILE=$(VE_DOCKER)/Dockerfile
 
-docker: $(VE_DOCKER)/Dockerfile $(VE_DOCKER)/.dockerignore dependencies.RData
+docker-clean:
+	rm -rf $(VE_OUTPUT)/home
+	
+docker: $(VE_DOCKER)/Dockerfile $(VE_DOCKER)/.dockerignore dependencies.RData \
+$(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst
+	mkdir -p $(VE_OUTPUT)/home/visioneval/models
 	cp -R $(VE_ROOT)/sources/models/VERSPM $(VE_ROOT)/sources/models/VERPAT \
-		$(VE_OUTPUT)/home/visioneval/
+		$(VE_OUTPUT)/home/visioneval/models/
 	cp $(VE_DOCKER)/.dockerignore $(VE_OUTPUT)
-	cp -a $(VE_DOCKER)/home/. $(VE_OUTPUT)/home/
+	cp -a $(VE_DOCKER)/home/* $(VE_OUTPUT)/home/
 	cd $(VE_OUTPUT); docker build -f ${DOCKERFILE} -t visioneval .

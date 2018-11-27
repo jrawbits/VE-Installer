@@ -1,4 +1,5 @@
 *.RData
+.Renviron
 .Rprofile
 *.out
 ve-output.make
