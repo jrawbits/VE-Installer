@@ -2,4 +2,5 @@
 .Renviron
 .Rprofile
 *.out
+*.built
 ve-output.make

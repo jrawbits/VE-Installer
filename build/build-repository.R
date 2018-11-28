@@ -65,8 +65,9 @@ pkgs.BioC.all <- pkgs.BioC <- miniCRAN::pkgDep(pkgs.BioC,repos=bioc,suggests=FAL
 pkgs.BioC <- setdiff( pkgs.BioC, pkgs.CRAN ) # Possible risk here: don't double-install packages
 
 cat("Dependencies:\n")
+stated.dependencies <- as.character(c(pkgs.CRAN,pkgs.BioC))
 all.dependencies <- as.character(c(pkgs.CRAN.all,pkgs.BioC.all))
-save(all.dependencies,file="all-dependencies.RData")
+save(stated.dependencies,all.dependencies,file="all-dependencies.RData")
 
 # Attempt a minimal build of the repository (adding just new packages if we already have the whole thing)
 # We won't attempt to delete - cleanup just by rebuilding when cruft gets to be too much.

@@ -18,20 +18,20 @@ VE_OFFLINE_TYPE="$(Rscript -e 'cat(.Platform$OS.type)')"
 VE_WINDOWS="${VE_OUTPUT}/VE-installer-${VE_OFFLINE_TYPE}-R3.5.1.zip"
 RUNTIME_PATH="${VE_OUTPUT}/runtime" # change as necessary
 
-cd ${RUNTIME_PATH}
+cd "${RUNTIME_PATH}"
 
-[ -f ${VE_INSTALLER} ] && rm ${VE_INSTALLER}
-[ -f ${VE_WINDOWS} ] && rm ${VE_WINDOWS}
+[ -f "${VE_INSTALLER}" ] && rm "${VE_INSTALLER}"
+[ -f "${VE_WINDOWS}" ] && rm "${VE_WINDOWS}"
 
 echo "Building online installer: ${VE_INSTALLER}"
-zip --recurse-paths ${VE_INSTALLER} .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R $(ls -d */ | sed -e 's!/*$!!')
+zip --recurse-paths "${VE_INSTALLER}" .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R $(ls -d */ | sed -e 's!/*$!!')
 
 # Windows installer
-cd ${VE_OUTPUT}
+cd "${VE_OUTPUT}"
 if [ -d ve-lib ] && [ ! -z "$(ls -A ve-lib)" ]
 then
     echo "Building offline (Windows) installer: ${VE_WINDOWS}"
-    zip --recurse-paths --output-file=${VE_WINDOWS} ${VE_INSTALLER} ve-lib
+    zip --recurse-paths "--output-file=${VE_WINDOWS}" "${VE_INSTALLER}" ve-lib
 fi
 
 echo "Done building installers."

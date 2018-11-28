@@ -7,13 +7,14 @@ COPY /pkg-repository/*.lst /home/visioneval/
 
 WORKDIR /home/visioneval
 
+# Don't need libit2 - packaged version is not recent enough;
+# Can build it as part of the dependency (it's bundled)
 RUN apt-get update && apt-get install -y \
 	libcurl4-gnutls-dev \
 	libssh2-1-dev \
     libssl-dev \
     zlib1g-dev \
     libpng-dev \
-	libgit2-dev \
     libtool 
 
 RUN mkdir /home/visioneval/ve-lib \
@@ -38,7 +39,8 @@ WORKDIR /home/visioneval
 COPY /home/visioneval /home/visioneval
 COPY --from=VE-dependencies /home/visioneval/ve-lib /home/visioneval/ve-lib
 
-RUN chmod +x /home/visioneval/help
+RUN chmod +x /home/visioneval/help /home/visioneval/entrypoint.sh
 
-CMD ["/home/visioneval/help"]
+ENTRYPOINT ["/home/visioneval/entrypoint.sh"]
+CMD ["help"]
 

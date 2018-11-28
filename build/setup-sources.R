@@ -10,7 +10,7 @@ if (! check.VE.environment() ) stop("Run state-dependencies.R and make sure earl
 boilerplate <- file.path(ve.install,"boilerplate")
 bp.files <- file.path(boilerplate,dir(boilerplate,all=TRUE,no..=TRUE))
 if ( length(bp.files)>0 ) {
-	invisible(file.copy(bp.files,ve.runtime,overwrite=TRUE)) # currently there's nothing to recurse into)
+	invisible(file.copy(bp.files,ve.runtime,recursive=TRUE)) # currently there's nothing to recurse into)
 }
 
 # Get the VisionEval sources, if any are needed

@@ -80,7 +80,6 @@ if ( ! dir.exists(ve.lib) ) {
 	}
 	install.success
 }
-install.success <- .First()
 
 # Function starts the VEGUI
 # NOTE: This function has not been well-tested
@@ -92,25 +91,27 @@ vegui <- function() {
 	setwd(old.path)
 }
 
-# The following two functions run the command line version per the
-# Getting Started document.  Supports using a subdirectory of the model
-# directory for alternate data input.
-# Run_Model.R must include the ModelScriptFile initialization parameter pointing
-# at the same place as the "full_path".
+# The following two functions run the command line model versions per the
+# Getting Started document.  Can run model from arbitrary data folders.
 
-verpat <- function(which.rpat=NULL) {
-	full_path <- file.path(ve.root,"models/VERPAT")
-	if ( ! is.null(which.rpat) ) full_path <- file.path(full_path,which.rpat)
-	old.path <- setwd(full_path)
-	source(file.path(ve.root,"models/VERPAT/Run_Model.R"))
-	setwd(old.path)
+verpat <- function() {
+	if ( ! dir.exists("defs") || ! dir.exists("inputs") ) {
+		cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run")
+		cat("Look for 'models/VERPAT' or 'models/BaseYearVERPAT', for example")
+	} else {
+		source(file.path(ve.root,"models/Run_VERPAT.R"))
+	}
+	# WARNING: not actually using the Run_Model.R in models/VERPAT
 }
 
-verspm <- function(which.rspm="Test1") {
-	full_path <- file.path(ve.root,"models/VERSPM",which.rspm)
-	old.path <- setwd(full_path)
-	source(file.path(ve.root,"models/VERSPM/Run_Model.R"))
-	setwd(old.path)
+verspm <- function() {
+	if ( ! dir.exists("defs") || ! dir.exists("inputs") ) {
+		cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run")
+		cat("Look for 'models/VERSPM/Test1' or 'models/VERSPM/Test2', for example")
+	} else {
+		source(file.path(ve.root,"models/Run_VERSPM.R"))
+	}
+	# WARNING: not actually using the Run_Model.R in models/VERPAT
 }
 
 if ( install.success ) {

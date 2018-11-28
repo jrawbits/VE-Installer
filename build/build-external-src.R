@@ -23,7 +23,14 @@ if ( nrow(pkgs.external)> 0 ) {
 
 	# External packages to build (possibly submodules)
 	pkgs <- file.path(ve.install,pkgs.external[,"Path"],pkgs.external[,"Package"])
-	all.dependencies <- c( all.dependencies, as.character(pkgs) )
+
+	pkg.dependencies <- as.character(pkgs.external[,"Package"])
+	all.dependencies <- c( all.dependencies, pkg.dependencies)
+	stated.dependencies <- c( stated.dependencies, pkg.dependencies )
+	save(stated.dependencies,all.dependencies,file="all-dependencies.RData")
+
+	cat("External Packages:\n")
+	print(pkgs)
 
 	# Build missing source packages
     num.built <- 0

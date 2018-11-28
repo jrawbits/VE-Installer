@@ -11,26 +11,38 @@ clean: ve-output.make
 	rm -rf $(VE_OUTPUT)
 	rm ve-output.make
 
-repository: dependencies.RData build-repository.R build-external-src.R build-packages-src.R
+repository: repository.built
+
+repository.built: dependencies.RData build-repository.R build-external-src.R build-packages-src.R
 	Rscript build-repository.R
 	Rscript build-external-src.R
 	Rscript build-packages-src.R
+	touch repository.built
 
 ve-output.make: dependencies.RData
 
 dependencies.RData: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R state-dependencies.R
 	Rscript state-dependencies.R
 
-binary: repository install-velib.R build-external-bin.R build-packages-bin.R
+binary: binary.built
+
+binary.built: repository install-velib.R build-external-bin.R build-packages-bin.R
 	Rscript install-velib.R
 	Rscript build-external-bin.R
 	Rscript build-packages-bin.R
+	touch binary.built
 
-installers: $(VE_OUTPUT)/VE-Installer.zip
+installers: installers.built
 
-publish:
+installers.built: $(VE_OUTPUT)/VE-Installer.zip
+	touch installers.built
+
+publish: publish.built
+
+publish.built: installers.built
 	# Must set WWW_SSH_PORT and VE_WEBSITE based on target and credentials
 	bash publish-installers.sh
+	touch publish.built
 
 $(VE_OUTPUT)/VE-Installer.zip: dependencies.RData setup-sources.R build-installers.sh
 	Rscript setup-sources.R
@@ -39,6 +51,8 @@ $(VE_OUTPUT)/VE-Installer.zip: dependencies.RData setup-sources.R build-installe
 # Docker work all happens here (not in a separate shell script)
 VE_DOCKER=$(VE_INSTALLER)/docker
 DOCKERFILE=$(VE_DOCKER)/Dockerfile
+
+$(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst: repository.built
 
 docker-clean:
 	rm -rf $(VE_OUTPUT)/home
