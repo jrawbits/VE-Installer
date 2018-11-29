@@ -36,6 +36,9 @@ FROM rocker/r-ver as VisionEval
 
 WORKDIR /home/visioneval
 
+# The following for trying to get it all to work interactively:
+RUN apt-get update && apt-get install -y vim-tiny
+
 COPY /home/visioneval /home/visioneval
 COPY --from=VE-dependencies /home/visioneval/ve-lib /home/visioneval/ve-lib
 

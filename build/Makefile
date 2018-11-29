@@ -2,7 +2,7 @@ include ve-output.make
 # Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER
 export
 
-.PHONY: repository binary installers docker publish clean docker-clean all
+.PHONY: repository binary installers docker publish clean docker-clean docker-output-clean all
 
 all: repository binary installers
 
@@ -26,11 +26,14 @@ dependencies.RData: ../dependencies/VE-dependencies.csv ../dependencies/VE-confi
 
 binary: binary.built
 
-binary.built: repository install-velib.R build-external-bin.R build-packages-bin.R
+binary.built: repository.built install-velib.R build-external-bin.R build-packages-bin.R
 	Rscript install-velib.R
 	Rscript build-external-bin.R
 	Rscript build-packages-bin.R
 	touch binary.built
+
+tests: binary.built
+	Rscript run-tests.R
 
 installers: installers.built
 
@@ -44,7 +47,7 @@ publish.built: installers.built
 	bash publish-installers.sh
 	touch publish.built
 
-$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData setup-sources.R build-installers.sh
+$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData setup-sources.R build-installers.sh binary.built
 	Rscript setup-sources.R
 	bash build-installers.sh
 
@@ -54,12 +57,15 @@ DOCKERFILE=$(VE_DOCKER)/Dockerfile
 
 $(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst: repository.built
 
-docker-clean:
+docker-output-clean:
+	sudo rm -rf ${VE_OUTPUT}/Data # Files within are owned by 'root'
+docker-clean: docker-output-clean
 	rm -rf $(VE_OUTPUT)/home
 	
-docker: $(VE_DOCKER)/Dockerfile $(VE_DOCKER)/.dockerignore dependencies.RData \
+docker: repository.built $(VE_DOCKER)/Dockerfile $(VE_DOCKER)/.dockerignore dependencies.RData \
 $(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst
 	mkdir -p $(VE_OUTPUT)/home/visioneval/models
+	mkdir -p $(VE_OUTPUT)/Data
 	cp -R $(VE_ROOT)/sources/models/VERSPM $(VE_ROOT)/sources/models/VERPAT \
 		$(VE_OUTPUT)/home/visioneval/models/
 	cp $(VE_DOCKER)/.dockerignore $(VE_OUTPUT)
