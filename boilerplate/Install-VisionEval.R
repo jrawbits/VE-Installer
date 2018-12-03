@@ -96,8 +96,8 @@ vegui <- function() {
 
 verpat <- function() {
 	if ( ! dir.exists("defs") || ! dir.exists("inputs") ) {
-		cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run")
-		cat("Look for 'models/VERPAT' or 'models/BaseYearVERPAT', for example")
+		cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run\n")
+		cat("Look for 'models/VERPAT' or 'models/BaseYearVERPAT', for example\n")
 	} else {
 		source(file.path(ve.root,"models/Run_VERPAT.R"))
 	}
@@ -106,14 +106,15 @@ verpat <- function() {
 
 verspm <- function() {
 	if ( ! dir.exists("defs") || ! dir.exists("inputs") ) {
-		cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run")
-		cat("Look for 'models/VERSPM/Test1' or 'models/VERSPM/Test2', for example")
+		cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run\n")
+		cat("Look for 'models/VERSPM/Test1' or 'models/VERSPM/Test2', for example\n")
 	} else {
 		source(file.path(ve.root,"models/Run_VERSPM.R"))
 	}
 	# WARNING: not actually using the Run_Model.R in models/VERPAT
 }
 
+install.success <- .First()
 if ( install.success ) {
 	save(file="RunVisionEval.RData"
 		,ve.root

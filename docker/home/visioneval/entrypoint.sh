@@ -4,15 +4,17 @@
 # VisionEval run.
 
 VERSPM_ROOT=/home/visioneval/models/VERSPM
-VERPAT_ROOT=/home/visioneval/models
+VERPAT_ROOT=/home/visioneval/models/VERPAT
 VERSPM_TEST=Test1
 VERPAT_TEST=.
 USERDATA=/Data
 
-# Twiddle the following comments to get a deeply line-by-line explanation
-# of how the test models are selected.
-# alias diagnose=:
-alias diagnose=/bin/echo
+function diagnose {
+	# Twiddle the comments to get a line-by-line explanation
+	# of how the test models are selected and the data set up.
+	/bin/echo $*
+	# :
+}
 
 # Verify that user data directory is mounted
 # User can use a different one by provided a full (container-centric) path
@@ -38,6 +40,10 @@ function setData {
 	DEF_PARENT=$1
 	DEF_SUBDIR=$2
 	USR_OPTION=$3
+	diagnose "Sorting out:"
+	diagnose "DEF_PARENT: ${DEF_PARENT}"
+	diagnose "DEF_SUBDIR: ${DEF_SUBDIR}"
+	diagnose "USR_OPTION: ${USR_OPTION}"
 	if [ -z "${USR_OPTION}" ]; then
 		# User did not provide alternative location
 		# Check if /Data is available and has data in it
