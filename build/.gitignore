@@ -4,3 +4,4 @@
 *.out
 *.built
 ve-output.make
+website.credentials

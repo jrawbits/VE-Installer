@@ -7,33 +7,33 @@ export
 all: repository binary installers
 
 clean: ve-output.make
-	rm dependencies.RData
+	rm all-dependencies.RData dependencies.RData
 	rm -rf $(VE_OUTPUT)
 	rm ve-output.make
 
 repository: repository.built
 
-repository.built: dependencies.RData build-repository.R build-external-src.R build-packages-src.R
-	Rscript build-repository.R
-	Rscript build-external-src.R
-	Rscript build-packages-src.R
+repository.built: dependencies.RData scripts/build-repository.R scripts/build-external-src.R scripts/build-packages-src.R
+	Rscript scripts/build-repository.R
+	Rscript scripts/build-external-src.R
+	Rscript scripts/build-packages-src.R
 	touch repository.built
 
 ve-output.make: dependencies.RData
 
-dependencies.RData: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R state-dependencies.R
-	Rscript state-dependencies.R
+dependencies.RData: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R scripts/state-dependencies.R
+	Rscript scripts/state-dependencies.R
 
 binary: binary.built
 
-binary.built: repository.built install-velib.R build-external-bin.R build-packages-bin.R
-	Rscript install-velib.R
-	Rscript build-external-bin.R
-	Rscript build-packages-bin.R
+binary.built: repository.built scripts/install-velib.R scripts/build-external-bin.R scripts/build-packages-bin.R
+	Rscript scripts/install-velib.R
+	Rscript scripts/build-external-bin.R
+	Rscript scripts/build-packages-bin.R
 	touch binary.built
 
 tests: binary.built
-	Rscript run-tests.R
+	Rscript scripts/run-tests.R
 
 installers: installers.built
 
@@ -42,14 +42,14 @@ installers.built: $(VE_OUTPUT)/VE-Installer.zip
 
 publish: publish.built
 
+# Must set WWW_SSH_PORT and VE_WEBSITE in website.credentials (or in environment)
 publish.built: installers.built
-	# Must set WWW_SSH_PORT and VE_WEBSITE based on target and credentials
-	bash publish-installers.sh
+	bash scripts/publish-installers.sh
 	touch publish.built
 
-$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData setup-sources.R build-installers.sh binary.built
-	Rscript setup-sources.R
-	bash build-installers.sh
+$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/setup-sources.R scripts/build-installers.sh binary.built
+	Rscript scripts/setup-sources.R
+	bash scripts/build-installers.sh
 
 # Docker work all happens here (not in a separate shell script)
 VE_DOCKER=$(VE_INSTALLER)/docker

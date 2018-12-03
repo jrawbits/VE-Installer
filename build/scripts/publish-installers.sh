@@ -8,6 +8,8 @@
 # user, for example:
 # export VE_WEBSITE=<USER>@<HOST>:/home/<USER>/www
 
+[ -f website.credentials ] && . website.credentials
+
 # VE_OUTPUT=$(Rscript -e "load('dependencies.RData'); cat(ve.output)" | sed -e 's/c:\\/\/c\//I')
 VE_OUTPUT=$(Rscript -e "load('dependencies.RData'); cat(ve.output)")
 cd ${VE_OUTPUT}
