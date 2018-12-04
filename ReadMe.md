@@ -105,15 +105,16 @@ sudo apt-get install libv8-dev
 
 # Steps to Build
 
-The build process is script-based and takes place in R.  For now, all the scripts required
-to construct a runtime installation of VisionEval (that you can use locally) or the
-offline and online .zip file installers are found in the **build** directory, though
-elements in other directories are used by reference.
+The build process is script-based and takes place in R.  For now, all the scripts
+required to construct a runtime installation of VisionEval (that you can use locally)
+or the offline and online .zip file installers are found in the **build** directory
+and its **scripts** subdirectory,though elements in other directories are used by
+reference.
 
-As of builder-v0.1, there is a Makefile which makes it easier to rebuild sub-elements of
-the overall installation.  The Makefile is pretty dumb about out-dated dependencies - it
-is good about not rebuilding things unnecessarily, but if you want something rebuilt, you
-still have to delete it manually.
+As of builder-v0.1, there is a Makefile which makes it easier to rebuild sub-elements
+of the overall installation.  The Makefile is pretty dumb about out-dated
+dependencies - it is good about not rebuilding things unnecessarily, but if you want
+something rebuilt, you still have to delete it manually.
 
 Here's how to get going on building a runtime environment or installer:
 
@@ -223,8 +224,8 @@ VE version and the dependencies.
   environment, but once you've done that, this will push the package repository, the
   skeletal website and the built installers out to the web.
 * `make docker`
-  This will (eventually) build docker images.  It sort of works on the HEAD revision
-  and will be useful as of builder-v0.2
+  This target builds a docker image; see the **docker** subdirectory and its
+  ReadMe.md for details.
 
 ### Building with bash Build.sh
 
@@ -239,7 +240,7 @@ edit VE-config.R     # set ve.root to the VisionEval clone to install
 edit VE-dependencies # list dependencies (see ReadMe.md in that folder, plus examples)
 popd
 pushd build
-bash Build.sh
+bash scripts/Build.sh
 ```
 
 ### Sitting back and watching the build
@@ -252,7 +253,7 @@ nohup make >make.out 2>&1 & tail -f make.out
 ```
 
 ```bash
-nohup bash Build.sh >build.out 2>&1 & tail -f build.out
+nohup bash scripts/Build.sh >build.out 2>&1 & tail -f build.out
 ```
 
 I recommend the `nohup` line because it will let you close the bash window, and the
@@ -336,9 +337,12 @@ as an "administrator" of your system.
 
 # Docker Images
 
-One day... There is a work in progress available in the HEAD release (and it will be
-documented as of builder-v0.2).  Initially, you'll just get command line versions of
-the models that you can run on your data.  VEGUI will come later.
+See the Docker Readme.md in the **docker** directory for an explanation of how to
+build the Docker images for VisionEval, and also what they provide.  You can use
+`make docker` to build the images, provided you're on a system that supports
+bash-scripted command line docker instructions (typically a Linux system, rather
+than Windows, though there's no reason the latter shouldn't work as long as the
+command line tools are available).
 
 # Publishing the installers
 
@@ -346,3 +350,6 @@ The .zip files that you'll find in your "installer" root directory (where all th
 stuff is) can be published to the web.  I've included a bash script in the build directory
 that I use to push the updated installers and package repository to my website,
 [https://visioneval.jeremyraw.com](https://visioneval.jeremyraw.com)
+
+There's also the **www** folder which contains a skeletal .html-based website used
+to power my website, but you can safely ignore it.

@@ -1,3 +1,0 @@
-[submodule "external/namedCapture"]
-	path = external/namedCapture
-	url = git@github.com:/tdhock/namedCapture

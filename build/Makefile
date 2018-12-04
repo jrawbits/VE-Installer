@@ -7,9 +7,11 @@ export
 all: repository binary installers
 
 clean: ve-output.make
-	rm all-dependencies.RData dependencies.RData
+	rm -f all-dependencies.RData dependencies.RData
 	rm -rf $(VE_OUTPUT)
-	rm ve-output.make
+	rm -f ve-output.make
+	rm -f *.built
+	rm -f *.out
 
 repository: repository.built
 
@@ -38,7 +40,6 @@ tests: binary.built
 installers: installers.built
 
 installers.built: $(VE_OUTPUT)/VE-Installer.zip
-	touch installers.built
 
 publish: publish.built
 
@@ -47,9 +48,10 @@ publish.built: installers.built
 	bash scripts/publish-installers.sh
 	touch publish.built
 
-$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/setup-sources.R scripts/build-installers.sh binary.built
+$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/setup-sources.R scripts/build-installers.sh binary.built $(VE_INSTALLER)/boilerplate/boilerplate.lst
 	Rscript scripts/setup-sources.R
 	bash scripts/build-installers.sh
+	touch installers.built
 
 # Docker work all happens here (not in a separate shell script)
 VE_DOCKER=$(VE_INSTALLER)/docker
@@ -62,7 +64,7 @@ docker-output-clean:
 docker-clean: docker-output-clean
 	rm -rf $(VE_OUTPUT)/home
 	
-docker: repository.built $(VE_DOCKER)/Dockerfile $(VE_DOCKER)/.dockerignore dependencies.RData \
+docker: repository.built $(DOCKERFILE) $(VE_DOCKER)/.dockerignore dependencies.RData \
 $(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst
 	mkdir -p $(VE_OUTPUT)/home/visioneval/models
 	mkdir -p $(VE_OUTPUT)/Data

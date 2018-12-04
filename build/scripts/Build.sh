@@ -1,11 +1,15 @@
 #!/bin/bash
 # (expecting Git for Windows or Git on Linux)
+# The script is written to run from its parent directory
+# (typically "build") with the scripts in the scripts sub-directory
+# where this script (Build.sh) is itself located.
 
 # Rather than use this script, if you have "make" installed,
 # you can just do the grouped steps by calling the makefile:
 #     make repository
 #     make binary (generally only on Windows)
 #     make installers (builds online installer only unless 'binary' is built first)
+#     make publish (if configured, moves the pkg-repository and installers to the website)
 #     make docker (generally only on Linux)
 
 # docker build is only available through the Makefile
@@ -20,9 +24,9 @@ do_step()
 	echo " Build step: $2 $1"
 	if [ -z "$2" ]
 	then
-		Rscript $1 || exit
+		Rscript "scripts/$1" || exit
 	else
-		$2 $1 || exit
+		$2 "scripts/$1" || exit
 	fi
 	printf '=%.0s' {1..40}; echo
 }
