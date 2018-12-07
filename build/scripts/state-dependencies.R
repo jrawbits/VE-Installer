@@ -30,6 +30,7 @@ if (!exists("ve.output") || is.na(ve.output) ) {
 	ve.output <- file.path(ve.install,paste("installer",format(Sys.time(),"%y%m%d"),sep="_"))
 }
 ve.output <- gsub("\\\\","/",ve.output)
+ve.install <- gsub("\\\\","/",ve.install)
 
 make.target <- file("ve-output.make")
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type

@@ -11,23 +11,24 @@
 
 . ve-output.make # loads VE_OUTPUT, VE_INSTALLER, VE_ROOT, VE_PLATFORM, VE_R_VERSION
 
+VE_ONLINE="${VE_OUTPUT}/VE-installer.zip"
 VE_BINARY="${VE_OUTPUT}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}.zip"
 RUNTIME_PATH="${VE_OUTPUT}/runtime"
 
 cd "${RUNTIME_PATH}"
 
-[ -f "${VE_INSTALLER}" ] && rm "${VE_INSTALLER}"
+[ -f "${VE_ONLINE}" ] && rm "${VE_ONLINE}"
 [ -f "${VE_BINARY}" ] && rm "${VE_BINARY}"
 
-echo "Building online installer: ${VE_INSTALLER}"
-zip --recurse-paths "${VE_INSTALLER}" .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R $(ls -d */ | sed -e 's!/*$!!')
+echo "Building online installer: ${VE_ONLINE}"
+zip --recurse-paths "${VE_ONLINE}" $(cat "${VE_INSTALLER}/boilerplate/boilerplate.lst" | sed -e "s#^#${VE_OUTPUT}/runtime/#")
 
 # Windows installer
 cd "${VE_OUTPUT}"
 if [ -d ve-lib ] && [ ! -z "$(ls -A ve-lib)" ]
 then
     echo "Building offline (Windows) installer: ${VE_BINARY}"
-    zip --recurse-paths "--output-file=${VE_BINARY}" "${VE_INSTALLER}" ve-lib
+    zip --recurse-paths "--output-file=${VE_BINARY}" "${VE_ONLINE}" ve-lib
 fi
 
 echo "Done building installers."

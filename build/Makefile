@@ -1,9 +1,9 @@
 include ve-output.make
-# Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER
+# Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER, VE_PLATFORM, VE_R_PLATFORM
 
-.PHONY: repository binary installers docker publish clean runtime-clean docker-clean docker-output-clean all
+.PHONY: configure repository binary installers docker publish clean runtime-clean docker-clean docker-output-clean all
 
-all: repository binary installers
+all: configure repository binary installers
 
 clean: ve-output.make
 	rm -f all-dependencies.RData dependencies.RData
@@ -14,6 +14,7 @@ clean: ve-output.make
 
 runtime-clean: ve-output.make
 	rm -rf $(VE_OUTPUT)/runtime/*
+	rm runtime.built
 
 repository: repository.built
 
@@ -22,6 +23,8 @@ repository.built: dependencies.RData scripts/build-repository.R scripts/build-ex
 	Rscript scripts/build-external-src.R
 	Rscript scripts/build-packages-src.R
 	touch repository.built
+
+configure: dependencies.RData ve-output.make
 
 ve-output.make: dependencies.RData
 
@@ -41,13 +44,13 @@ tests: binary.built
 
 runtime: runtime.built
 	
-runtime.built: scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst
+runtime.built: dependencies.RData scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst
 	Rscript scripts/setup-sources.R
 	touch runtime.built
 
-installers: installers.built
+installers: installers.built runtime.built
 
-installers.built: $(VE_OUTPUT)/VE-Installer.zip $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip
+installers.built: dependencies.RData $(VE_OUTPUT)/VE-Installer.zip $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip
 	touch installers.built
 
 publish: publish.built
@@ -59,7 +62,7 @@ publish.built: installers.built
 
 $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip: $(VE_OUTPUT)/VE-Installer.zip
 
-$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/build-installers.sh binary.built runtime.built
+$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/build-installers.sh binary.built runtime.built $(VE_INSTALLER)/boilerplate/boilerplate.lst
 	bash scripts/build-installers.sh
 
 # Docker work all happens here (not in a separate shell script)
