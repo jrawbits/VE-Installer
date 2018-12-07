@@ -10,17 +10,9 @@ if (!suppressWarnings(require(miniCRAN))) {
 require(tools)
 
 # BioConductor setup
-# They're moving 2018-11 to a new version that is not, as yet, compatible with miniCRAN
-if (!suppressWarnings(require(BiocInstaller))) {
-	cat("Installing BioConductor Installer\n")
-	bioc <- local({
-	  env <- new.env()
-	  on.exit(rm(env))
-	  evalq(source("http://bioconductor.org/biocLite.R", local = TRUE), env)
-	  biocinstallRepos()
-	})
-}
-bioc <- biocinstallRepos()
+if (!requireNamespace("BiocManager"))
+    install.packages("BiocManager")
+bioc <- BiocManager::repositories()
 
 if ( !exists("pkgs.CRAN") || !exists("pkgs.BioC") ) {
 	stop("Please run state-dependencies.R to build dependency lists")
