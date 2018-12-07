@@ -13,15 +13,17 @@ if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build en
 ve.packages <- pkgs.visioneval[,"Package"]
 package.paths <- file.path(ve.root,pkgs.visioneval[,"Path"],ve.packages)
 
+# Under development - still does nothing
+
 # Run the package tests
 # This should all boil down to testing the built package
 # Ideally, use devtools:check_built()
 # Relies on R CMD check, which will run test scripts
 
-for (module in package.paths) {
-		devtools::check_built(module,path=built.path.src)
-	}
-}
+# for (module in package.paths) {
+# 		devtools::check_built(module,path=built.path.src)
+# 	}
+# }
 
 # The models are tested by actually running them.
 # The GUI is tested by running a script in its home folder

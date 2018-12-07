@@ -1,8 +1,7 @@
 include ve-output.make
 # Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER
-export
 
-.PHONY: repository binary installers docker publish clean docker-clean docker-output-clean all
+.PHONY: repository binary installers docker publish clean runtime-clean docker-clean docker-output-clean all
 
 all: repository binary installers
 
@@ -12,6 +11,9 @@ clean: ve-output.make
 	rm -f ve-output.make
 	rm -f *.built
 	rm -f *.out
+
+runtime-clean: ve-output.make
+	rm -rf $(VE_OUTPUT)/runtime/*
 
 repository: repository.built
 
@@ -37,9 +39,16 @@ binary.built: repository.built scripts/install-velib.R scripts/build-external-bi
 tests: binary.built
 	Rscript scripts/run-tests.R
 
+runtime: runtime.built
+	
+runtime.built: scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst
+	Rscript scripts/setup-sources.R
+	touch runtime.built
+
 installers: installers.built
 
-installers.built: $(VE_OUTPUT)/VE-Installer.zip
+installers.built: $(VE_OUTPUT)/VE-Installer.zip $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip
+	touch installers.built
 
 publish: publish.built
 
@@ -48,10 +57,10 @@ publish.built: installers.built
 	bash scripts/publish-installers.sh
 	touch publish.built
 
-$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/setup-sources.R scripts/build-installers.sh binary.built $(VE_INSTALLER)/boilerplate/boilerplate.lst
-	Rscript scripts/setup-sources.R
+$(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip: $(VE_OUTPUT)/VE-Installer.zip
+
+$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/build-installers.sh binary.built runtime.built
 	bash scripts/build-installers.sh
-	touch installers.built
 
 # Docker work all happens here (not in a separate shell script)
 VE_DOCKER=$(VE_INSTALLER)/docker

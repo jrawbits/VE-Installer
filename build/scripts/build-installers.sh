@@ -6,22 +6,18 @@
 # First the online installer, which will pull the R packages from the
 # visioneval installation server
 
-# TODO: if you run this on something other than Windows, the "Windows" installer
-# will actually be a source installer...  Could live with just changing the
-# name of the installer zip file.
+# Must be in "build" folder (parent of "scripts") to start
+# Take advantage of shell variable and make variable syntax being identical
 
-# TODO: Add Dockerfile / image construction
+. ve-output.make # loads VE_OUTPUT, VE_INSTALLER, VE_ROOT, VE_PLATFORM, VE_R_VERSION
 
-VE_OUTPUT=$(Rscript -e "load('dependencies.RData'); cat(ve.output)")
-VE_INSTALLER="${VE_OUTPUT}/VE-installer.zip"
-VE_OFFLINE_TYPE="$(Rscript -e 'cat(.Platform$OS.type)')"
-VE_WINDOWS="${VE_OUTPUT}/VE-installer-${VE_OFFLINE_TYPE}-R3.5.1.zip"
-RUNTIME_PATH="${VE_OUTPUT}/runtime" # change as necessary
+VE_BINARY="${VE_OUTPUT}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}.zip"
+RUNTIME_PATH="${VE_OUTPUT}/runtime"
 
 cd "${RUNTIME_PATH}"
 
 [ -f "${VE_INSTALLER}" ] && rm "${VE_INSTALLER}"
-[ -f "${VE_WINDOWS}" ] && rm "${VE_WINDOWS}"
+[ -f "${VE_BINARY}" ] && rm "${VE_BINARY}"
 
 echo "Building online installer: ${VE_INSTALLER}"
 zip --recurse-paths "${VE_INSTALLER}" .Rprofile Install-VisionEval.bat Install-VisionEval.R RunVisionEval.R $(ls -d */ | sed -e 's!/*$!!')
@@ -30,12 +26,8 @@ zip --recurse-paths "${VE_INSTALLER}" .Rprofile Install-VisionEval.bat Install-V
 cd "${VE_OUTPUT}"
 if [ -d ve-lib ] && [ ! -z "$(ls -A ve-lib)" ]
 then
-    echo "Building offline (Windows) installer: ${VE_WINDOWS}"
-    zip --recurse-paths "--output-file=${VE_WINDOWS}" "${VE_INSTALLER}" ve-lib
+    echo "Building offline (Windows) installer: ${VE_BINARY}"
+    zip --recurse-paths "--output-file=${VE_BINARY}" "${VE_INSTALLER}" ve-lib
 fi
 
 echo "Done building installers."
-
-# TODO; review the insanely huge number of dependencies and streamline
-# them.  There's probably a lot of cruft that some careful thinking
-# might be able to sidestep
