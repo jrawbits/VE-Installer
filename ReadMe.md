@@ -27,7 +27,7 @@ The following outputs are available:
 
 # Development Environment Pre-Requisites
 
-Prerequisites to build a VisionEval runtime environment or installser include the [current
+Prerequisites to build a VisionEval runtime environment or installer include the [current
 release version of R][currentR] for your development platform, and a suitable development
 environment.  As of builder-v0.1, R 3.5.1 is required.  The R version (minimum 3.4 in any
 case) will be configurable in later builder releases.
@@ -204,20 +204,24 @@ to the `build` directory and use the following make targets once you have config
 VE version and the dependencies.
 
 * `make`
-  Just do it!  Defaults to `make repository; make binary; make installers`; see below
+  Just do it!  Defaults to `make repository; make binary; make runtime; make installers;`
+  see below
 * `make repository`
   Builds the "miniCRAN" package repository with all the VisionEval dependencies (and
   their dependencies, and their dependencies, and so on all the way down). At the end
   of this step, you will have source and Windows binary packages for all the
   dependencies, plus built source packages (only) for VisionEval and Github packages.
 * `make binary`
-  This will build VisionEval binaries and install them for the machine architecture
+  Builds VisionEval binaries and install them for the machine architecture
   of your development environment.  If you want Windows binaries, run this on a
   Windows machine.  You can use it to create a runtime for Linux or Macintosh if
   that's where you're developing.  After running this step, you'll have a local
   runtime environment that you can install just like an end user.  See below.
+* make runtime
+  Copy non-package source files and test data to the runtime folder (basis for
+  the installers, and also for a local runtime test environment for the developer)
 * `make installers`
-  This will package up installers:  the offline installer always, and the binary
+  Packages up installers:  the offline installer always, and the binary
   offline installer if you previously ran `make binary`.
 * `make publish`
   You'll need to configure a website and security credentials in your bash
