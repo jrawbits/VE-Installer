@@ -19,7 +19,14 @@ bp.file.list <- scan(file=file.path(ve.boilerplate,"boilerplate.lst"),quiet=TRUE
 # Copy the files
 bp.files <- file.path(ve.boilerplate,bp.file.list)
 if ( length(bp.files)>0 ) {
-	invisible(file.copy(bp.files,ve.runtime,recursive=TRUE)) # currently there's nothing to recurse into)
+	# currently there's nothing to recurse into)
+	success <- suppressWarnings(file.copy(bp.files,ve.runtime,recursive=TRUE))
+	if ( any( ! success ) ) {
+		print(paste("Failed to copy boilerplate: ",basename(bp.files[!success])))
+		cat("which may not be a problem (e.g. .Rprofile missing)\n")
+		cat(".Rprofile is principally intended to house default ve.remote for online installer.\n")
+		cat("If something else is missing, you should revisit boilerplate/boilerplate.lst\n")
+	}
 }
 
 # Get the VisionEval sources, if any are needed

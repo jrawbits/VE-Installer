@@ -16,17 +16,19 @@
 # VE-dependencies.csv in the order in which they will be built
 
 # Pick the CRAN mirror to use for retrieving dependency packages
-CRAN.mirror <- "https://cran.rstudio.org"
+if ( !exists("CRAN.mirror") || is.na(CRAN.mirror) ) { # may override in .Rprofile
+	CRAN.mirror <- "https://cran.rstudio.org"
+}
 
 # Can override ve.install in .Rprofile (default presumes the working
 # directory is the "build" subdirectory of the ve.install root)
-if (!exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
+if ( !exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
 	ve.install <- sub("My Documents","Documents",normalizePath(file.path(getwd(),".."))) # Hack to fix path problem
 }
 ve.dependencies <- file.path(ve.install,"dependencies")
 source(file.path(ve.dependencies,"VE-config.R"))
 
-if (!exists("ve.output") || is.na(ve.output) ) {
+if ( !exists("ve.output") || is.na(ve.output) ) {
 	ve.output <- file.path(ve.install,paste("installer",format(Sys.time(),"%y%m%d"),sep="_"))
 }
 ve.output <- gsub("\\\\","/",ve.output)
@@ -36,8 +38,8 @@ make.target <- file("ve-output.make")
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
 ve.r.version <- "3.5.1"  # Eventually make this configurable so we can build to other versions
 writeLines(paste(c("VE_OUTPUT","VE_ROOT","VE_INSTALLER","VE_PLATFORM","VE_R_VERSION"),
-		 c(ve.output,ve.root,ve.install,ve.platform,ve.r.version),
-		 sep="="),
+				 c(ve.output,ve.root,ve.install,ve.platform,ve.r.version),
+				 sep="="),
 	   make.target)
 close(make.target)
 	
@@ -75,6 +77,7 @@ pkgs.copy       <- pkglist("copy",path=TRUE)
 
 # NOTE: there is an order dependency for building/checking modules
 # Generally, it is important to use the list in the order presented below
+# Check with the current VisionEval source tree for updates
 # framework <- "visioneval"
 # modules <- c(
 # 	 "VE2001NHTS"
@@ -92,16 +95,16 @@ pkgs.copy       <- pkglist("copy",path=TRUE)
  
 # Create a series of utility functions
 check.VE.environment <- function() {
-	if (!exists("ve.root") || is.na(ve.root) || !file.exists(ve.root) ) {
+	if ( !exists("ve.root") || is.na(ve.root) || !file.exists(ve.root) ) {
 		cat("Missing ve.root - set in .RProfile to root of VE repository\n")
 		return(0)
-	} else if (!exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
+	} else if ( !exists("ve.install") || is.na(ve.install) || !file.exists(ve.install) ) {
 		cat("Missing ve.install - set in .RProfile to root of installer tree\n")
 		return(0)
-	} else if (!exists("ve.lib") || is.na(ve.lib) ) {
+	} else if ( !exists("ve.lib") || is.na(ve.lib) ) {
 		cat("Missing ve.lib definition; run state-dependencies.R\n")
 		return(0)
-	} else if (!exists("ve.repository") || is.na(ve.repository) ) {
+	} else if ( !exists("ve.repository") || is.na(ve.repository) ) {
 		cat("Missing ve.repository definition; run state-dependencies.R\n")
 		return(0)
 	}

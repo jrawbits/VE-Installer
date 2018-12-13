@@ -34,43 +34,46 @@ if ( ! dir.exists(ve.lib) ) {
 	ve.lib.local <- normalizePath(file.path(ve.root,"..","ve-lib"),winslash="/",mustWork=FALSE)
 
 	if (! dir.exists(ve.lib.local) ) {
-		# It can't be found locally, so pull it in from a repository
-
+		# ve.lib can't be found locally, so pull it in from a repository
 		# Configure repository depending on installation source
-		ve.remote <- "https://visioneval.jeremyraw.com/R/"
+		# Check first for development environment
 		ve.local  <- normalizePath(file.path(ve.root,"..","pkg-repository"),winslash="/",mustWork=FALSE)
+
+		if ( dir.exists(ve.local) ) {  
+			ve.repos <- paste("file:",ve.local,sep="")
+		} else if ( exists("ve.remote") ) {
+			ve.repos <- ve.remote
+		} else {
+			message("Need accessible ve-lib in the file system, or you may define ve.remote (URL for the VisionEval package repository) in .Rprofile")
+			message("VisionEval packages are not available")
+			return(FALSE)
+		}
+
+		VE.pkgs <- available.packages(repos=ve.repos)[,"Package"]
+		# Installation list is everything in the repository
+		# Consequently: test and abort if visioneval isn't in it
+		if ( ! "visioneval" %in% VE.pkgs[,Package] ) {
+			message(paste("VisionEval not present in",ve.repos))
+			message("VisionEval packages are not available")
+			return(FALSE)
+		}
 
 		dir.create(ve.lib)
 
-		# Install the VE packages and dependencies
-		# If it looks like we have suitable 'src' and 'bin' in a local repository, use that for packages
-		# Otherwise, reach for the default online server
-
-		ve.repos <- ifelse( dir.exists(ve.local), paste("file:",ve.local,sep=""), ve.remote )
-		VE.pkgs <- available.packages(repos=ve.repos)[,"Package"] # Installation list is everything in the repository
-
-		# Don't do dependencies because they should all be in the miniCRAN
 		install.packages(
 			VE.pkgs,
 			lib=ve.lib,
 			repos=ve.repos,
 			quiet=TRUE
 		)
-		install.success <- TRUE
 	} else {
 		ve.lib <- ve.lib.local # Use the build environment installed library
-		install.success <- TRUE
 	}
+	TRUE
 }
 
 # Construct "RunVisionEval.Rdata"
-# Something to "double-click" for a rapid happy start in RGui...
-
-# TODO: We'll want to do some better library-finding
-# I'd recommend blowing away all the library paths except the
-# one that has the base packages, then forcing ve.lib to the
-# front of the list as is done here.  But it's rather hard
-# to get R to throw away libraries it already knows about.
+# Something to "double-click" in windows for a rapid happy start in RGui...
 
 .First <- function() {
 	.libPaths(ve.lib)
@@ -82,7 +85,7 @@ if ( ! dir.exists(ve.lib) ) {
 }
 
 # Function starts the VEGUI
-# NOTE: This function has not been well-tested
+# NOTE: VEGUI remains a moving target...
 vegui <- function() {
 	require("shiny")
 	full_path <- file.path(ve.root,"VEGUI")
@@ -92,8 +95,8 @@ vegui <- function() {
 }
 
 # The following two functions run the command line model versions per the
-# Getting Started document.  Can run model from arbitrary data folders.
-
+# Getting Started document.  Expects a version of VE that can run a model
+# from arbitrary data folders.
 verpat <- function() {
 	if ( ! dir.exists("defs") || ! dir.exists("inputs") ) {
 		cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run\n")
@@ -111,7 +114,7 @@ verspm <- function() {
 	} else {
 		source(file.path(ve.root,"models/Run_VERSPM.R"))
 	}
-	# WARNING: not actually using the Run_Model.R in models/VERPAT
+	# WARNING: not actually using the Run_Model.R in models/VERSPM
 }
 
 install.success <- .First()
