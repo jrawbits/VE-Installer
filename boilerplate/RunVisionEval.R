@@ -6,4 +6,6 @@
 # all happen auto-magically.
 
 load("./RunVisionEval.RData")
-if ( ! "package:visioneval" %in% search() ) .First()
+if ( ! "package:visioneval" %in% search() ) {
+  .First()
+}

@@ -1,19 +1,26 @@
-# This script runs all the configured tests; track with the travis.yml environment
+#!/bin/env Rscript
 
-# Iterate across the packages, finding their test scripts and executing those one
-# after another
+# Author: Jeremy Raw
 
-# Then run VERPAT on its test data, and VERSPM and its test data
-#
+# This script runs all the configured tests; track with the travis.yml
+# environment
+
+# Iterate across the packages, finding their test scripts and executing those
+# one after another. Then run VERPAT on its test data, and VERSPM and its test
+# data
+
 load("dependencies.RData")
-if ( !check.VE.environment() ) stop("Run state-dependencies.R to set up build environment")
+if ( ! checkVEEnvironment() ) {
+  stop("Run state-dependencies.R to set up build environment")
+}
 
 # Where to find the package sources (in the VisionEval repository)
 
 ve.packages <- pkgs.visioneval[,"Package"]
-package.paths <- file.path(ve.root,pkgs.visioneval[,"Path"],ve.packages)
+package.paths <- file.path(ve.root, pkgs.visioneval[,"Path"], ve.packages)
 
 # Under development - still does nothing
+# Waiting for VisionEval itself to stabilize...
 
 # Run the package tests
 # This should all boil down to testing the built package

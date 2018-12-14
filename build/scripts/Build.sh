@@ -1,4 +1,6 @@
 #!/bin/bash
+# Author: Jeremy Raw
+
 # (expecting Git for Windows or Git on Linux)
 # The script is written to run from its parent directory
 # (typically "build") with the scripts in the scripts sub-directory

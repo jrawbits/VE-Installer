@@ -4,11 +4,11 @@
 # $2 = the Data directory to use for the model run
 
 argv <- commandArgs(trailingOnly=TRUE)
-if ( ! is.null(argv) && length(argv)==2 ) {
+if ( ! is.null(argv) && length(argv) == 2 ) {
 	setwd(argv[2])	# The DATA folder
-	cat(paste(sep="","run_model.r: Running model '",argv[1],"' on data '",argv[2],"'\n"))
+	cat(paste(sep="", "run_model.r: Running model '", argv[1], "' on data '", argv[2],"'\n"))
 	source(argv[1]) # The MODEL to run
 } else {
-	cat(paste("run_model.r: Malformed Model '",argv[1],"' or Data '",argv[2],"'\n",sep=""))
+	cat(paste(sep="","run_model.r: Malformed Model '",argv[1],"' or Data '",argv[2], "'\n"))
 }
 
