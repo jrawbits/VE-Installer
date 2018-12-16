@@ -26,10 +26,10 @@ repository.built: dependencies.RData scripts/build-repository.R scripts/build-ex
 
 configure: dependencies.RData ve-output.make
 
-ve-output.make: dependencies.RData
-
-dependencies.RData: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R scripts/state-dependencies.R
+ve-output.make: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R scripts/state-dependencies.R
 	Rscript scripts/state-dependencies.R
+
+dependencies.RData: ve-output.make
 
 binary: binary.built
 
