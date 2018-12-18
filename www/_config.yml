@@ -1,0 +1,46 @@
+# Dependencies
+markdown:         kramdown
+highlighter:      rouge
+
+# Setup
+title:            VisionEval
+tagline:          ''
+description:      'A common framework for strategic planning models.'
+url:              http://download.visioneval.org
+baseurl:          # the optional subpath of your site, e.g. "/blog"
+                  # NB: This applies to all pages in your Jekyll site.
+                  # If you want to move just the blog index pages but keep
+                  # other pages at root, see the paginate_path and
+                  # sidebar_blog_link below.
+
+author:
+  name:           'Jeremy Raw'
+  url:            https://www.fhwa.dot.gov/planning
+
+keep_files:       [src, bin, installers]
+                  # Package repository is not built through Jekyll
+                  # Jekyll only hosts the HTML
+                  # Just create or re-create 'src' or 'bin' trees manually
+                  # or use the publish-installers script
+
+paginate:         5
+# paginate_path:    '/page:num'
+                  # Or '/blog/page:num' if you want to move your index pages
+
+plugins:
+  - jekyll-feed
+  - jekyll-gist
+  - jekyll-paginate
+
+# Custom vars
+# version:            3.6.0
+sidebar_home_link:  true
+# sidebar_blog_link:  '/blog'   # By default, your home page is your blog
+                                # page. If you change your paginate_path,
+                                # set this to the root of the paginate_path
+                                # to enable a separate blog link.
+
+# github: 
+#  repo: https://github.com/visioneval/visioneval
+
+# repository: visioneval/visioneval
