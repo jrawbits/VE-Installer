@@ -23,6 +23,9 @@ keep_files:       [src, bin, installers]
                   # Just create or re-create 'src' or 'bin' trees manually
                   # or use the publish-installers script
 
+exclude:
+  - README.md
+
 paginate:         5
 # paginate_path:    '/page:num'
                   # Or '/blog/page:num' if you want to move your index pages
@@ -39,8 +42,3 @@ sidebar_home_link:  true
                                 # page. If you change your paginate_path,
                                 # set this to the root of the paginate_path
                                 # to enable a separate blog link.
-
-# github: 
-#  repo: https://github.com/visioneval/visioneval
-
-# repository: visioneval/visioneval

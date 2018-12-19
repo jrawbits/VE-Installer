@@ -1,38 +1,58 @@
-## Website management
+# VisionEval Download Website management
 
-This website is built with the '[Hydeout](https://github.com/fongandrew/hydeout)' theme for GitHub pages. It uses Jekyll, a tool built in Ruby to generate web pages from content written in Markdown, and is integrated with GitHub.
+The VisionEval download website is built with the
+'[Hydeout](https://github.com/fongandrew/hydeout)' theme for GitHub
+pages. It uses Jekyll, a tool built in Ruby to generate web pages from
+content written in Markdown, and is integrated with GitHub.
 
-There are three options for making updates to this website:
+To build the website, you'll need to install Ruby and Jekyll.  Probably you're working on Windows,
+which makes sense since you can preview "live".  You can also install on other architectures (e.g.
+Mac or Linux).  The same steps apply after you've got a Ruby environment up and running.  See
+[Jekyll Installtion](https://jekyllrb.com/docs/installation/) and particularly the [Windows
+page](https://jekyllrb.com/docs/installation/windows/)
 
-1. Editing files directly on GitHub -- not recommended, but possible.
-2. Clone the repository, make changes with a text editor, and push commits back to master. You will only see the outcome of your changes after pushing your commits.
-3. Recommended approach: clone the repository, make changes with a text editor, preview those changes using Jekyll (see below), then push when satisfied with the changes. 
+## Windows installation
 
-The third approach is detailed here:
- - Windows machines need to download and install [Ruby](https://rubyinstaller.org/downloads/)
- - Open a Unix or Unix-like command-line utility (Terminal on Mac, [Git BASH](http://gitforwindows.org/) on Windows will work)
- - Install Jekyll with `gem install jekyll`. See details [here](https://jekyllrb.com/docs/installation)
- - Install bundler with `gem install bundler`. This Ruby tool updates all needed Ruby dependencies.
- - Clone this repository to your machine, navigate to it, and `bundle install`.
- - Now you can make edits to the contents. After doing so, you can preview the changes before pushing to the repository with:
+If you already have Git for Windows and Rtools installed, you can probably skip the MSys2
+Installation.  You need to select an instllation path that is writable (the default,
+rooted at C: won't work in most enterprise environments). If you get a prompt on Windows
+10 about Ruby needing firewall permissions, you can just cancel the dialog and everything
+will still work (even though it might not look like it is until it's done).  None of the
+gems needed for Jekyll and the website seems to required C compilation.
+
+Here are the Windows steps (run in a shell such as Git for Windows Bash):
+
+	- Download Ruby and install it (notes above)
+	- `gem install jekyll bundler`
+	- `cd www` (the folder containing this ReadMe.md)
+	- `bundle install`
+
+If you need to adjust gem versions, you can maintain the Ruby Gems with `bundle update`.
+
+After that, you should be good to edit the website locally.
+
+## Checking your changes to the website
+
+Use these two commands to try out your website changes:
 
 ```
 bundle exec jekyll build
 bundle exec jekyll serve
 ```
 
-These are essentially the same steps that GitHub takes when generating a `gh-pages` page from a repository, and let you preview the rendered site as you make changes on the fly. Then you can push the completed batch of edits all at once.
-  
-Example instructions from another open-source project are here:
-https://github.com/stan-dev/stan-dev.github.io/wiki/Using-the-Jeykll-Based-Website
+The build instruction can be performed by make:
 
-Maintain the Ruby Gems with `bundle update`.
+```
+make www
+```
 
-## VisionEval
+## Deploying the website
 
-The working version of the VisionEval project is currently [here](https://github.com/visioneval/VisionEval).
+Two `make` targets exist in the build directory.  See the ReadMe.md over there
+for further instructions.  In a nutshell:
 
-### What is VisionEval?
+	- `make publish-www` will take your build `_site` and push it to the web server
+	- `make publish-repo` will install or update the pkg-repository on the web server
 
-See the overview of VisionEval [here](http://VisionEval.org/)
-
+You'll need to configure web server credentials, URL, and a suitable Rsync (the one
+from Rtools will work) for those to work.
