@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # You'll need to set a path to the RSYNC executable (e.g. in Rtools;
 # see below on setting up suitable parameters).
 
@@ -16,11 +17,8 @@
 # .bashrc or .profile (or even manually when you start make).
 
 [ -f website.credentials ] && . website.credentials
+VE_INSTALL=$(pwd)/.. # presume we're running from ${VE_INSTALLER}/build
 
-VE_OUTPUT=$(Rscript -e "load('dependencies.RData'); cat(ve.output)")
-cd ${VE_OUTPUT}
-VE_INSTALLER="VE-installer.zip"
-VE_WINDOWS="VE-installer-windows-R3.5.1.zip"
-"${RSYNC}" -avz -e "ssh -p ${WWW_SSH_PORT}" "${VE_INSTALLER}" "${VE_WINDOWS}" ${VE_WEBSITE}/
-"${RSYNC}" -ravzP --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/src/ ${VE_WEBSITE}/R/src/
-"${RSYNC}" -ravzP --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/bin/ ${VE_WEBSITE}/R/bin/
+# Obviously, you need to build the Jekyll _site first!
+# Not deleting because we don't want to take out the pkg-repository or installers
+"${RSYNC}" -ravzP -e "ssh -p ${WWW_SSH_PORT}" ${VE_INSTALL}/www/_site/ ${VE_WEBSITE}/

@@ -1,7 +1,9 @@
 include ve-output.make
 # Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER, VE_PLATFORM, VE_R_PLATFORM
 
-.PHONY: configure repository binary installers docker publish clean runtime-clean docker-clean docker-output-clean all
+.PHONY: configure repository binary installers docker publish\
+        clean runtime-clean www-clean all www\
+	docker-clean docker-output-clean
 
 all: configure repository binary installers
 
@@ -15,6 +17,9 @@ clean: ve-output.make
 runtime-clean: ve-output.make
 	rm -rf $(VE_OUTPUT)/runtime/*
 	rm runtime.built
+
+www-clean: ve-output.make
+	rm -rf $(VE_INSTALLER)/www/_site
 
 repository: repository.built
 
@@ -53,12 +58,26 @@ installers: installers.built runtime.built
 installers.built: dependencies.RData $(VE_OUTPUT)/VE-Installer.zip $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip
 	touch installers.built
 
-publish: publish.built
+# Building the website requires Ruby/Jekyll - see www/ReadMe.md
+www: www-built
+
+www-built: $(VE_INSTALLER/www/index.md $(VE_INSTALLER)/www/_includes/custom-nav-links.html
+	cd $(VE_INSTALLER)/www; bundle exec jekyll build
+	touch www-built
+
+publish-www: publish-www.built
 
 # Must set WWW_SSH_PORT and VE_WEBSITE in website.credentials (or in environment)
-publish.built: installers.built
+publish-www.built: www-built
+	bash scripts/publish-www.sh
+	touch publish-www.built
+
+publish-repos: publish-repos.built
+
+# Must set WWW_SSH_PORT and VE_WEBSITE in website.credentials (or in environment)
+publish-repos.built: repository.built
 	bash scripts/publish-installers.sh
-	touch publish.built
+	touch publish-repos.built
 
 $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip: $(VE_OUTPUT)/VE-Installer.zip
 
