@@ -17,8 +17,12 @@
 # .bashrc or .profile (or even manually when you start make).
 
 [ -f website.credentials ] && . website.credentials
-VE_INSTALL=$(pwd)/.. # presume we're running from ${VE_INSTALLER}/build
+
+[ -f ve-output.make ] || echo "Need to run state-dependencies.R"
+. ve-output.make
+
+cd ${VE_INSTALLER}/www/_site
 
 # Obviously, you need to build the Jekyll _site first!
 # Not deleting because we don't want to take out the pkg-repository or installers
-"${RSYNC}" -ravzP -e "ssh -p ${WWW_SSH_PORT}" ${VE_INSTALL}/www/_site/ ${VE_WEBSITE}/
+"${RSYNC}" -rvazP -e "ssh -p ${WWW_SSH_PORT}" --exclude=src --exclude=bin --exclude=installers --delete ./ "${VE_WEBSITE}/"

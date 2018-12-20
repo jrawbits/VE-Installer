@@ -59,23 +59,23 @@ installers.built: dependencies.RData $(VE_OUTPUT)/VE-Installer.zip $(VE_OUTPUT)/
 	touch installers.built
 
 # Building the website requires Ruby/Jekyll - see www/ReadMe.md
-www: www-built
+www: www.built
 
-www-built: $(VE_INSTALLER/www/index.md $(VE_INSTALLER)/www/_includes/custom-nav-links.html
+www.built: $(VE_INSTALLER/www/index.md $(VE_INSTALLER)/www/_includes/custom-nav-links.html
 	cd $(VE_INSTALLER)/www; bundle exec jekyll build
-	touch www-built
+	touch www.built
 
-publish-www: publish-www.built
+publish-www: publish-www.built 
 
 # Must set WWW_SSH_PORT and VE_WEBSITE in website.credentials (or in environment)
-publish-www.built: www-built
+publish-www.built: www.built
 	bash scripts/publish-www.sh
 	touch publish-www.built
 
 publish-repos: publish-repos.built
 
 # Must set WWW_SSH_PORT and VE_WEBSITE in website.credentials (or in environment)
-publish-repos.built: repository.built
+publish-repos.built: repository.built installers.built
 	bash scripts/publish-installers.sh
 	touch publish-repos.built
 

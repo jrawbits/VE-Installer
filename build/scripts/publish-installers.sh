@@ -17,10 +17,12 @@
 
 [ -f website.credentials ] && . website.credentials
 
-VE_OUTPUT=$(Rscript -e "load('dependencies.RData'); cat(ve.output)")
+[ -f ve-output.make ] || echo "Need to run state-dependencies.R"
+. ve-output.make
+
 cd ${VE_OUTPUT}
-VE_INSTALLER="VE-installer.zip"
-VE_WINDOWS="VE-installer-windows-R3.5.1.zip"
-"${RSYNC}" -avz -e "ssh -p ${WWW_SSH_PORT}" "${VE_INSTALLER}" "${VE_WINDOWS}" ${VE_WEBSITE}/
-"${RSYNC}" -ravzP --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/src/ ${VE_WEBSITE}/R/src/
-"${RSYNC}" -ravzP --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/bin/ ${VE_WEBSITE}/R/bin/
+VE_INSTALL_ONLINE="VE-installer.zip"
+VE_INSTALL_WINDOWS="VE-installer-windows-R3.5.1.zip"
+"${RSYNC}" -avz -e "ssh -p ${WWW_SSH_PORT}" "${VE_INSTALL_ONLINE}" "${VE_INSTALL_WINDOWS}" ${VE_WEBSITE}/installers/
+"${RSYNC}" -ravzP --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/src/ ${VE_WEBSITE}/src/
+"${RSYNC}" -ravzP --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/bin/ ${VE_WEBSITE}/bin/

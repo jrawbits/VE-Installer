@@ -25,6 +25,11 @@ keep_files:       [src, bin, installers]
 
 exclude:
   - README.md
+  - jekyll-theme-hydeout.gemspec
+  - Gemfile
+  - Gemfile.lock
+  - CNAME
+  - package.json
 
 paginate:         5
 # paginate_path:    '/page:num'
