@@ -119,10 +119,10 @@ if ( havePackages() ) {
 		cat("Updating VE repository to add from BioConductor:\n")
 		print(union(pkgs.missing.BioC$src, pkgs.missing.BioC$bin))
 		if ( length(pkgs.missing.BioC$src) > 0 ) {
-			miniBioC::addPackage(pkgs.missing.BioC$src, path=ve.repository, repos=bioc, type=c("source"), deps=FALSE)
+			miniCRAN::addPackage(pkgs.missing.BioC$src, path=ve.repository, repos=bioc, type=c("source"), deps=FALSE)
 		}
 		if ( length(pkgs.missing.BioC$bin) > 0 ) {
-			miniBioC::addPackage(pkgs.missing.BioC$bin, path=ve.repository, repos=bioc, type=c("win.binary"), deps=FALSE)
+			miniCRAN::addPackage(pkgs.missing.BioC$bin, path=ve.repository, repos=bioc, type=c("win.binary"), deps=FALSE)
 		}
 	}
 	cat("Existing VE repository is up to date.\n")
