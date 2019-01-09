@@ -1,4 +1,6 @@
 Install-VisionEval.bat
 Install-VisionEval.R
 RunVisionEval.R
+VisionEval.Rproj
+models
 .Rprofile

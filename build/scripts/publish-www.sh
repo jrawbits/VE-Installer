@@ -25,4 +25,4 @@ cd ${VE_INSTALLER}/www/_site
 
 # Obviously, you need to build the Jekyll _site first!
 # Not deleting because we don't want to take out the pkg-repository or installers
-"${RSYNC}" -rvazP -e "ssh -p ${WWW_SSH_PORT}" --exclude=src --exclude=bin --exclude=installers --delete ./ "${VE_WEBSITE}/"
+"${RSYNC}" -avz -e "ssh -p ${WWW_SSH_PORT}" --exclude=src --exclude=bin --exclude=installers --delete ./ "${VE_WEBSITE}"

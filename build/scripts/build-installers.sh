@@ -9,6 +9,8 @@
 # Must be in "build" folder (parent of "scripts") to start
 # Take advantage of shell variable and make variable syntax being identical
 
+# Expecting the RTools version of "zip"
+
 . ve-output.make # loads VE_OUTPUT, VE_INSTALLER, VE_ROOT, VE_PLATFORM, VE_R_VERSION
 
 VE_ONLINE="${VE_OUTPUT}/VE-installer.zip"
@@ -21,7 +23,7 @@ cd "${RUNTIME_PATH}"
 [ -f "${VE_BINARY}" ] && rm "${VE_BINARY}"
 
 echo "Building online installer: ${VE_ONLINE}"
-zip --recurse-paths "${VE_ONLINE}" $(cat "${VE_INSTALLER}/boilerplate/boilerplate.lst" | sed -e "s#^#${VE_OUTPUT}/runtime/#")
+zip --recurse-paths "${VE_ONLINE}" .
 
 # Windows installer
 cd "${VE_OUTPUT}"

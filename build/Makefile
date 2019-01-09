@@ -2,7 +2,7 @@ include ve-output.make
 # Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER, VE_PLATFORM, VE_R_PLATFORM
 
 .PHONY: configure repository binary installers docker publish\
-        clean runtime-clean www-clean all www\
+        clean runtime-clean www-clean build-clean all www\
 	docker-clean docker-output-clean
 
 all: configure repository binary installers
@@ -20,6 +20,12 @@ runtime-clean: ve-output.make
 
 www-clean: ve-output.make
 	rm -rf $(VE_INSTALLER)/www/_site
+
+build-clean:
+	rm -f all-dependencies.RData dependencies.RData
+	rm -f ve-output.make
+	rm -f *.built
+	rm -f *.out
 
 repository: repository.built
 

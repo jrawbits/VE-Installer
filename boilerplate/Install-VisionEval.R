@@ -88,36 +88,41 @@ if ( ! dir.exists(ve.lib) ) {
 }
 
 # Function starts the VEGUI
-# NOTE: VEGUI remains a moving target...
 vegui <- function() {
-  require("shiny")
+	library("shiny")
   full_path <- file.path(ve.root,"VEGUI")
-  old.path <- setwd(full_path)
-  runApp('../VEGUI')
-  setwd(old.path)
+	owd <- setwd(full_path)	
+	runApp('../VEGUI')
+  setwd(owd)
 }
 
 # The following two functions run the command line model versions per the
-# Getting Started document.  Expects a version of VE that can run a model
-# from arbitrary data folders.
-verpat <- function() {
-  if ( ! dir.exists("defs") || ! dir.exists("inputs") ) {
-    cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run\n")
-    cat("Look for 'models/VERPAT' or 'models/BaseYearVERPAT', for example\n")
-  } else {
-    source(file.path(ve.root,"models/Run_VERPAT.R"))
-  }
-  # WARNING: not actually using the Run_Model.R in models/VERPAT
+# Getting Started document.  Optional "scenarios" argument, if TRUE, will
+# run the scenarios version of the test models.
+verpat <- function(scenarios=FALSE,baseyear=FALSE) {
+	if ( ! scenarios ) {
+		if ( ! baseyear ) {
+			full_path <- file.path(ve.root,"models/VERPAT")
+		} else {
+			full_path <- file.path(ve.root,"models/BaseYearVERPAT")
+		}
+	} else {
+		full_path <- file.path(ve.root,"models/VERPAT_Scenarios")
+	}
+	owd <- setwd(full_path)
+	source("run_model.R")
+	setwd(owd)
 }
 
-verspm <- function() {
-  if ( ! dir.exists("defs") || ! dir.exists("inputs") ) {
-    cat("Set working directory to location of 'defs' and 'inputs' for RPAT model run\n")
-    cat("Look for 'models/VERSPM/Test1' or 'models/VERSPM/Test2', for example\n")
-  } else {
-    source(file.path(ve.root,"models/Run_VERSPM.R"))
-  }
-  # WARNING: not actually using the Run_Model.R in models/VERSPM
+verspm <- function(scenarios=FALSE) {
+	if ( ! scenarios ) {
+		full_path <- file.path(ve.root,"models/VERSPM/Test1")
+	} else {
+		full_path <- file.path(ve.root,"models/VERSPM_Scenarios")
+	}
+	owd <- setwd(full_path)
+	source("run_model.R")
+	setwd(owd)
 }
 
 # Write objects to RunVisionEval.RData configuration file

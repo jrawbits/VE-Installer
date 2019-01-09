@@ -23,6 +23,7 @@
 cd ${VE_OUTPUT}
 VE_INSTALL_ONLINE="VE-installer.zip"
 VE_INSTALL_WINDOWS="VE-installer-windows-R3.5.1.zip"
-"${RSYNC}" -avz -e "ssh -p ${WWW_SSH_PORT}" "${VE_INSTALL_ONLINE}" "${VE_INSTALL_WINDOWS}" ${VE_WEBSITE}/installers/
-"${RSYNC}" -ravzP --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/src/ ${VE_WEBSITE}/src/
-"${RSYNC}" -ravzP --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/bin/ ${VE_WEBSITE}/bin/
+echo Pushing installers and pkg-repository to ${VE_WEBSITE}
+"${RSYNC}" -avz -e "ssh -p ${WWW_SSH_PORT}" "${VE_INSTALL_ONLINE}" "${VE_INSTALL_WINDOWS}" "${VE_WEBSITE}installers/"
+"${RSYNC}" -avz --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/bin/ "${VE_WEBSITE}"bin
+"${RSYNC}" -avz --delete -e "ssh -p ${WWW_SSH_PORT}" pkg-repository/src/ "${VE_WEBSITE}"src
