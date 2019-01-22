@@ -1,4 +1,3 @@
-Install-VisionEval.bat
 Install-VisionEval.R
 RunVisionEval.R
 .Rprofile

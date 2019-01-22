@@ -24,22 +24,16 @@ standard R interface.  Rstudio is particularly recommended if you plan to clone 
 
 After installing R 3.5.1 and downloading the VE Installer from the link at the top, unzip the folder to the destination folder of your choice.
 
-To complete the installation and start VisionEval, you can follow one of the following procedures.
+To complete the installation and start VisionEval, do the following:
 
-1. If you installed R for all users (i.e. as administrator), navigate to the destination folder and follow these steps:
-   - Double-click Install-VisionEval.bat and follow the instruction
-   - Double-click RunVisionEval.RData to launch R running VisionEval
-   - You will see <tt>"Welcome to VisionEval!"</tt> at the end of the R startup message stream if everything went well.
-
-1. If you have not installed R for all users (i.e. without administrator privileges), you can do the steps manually:
-   - Start R / RStudio
-   - Use File / Change dir... to navigate to the destination folder (where you unzipped the installer)
-   - Enter the following instructions one by one in the R command window:
+   1. Start R / RStudio
+   1. Use File / Change dir... to navigate to the destination folder (where you unzipped the installer)
+   1. Enter (or copyA) the following instructions one by one in the R command window:
 
      <tt>source("Install-VisionEval.R")</tt><br/>
      <tt>load("RunVisionEval.Rdata")</tt>
 
-   - You will see <tt>"Welcome to VisionEval!"</tt> at the end of the R startup message stream if everything went well.
+   1. - You will see <tt>"Welcome to VisionEval!"</tt> at the end of the R startup message stream if everything went well.
 
 Once you have been welcomed to VisionEval, you can follow the instructions under "Running VE Models" on the
 <a href="https://github.com/VisionEval/VisionEval/wiki/Getting-Started">Getting Started</a> page.
