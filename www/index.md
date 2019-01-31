@@ -28,12 +28,10 @@ To complete the installation and start VisionEval, do the following:
 
    1. Start R / RStudio
    1. Use File / Change dir... to navigate to the destination folder (where you unzipped the installer)
-   1. Enter (or copyA) the following instructions one by one in the R command window:
-
-     <tt>source("Install-VisionEval.R")</tt><br/>
-     <tt>load("RunVisionEval.Rdata")</tt>
-
-   1. - You will see <tt>"Welcome to VisionEval!"</tt> at the end of the R startup message stream if everything went well.
+   1. Enter (or copyA) the following instructions one by one in the R command window:<br/>
+     `source("Install-VisionEval.R")`<br/>
+     `load("RunVisionEval.Rdata")`
+   1. You will see `Welcome to VisionEval!` at the end of the R startup message stream if everything went well.
 
 ## Getting Started
 

@@ -1,7 +1,8 @@
 include ve-output.make
 # Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER, VE_PLATFORM, VE_R_PLATFORM
 
-.PHONY: configure repository binary installers docker publish\
+.PHONY: configure repository binary installers docker\
+	publish-repos publish-www\
         clean runtime-clean www-clean build-clean all www\
 	docker-clean docker-output-clean
 
