@@ -35,6 +35,8 @@ To complete the installation and start VisionEval, do the following:
 
    1. - You will see <tt>"Welcome to VisionEval!"</tt> at the end of the R startup message stream if everything went well.
 
+## Getting Started
+
 Once you have been welcomed to VisionEval, you can follow the instructions under "Running VE Models" on the
 <a href="https://github.com/VisionEval/VisionEval/wiki/Getting-Started">Getting Started</a> page.
 Your destination folder contains everything you need from the VisionEval "sources" folder.
