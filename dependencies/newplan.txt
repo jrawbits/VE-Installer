@@ -1,24 +1,53 @@
+Install configuration (could be placed in the "logs" directory)
+	[NOTE: configuration should also be copied to the Installer directory]
+	Name (default is built from date, as currently)
+	Target (default is subdirectory of "runtimes" folder of Installer)
+
+Runtime logs
+	Build date
+	R Session Information (state-dependencies)
+
 R Version
-	Major.Minor.Subversion
+	Major.Minor.Subversion (or "current", which uses cran.r-project.org's current version)
 	(Use to select MRAN and BioConductor repository versions)
 	(Run a batch file to find Rscript)
 VE Root Location (may have more than one):
 	Name, AbsolutePath
+Developer library
+	Name, (default to R_LIBS_USER from REnviron)
 VE Build Location
-	ve.root, AbsolutePath
+	ve.install, AbsolutePath
 VE Build Folders (relative name within Build location)
 	ve.runtime (runtime environment, batch files, etc.)
-	ve.depends (built dependencies, src + bin)
-	ve.built (built packages for VE, src + bin)
-	ve.pkgs (source repo for installer)
-	ve.lib (installed binaries for installer/runtime)
+	ve.depends (built dependencies, src + bin) - can keep this out of the version build tree
+	ve.built (built packages for VE, src + bin - can be absolute path to support caching?)
+	ve.pkgs (source repo for installer - relation to ve.built/src? - can be absolute path to support caching?)
+	ve.lib (installed binaries for installer/runtime - can be absolute path to support caching?)
+
 Configuration Objects
 	Dependency (repository class, name) (was type "CRAN" or "BioConductor")
 	External (source path, name) (was type "install")
 	VisionEval (source path, name) (was type "visioneval")
 	Runtime (source path, name, runtime relative destination - name goes within) (was type "copy")
+	[ Formulate these as Sections, with lists of objects in each section ]
+	[ Multiple sections of the same type will be consolidated and processed in order ]
+
+Locations
+	MakeName: [optional] if specified, add to ve-output.make
+	LocName (R variable for use in scripts): e.g. ve.root
+	Description: Optional
+
+Repositories (bioc, (C|M)RAN) are hardwired in a table by R version
+Desirable so installers built on different machines are consistent
+
+Lists
+	Name: OperationName
+	List: Sequence of names for the same source/destination
+	Source: LocName
+	Description: Optional
 
 # Need to revisit build sequence and action partitioning
+
 Steps:
 	Dependency: Retrieve Dependencies (download to ve.depends/src, download to ve.depends/bin)
 	External: Build external source packages (build to ve.depends/src)
@@ -29,3 +58,31 @@ Steps:
 		Assemble master packages (ve.depends + ve.built; src + bin; place in ve.pkgs)
 	Copy Runtime objects into place
 	Make Installer
+
+Script breakdown from Makefile
+state-dependencies.R
+	Uses the file described above
+
+Repository Build:
+	build-repository.R
+	build-external-src.R
+	build-packages-src.R
+
+Binary Build:
+	Rscript scripts/install-velib.R
+	Rscript scripts/build-external-bin.R
+	Rscript scripts/build-packages-bin.R
+
+Tests:
+	Rscript scripts/run-tests.R
+
+Runtime:
+	Rscript scripts/setup-sources.R
+
+Installers
+	Rscript scripts/build-installers.sh
+
+When we parse the configuration, we construct ve-output.make from key locations
+Anything with a MakeName gets output to ve-output.make plus:
+	VE_PLATFORM
+	VE_R_VERSION
