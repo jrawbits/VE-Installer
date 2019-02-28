@@ -4,4 +4,5 @@
 *.out
 *.built
 ve-output.make
+r-environ.make
 website.credentials

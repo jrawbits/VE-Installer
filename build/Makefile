@@ -1,5 +1,9 @@
+include r-environ.make
+# Defines RSCRIPT
+# Use scripts/find-R.bat to construct it
+
 include ve-output.make
-# Defines VE_OUTPUT, VE_ROOT and VE_INSTALLER, VE_PLATFORM, VE_R_PLATFORM
+# Defines VE_OUTPUT, VE_ROOT, VE_INSTALLER, VE_PLATFORM
 
 .PHONY: configure repository binary installers docker\
 	publish-repos publish-www\
@@ -31,33 +35,33 @@ build-clean:
 repository: repository.built
 
 repository.built: dependencies.RData scripts/build-repository.R scripts/build-external-src.R scripts/build-packages-src.R
-	Rscript scripts/build-repository.R
-	Rscript scripts/build-external-src.R
-	Rscript scripts/build-packages-src.R
+	$(RSCRIPT) scripts/build-repository.R
+	$(RSCRIPT) scripts/build-external-src.R
+	$(RSCRIPT) scripts/build-packages-src.R
 	touch repository.built
 
 configure: dependencies.RData ve-output.make
 
 ve-output.make: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R scripts/state-dependencies.R
-	Rscript scripts/state-dependencies.R
+	$(RSCRIPT) scripts/state-dependencies.R
 
-dependencies.RData: ve-output.make
+dependencies.RData: r-environ.make ve-output.make
 
 binary: binary.built
 
 binary.built: repository.built scripts/install-velib.R scripts/build-external-bin.R scripts/build-packages-bin.R
-	Rscript scripts/install-velib.R
-	Rscript scripts/build-external-bin.R
-	Rscript scripts/build-packages-bin.R
+	$(RSCRIPT) scripts/install-velib.R
+	$(RSCRIPT) scripts/build-external-bin.R
+	$(RSCRIPT) scripts/build-packages-bin.R
 	touch binary.built
 
 tests: binary.built
-	Rscript scripts/run-tests.R
+	$(RSCRIPT) scripts/run-tests.R
 
 runtime: runtime.built
 	
 runtime.built: dependencies.RData scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst
-	Rscript scripts/setup-sources.R
+	$(RSCRIPT) scripts/setup-sources.R
 	touch runtime.built
 
 installers: installers.built runtime.built
