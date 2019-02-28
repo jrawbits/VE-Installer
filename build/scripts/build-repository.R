@@ -17,10 +17,11 @@ if ( ! suppressWarnings(require(miniCRAN)) ) {
 require(tools)
 
 # BioConductor setup
-if ( ! requireNamespace("BiocManager") ) {
-    install.packages("BiocManager", repos=CRAN.mirror)
-}
-bioc <- BiocManager::repositories()
+# if ( ! requireNamespace("BiocManager") ) {
+#     install.packages("BiocManager", repos=CRAN.mirror)
+# }
+# bioc <- BiocManager::repositories()
+bioc <- BioC.mirror
 
 if ( ! exists("pkgs.CRAN") || ! exists("pkgs.BioC") ) {
 	stop("Please run state-dependencies.R to build dependency lists")

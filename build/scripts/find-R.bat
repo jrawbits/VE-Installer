@@ -19,7 +19,7 @@ if [!R_HOME!] == [] (
 	start "" https://cran.r-project.org/bin/windows/base/old/%R_VERSION%
 	EXIT /B 1
 ) else (
-	echo RSCRIPT="!R_HOME!\bin\Rscript.exe" >r-environ.make
+	echo !R_HOME!\bin\Rscript.exe
 	set RSCRIPT=!R_HOME!\bin\Rscript.exe
 	"!RSCRIPT!" --version 1>&2
 	EXIT /B 0

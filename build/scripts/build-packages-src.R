@@ -25,7 +25,7 @@ if ( ! suppressWarnings(require(knitr)) ) {
 # Where to find the package sources (in the VisionEval repository)
 
 ve.packages <- pkgs.visioneval[,"Package"]
-package.paths <- file.path(ve.root, pkgs.visioneval[,"Path"], ve.packages)
+package.paths <- file.path(pkgs.visioneval[,"Root"], pkgs.visioneval[,"Path"], ve.packages)
 
 # Where to put the built results (these should exist after build-miniCRAN.R)
 

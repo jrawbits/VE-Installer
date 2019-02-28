@@ -1,31 +1,35 @@
 Title: VisionEval
 Date: 2019-03-04
 Roots:
-    ve.root: n:\Git-Repos\visioneval
-    ve.alt.root: n:\Git-Repos\VisionEval-dev
-    ve.cache: n:\Git-Repos\VE-Cache\
-    ve.install: n:\Git-Repos\VE-1.02\
+    ve.root: n:/Git-Repos/visioneval
+    ve.alt.root: n:/Git-Repos/VisionEval-dev
+    ve.cache: n:/Git-Repos/VE-Cache
+    ve.output: n:/Git-Repos/VE-1.02
+	# ve.output is required
+	# ve.cache is optional (alternatively, use ve.output for ve.dependencies below)
+	# ve.alt.root (or more such) is optional and only used internally
 Locations:
-    ve.depends:
+	# ve.install is implicitly available - relative to the running installer
+    ve.dependencies:
         root: ve.cache
         path: pkg-dependencies
         description: repo for downloaded and built external dependencies
-    ve.built:
-        root: ve.install
+    ve.repository:
+        root: ve.output
         path: pkg-repository
         description: src/binary repo built from ve.depends plus VE packages
     ve.runtime:
-        root: ve.install
+        root: ve.output
         path: runtime
         description: local runtime environment + base for installers
     ve.pkgs:
-        root: ve.install
+        root: ve.output
         path: ve-pkg
-        description: copy src tree here from ve.built for installer
+        description: copy src tree here from ve.repository for installer
     ve.lib:
-        root: ve.install
+        root: ve.output
         path: ve-lib
-        description: install bin tree here from ve.built
+        description: install bin tree here from ve.repository
 Module:
     visioneval:
         root: ve.root
@@ -103,7 +107,6 @@ Source:
             - jsonlite
             - namedCapture
             - rhandsontable
-            - rhdf5
             - shiny
             - shinyBS
             - shinyFiles
@@ -111,8 +114,12 @@ Source:
             - shinytest
             - testit
             - testthat
+        BioC:
+            - rhdf5
         External:
-            - namedCapture
+            - namedCapture:
+                root: ve.install
+                path: external
     VEScenarioViewer:
         root: ve.root
         path: sources

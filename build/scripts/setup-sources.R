@@ -40,7 +40,7 @@ if ( length(bp.files) > 0 ) {
 # Get the VisionEval sources, if any are needed
 # This will process the 'copy' items listed in dependencies/VE-dependencies.csv
 
-copy.paths <- file.path(ve.root, pkgs.copy[,"Path"], pkgs.copy[,"Package"])
+copy.paths <- file.path(pkgs.copy[,"Root"], pkgs.copy[,"Path"], pkgs.copy[,"Package"])
 if ( length(copy.paths) > 0 ) {
 	cat(paste("Copying: ", copy.paths, "\n"))
 	invisible(file.copy(copy.paths, ve.runtime, recursive=TRUE))

@@ -11,7 +11,11 @@
 
 # Expecting the RTools version of "zip"
 
-. ve-output.make # loads VE_OUTPUT, VE_INSTALLER, VE_ROOT, VE_PLATFORM, VE_R_VERSION
+. ve-output.make # loads VE_OUTPUT, VE_INSTALLER, VE_PLATFORM
+# Note that VE_R_VERSION is exported when this script is run from make
+# By hand, do this:
+# VE_R_VERSION=3.5.1 bash build-installers.sh
+# It would work without the R version, but the installer name will be wrong
 
 VE_ONLINE="${VE_OUTPUT}/VE-installer.zip"
 VE_BINARY="${VE_OUTPUT}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}.zip"

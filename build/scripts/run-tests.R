@@ -17,7 +17,7 @@ if ( ! checkVEEnvironment() ) {
 # Where to find the package sources (in the VisionEval repository)
 
 ve.packages <- pkgs.visioneval[,"Package"]
-package.paths <- file.path(ve.root, pkgs.visioneval[,"Path"], ve.packages)
+package.paths <- file.path(pkgs.visioneval[,"Root"], pkgs.visioneval[,"Path"], ve.packages)
 
 # Under development - still does nothing
 # Waiting for VisionEval itself to stabilize...

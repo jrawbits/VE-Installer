@@ -185,7 +185,6 @@ save(
   file="dependencies.RData"
   , .First
   , checkVEEnvironment
-  , ve.root
   , ve.install
   , ve.output
   , ve.runtime

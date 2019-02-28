@@ -44,7 +44,7 @@ if ( ! suppressWarnings(require(devtools)) ) {
 
 # Where to find the package sources (in the VisionEval repository)
 
-package.paths <- file.path(ve.root, pkgs.visioneval[,"Path"], pkgs.visioneval[,"Package"])
+package.paths <- file.path(pkgs.visioneval[,"Root"], pkgs.visioneval[,"Path"], pkgs.visioneval[,"Package"])
 
 # Where to put the built results (these should exist after build-repository.R)
 

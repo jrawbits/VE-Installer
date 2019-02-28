@@ -1,9 +1,9 @@
-include r-environ.make
-# Defines RSCRIPT
-# Use scripts/find-R.bat to construct it
+VE_R_VERSION=3.5.1
+VE_CONFIG=../dependencies/VE-config.yml
+RSCRIPT:=$(shell scripts/find-R.bat $(VE_R_VERSION))
 
 include ve-output.make
-# Defines VE_OUTPUT, VE_ROOT, VE_INSTALLER, VE_PLATFORM
+# Defines VE_OUTPUT, VE_INSTALLER, VE_PLATFORM based on VE_CONFIG
 
 .PHONY: configure repository binary installers docker\
 	publish-repos publish-www\
@@ -42,8 +42,8 @@ repository.built: dependencies.RData scripts/build-repository.R scripts/build-ex
 
 configure: dependencies.RData ve-output.make
 
-ve-output.make: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R scripts/state-dependencies.R
-	$(RSCRIPT) scripts/state-dependencies.R
+ve-output.make: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R scripts/yaml-dependencies.R
+	$(RSCRIPT) scripts/yaml-dependencies.R
 
 dependencies.RData: r-environ.make ve-output.make
 
@@ -72,7 +72,7 @@ installers.built: dependencies.RData $(VE_OUTPUT)/VE-Installer.zip $(VE_OUTPUT)/
 # Building the website requires Ruby/Jekyll - see www/ReadMe.md
 www: www.built
 
-www.built: $(VE_INSTALLER/www/index.md $(VE_INSTALLER)/www/_includes/custom-nav-links.html
+www.built: $(VE_INSTALLER)/www/index.md $(VE_INSTALLER)/www/_includes/custom-nav-links.html
 	cd $(VE_INSTALLER)/www; bundle exec jekyll build
 	touch www.built
 
@@ -106,6 +106,9 @@ docker-output-clean:
 docker-clean: docker-output-clean
 	rm -rf $(VE_OUTPUT)/home
 	
+# Warning: Docker is broken due to use of VE_ROOT (not set) and
+# VE_OUTPUT, which is more nuanced with the YAML configuration
+
 docker: repository.built $(DOCKERFILE) $(VE_DOCKER)/.dockerignore dependencies.RData \
 $(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst
 	mkdir -p $(VE_OUTPUT)/home/visioneval/models
