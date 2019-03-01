@@ -3,9 +3,6 @@
 # VisionEval runtime initialization script
 # Run once to install everything and build RunVisionEval.Rdata
 
-cat("Made it to R!\n")
-stop("Done")
-
 require(utils)
 
 # Put the current directory into ve.root
@@ -13,7 +10,8 @@ ve.root <- getwd()
 
 # Put the library directory into ve.lib
 # Note that ve.lib is already present and fully provisioned if we've unzipped the offline installer
-ve.lib <- file.path(ve.root,"ve-lib")
+# Current version (2019-03) actually uses a subdirectory for the R version
+ve.lib <- file.path(ve.root,"ve-lib",paste(R.version[c("major","minor")],collapse="."))
 
 if ( ! dir.exists(ve.lib) ) {
   # We'll presume that if ve-lib can be found, it has what we need
@@ -71,10 +69,10 @@ if ( ! dir.exists(ve.lib) ) {
 
 # Function starts the VEGUI
 vegui <- function() {
-	library("shiny")
+  library("shiny")
   full_path <- file.path(ve.root,"VEGUI")
-	owd <- setwd(full_path)	
-	runApp('../VEGUI')
+  owd <- setwd(full_path) 
+  runApp('../VEGUI')
   setwd(owd)
 }
 
@@ -82,29 +80,29 @@ vegui <- function() {
 # Getting Started document.  Optional "scenarios" argument, if TRUE, will
 # run the scenarios version of the test models.
 verpat <- function(scenarios=FALSE,baseyear=FALSE) {
-	if ( ! scenarios ) {
-		if ( ! baseyear ) {
-			full_path <- file.path(ve.root,"models/VERPAT")
-		} else {
-			full_path <- file.path(ve.root,"models/BaseYearVERPAT")
-		}
-	} else {
-		full_path <- file.path(ve.root,"models/VERPAT_Scenarios")
-	}
-	owd <- setwd(full_path)
-	source("run_model.R")
-	setwd(owd)
+  if ( ! scenarios ) {
+    if ( ! baseyear ) {
+      full_path <- file.path(ve.root,"models/VERPAT")
+    } else {
+      full_path <- file.path(ve.root,"models/BaseYearVERPAT")
+    }
+  } else {
+    full_path <- file.path(ve.root,"models/VERPAT_Scenarios")
+  }
+  owd <- setwd(full_path)
+  source("run_model.R")
+  setwd(owd)
 }
 
 verspm <- function(scenarios=FALSE) {
-	if ( ! scenarios ) {
-		full_path <- file.path(ve.root,"models/VERSPM/Test1")
-	} else {
-		full_path <- file.path(ve.root,"models/VERSPM_Scenarios")
-	}
-	owd <- setwd(full_path)
-	source("run_model.R")
-	setwd(owd)
+  if ( ! scenarios ) {
+    full_path <- file.path(ve.root,"models/VERSPM/Test1")
+  } else {
+    full_path <- file.path(ve.root,"models/VERSPM_Scenarios")
+  }
+  owd <- setwd(full_path)
+  source("run_model.R")
+  setwd(owd)
 }
 
 # Write objects to RunVisionEval.RData configuration file

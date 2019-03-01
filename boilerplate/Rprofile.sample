@@ -1,7 +1,0 @@
-# Placing an .Rprofile in the runtime/installer tree is optional.  One reason to
-# do so is if you are building an "online" installer (that reaches for a
-# VisionEval package repository).  To support online installation "out of the
-# box", just set up the ve.repos definition below and copy this file to
-# ".Rprofile" in this folder and build the installer.
-
-# ve.repos <- "https://visioneval.org/packages"
