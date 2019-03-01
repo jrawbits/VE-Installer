@@ -18,13 +18,15 @@ ve.install <- sub("My Documents", "Documents",
 ve.install <- gsub("\\\\", "/", ve.install)
 
 # Specify dependency repositories
-rversions <- yaml.load_file("R-versions.yml")
+cat("Loading R versions\n")
+rversions <- yaml::yaml.load_file("R-versions.yml")
 this.R <- paste(R.version[c("major","minor")],collapse=".")
 CRAN.mirror <- rversions[[this.R]]$CRAN
 BioC.mirror <- rversions[[this.R]]$BioC
 
 # Read the configuration file
 ve.config.file <- Sys.getenv("VE_CONFIG")
+cat(paste("Loading Configuration File:",ve.config.file,"\n",sep=" "))
 if ( ! file.exists(ve.config.file) ) {
 	ve.config.file <- "../dependencies/VE-config.yml"
 }
@@ -49,6 +51,7 @@ makepath <- function(x,venv) {
 invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
 
 # Create the locations
+ve.lib <- file.path(ve.lib,this.R) # ve-lib has sub-folders for R versions
 for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE )
 
 # Convey key file locations to the 'make' environment
@@ -60,8 +63,9 @@ writeLines(paste(c("VE_OUTPUT", "VE_INSTALLER", "VE_PLATFORM"),
            make.target)
 close(make.target)
 
+# The following are constructed in Locations above, and must be present
 # ve.runtime <- file.path(ve.output, "runtime")
-# ve.lib <- file.path(ve.output, "ve-lib")
+# ve.lib <- file.path(ve.output, "ve-lib",this.R)
 # ve.repository <- file.path(ve.output, "pkg-repository")
 # ve.dependencies
 # ve.runtime

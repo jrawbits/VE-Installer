@@ -23,27 +23,27 @@ if ( ! suppressWarnings(require(knitr)) ) {
 }
 
 # Where to find the package sources (in the VisionEval repository)
-
 ve.packages <- pkgs.visioneval[,"Package"]
 package.paths <- file.path(pkgs.visioneval[,"Root"], pkgs.visioneval[,"Path"], ve.packages)
 
-# Where to put the built results (these should exist after build-miniCRAN.R)
-
+# Where to put the built results (may need to create the contrib.url)
 built.path.src <- contrib.url(ve.repository, type="source")
+if ( ! dir.exists(built.path.src) ) dir.create( built.path.src, recursive=TRUE, showWarnings=FALSE )
+cat("Built path:",built.path.src,"\n",sep=" ")
 
 num.built <- 0
+print(package.paths)
 for ( module in package.paths ) {
-	if ( ! moduleExists(module, built.path.src) ) {
-		devtools::build(module, path=built.path.src)
-        num.built <- num.built+1
-	}
+  if ( ! moduleExists(module, built.path.src) ) {
+    devtools::build(module, path=built.path.src)
+    num.built <- num.built+1
+  }
 }
 if ( num.built > 0) {
-    write_PACKAGES(contrib.url(ve.repository, type="source"), type="source")
+    write_PACKAGES(built.path.src, type="source")
     cat(sprintf("Done building %d VisionEval packages.\n", num.built))
 } else {
     cat("No VisionEval packages requiring build.\n")
 }
 write(paste(as.character(ve.packages), collapse=" "),
       file=file.path(ve.repository, "visioneval.lst"))
-

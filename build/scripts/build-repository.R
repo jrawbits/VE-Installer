@@ -45,11 +45,11 @@ havePackages <- function() {
   #   TRUE/FALSE depending on existing of pkg-repository file tree
   #
   # If the tree is there, don't need to build the miniCRAN from scratch
-	src.contrib <- contrib.url(ve.repository, type="source")
-	bin.contrib <- contrib.url(ve.repository, type="win.binary")
+	src.contrib <- contrib.url(ve.dependencies, type="source")
+	bin.contrib <- contrib.url(ve.dependencies, type="win.binary")
 	got.src <- FALSE
 	got.bin <- FALSE
-	if ( dir.exists(file.path(ve.repository, "src")) ) {
+	if ( dir.exists(file.path(ve.dependencies, "src")) ) {
 		if ( ! file.exists(file.path(src.contrib, "PACKAGES")) ) {
 			cat("Updating VE repository source PACKAGES files\n")
 			got.src <- (write_PACKAGES(src.contrib, type="source")>0)
@@ -57,7 +57,7 @@ havePackages <- function() {
 			got.src <- TRUE
 		}
 	}
-	if ( dir.exists(file.path(ve.repository, "bin")) ) {
+	if ( dir.exists(file.path(ve.dependencies, "bin")) ) {
 		if ( ! file.exists(file.path(bin.contrib, "PACKAGES")) ) {
 			cat("Updating VE repository win.binary PACKAGES files\n")
 			got.bin <- (write_PACKAGES(bin.contrib, type="win.binary")>0)
@@ -81,8 +81,8 @@ findMissingPackages <- function( required.packages ) {
   #   a character vector of package names that are missing from the
   #   respective sections of the pkg-repository compared to the
   #   required.packages
-	aps <- available.packages(repos=ve.repo.url, type="source")
-	apb <- available.packages(repos=ve.repo.url, type="win.binary")
+	aps <- available.packages(repos=ve.deps.url, type="source")
+	apb <- available.packages(repos=ve.deps.url, type="win.binary")
 	list(
 		src=setdiff( required.packages, aps[,"Package"]),
 		bin=setdiff( required.packages, apb[,"Package"])
@@ -109,10 +109,10 @@ if ( havePackages() ) {
 		cat("Updating VE repository to add from CRAN:\n")
 		print(union(pkgs.missing.CRAN$src, pkgs.missing.CRAN$bin))
 		if ( length(pkgs.missing.CRAN$src) > 0 ) {
-			miniCRAN::addPackage(pkgs.missing.CRAN$src, path=ve.repository, repos=CRAN.mirror, type=c("source"), deps=FALSE)
+			miniCRAN::addPackage(pkgs.missing.CRAN$src, path=ve.dependencies, repos=CRAN.mirror, type=c("source"), deps=FALSE)
 		}
 		if ( length(pkgs.missing.CRAN$bin) > 0 ) {
-			miniCRAN::addPackage(pkgs.missing.CRAN$bin, path=ve.repository, repos=CRAN.mirror, type=c("win.binary"), deps=FALSE)
+			miniCRAN::addPackage(pkgs.missing.CRAN$bin, path=ve.dependencies, repos=CRAN.mirror, type=c("win.binary"), deps=FALSE)
 		}
 	}
 	pkgs.missing.BioC <- findMissingPackages(pkgs.BioC)
@@ -120,26 +120,26 @@ if ( havePackages() ) {
 		cat("Updating VE repository to add from BioConductor:\n")
 		print(union(pkgs.missing.BioC$src, pkgs.missing.BioC$bin))
 		if ( length(pkgs.missing.BioC$src) > 0 ) {
-			miniCRAN::addPackage(pkgs.missing.BioC$src, path=ve.repository, repos=bioc, type=c("source"), deps=FALSE)
+			miniCRAN::addPackage(pkgs.missing.BioC$src, path=ve.dependencies, repos=bioc, type=c("source"), deps=FALSE)
 		}
 		if ( length(pkgs.missing.BioC$bin) > 0 ) {
-			miniCRAN::addPackage(pkgs.missing.BioC$bin, path=ve.repository, repos=bioc, type=c("win.binary"), deps=FALSE)
+			miniCRAN::addPackage(pkgs.missing.BioC$bin, path=ve.dependencies, repos=bioc, type=c("win.binary"), deps=FALSE)
 		}
 	}
 	cat("Existing VE repository is up to date.\n")
 } else {
 	cat("Building VE repository from scratch from CRAN packages\n")
-	miniCRAN::makeRepo(pkgs.CRAN, path=ve.repository, repos=CRAN.mirror, type=c("source", "win.binary"))
+	miniCRAN::makeRepo(pkgs.CRAN, path=ve.dependencies, repos=CRAN.mirror, type=c("source", "win.binary"))
 
 	cat("Adding BioConductor packages to new VE repository\n")
 	# BioConductor depends on some CRAN packages - no need to download those twice, so deps=FALSE
-	miniCRAN::addPackage(pkgs.BioC, path=ve.repository, repos=bioc, type=c("source", "win.binary"), deps=FALSE)
+	miniCRAN::addPackage(pkgs.BioC, path=ve.dependencies, repos=bioc, type=c("source", "win.binary"), deps=FALSE)
 }
 
 # Verify the VE Repository with the following independent cross-check of dependencies
 
 # pkgs.VE <- c(pkgs.CRAN, pkgs.BioC)
-# ap <- available.packages(repos=ve.repo.url)
+# ap <- available.packages(repos=ve.deps.url)
 # getDependencies <- function(x) {
 #   # Used in apply below to avoid a painfully long one-liner
 #   # Extracts package names from a standard list of R dependencies

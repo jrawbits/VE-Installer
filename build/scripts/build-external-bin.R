@@ -24,16 +24,16 @@ if ( ! suppressWarnings(require(devtools)) ) {
 if ( nrow(pkgs.external)> 0 ) {
   cat("Building external packages (binary)\n")
 
-  .libPaths( c(ve.lib, .libPaths()) ) # push runtime library onto path stack
-
-  # Where to put the built results (these should exist after build-repository.R)
-  built.path.binary <- contrib.url(ve.repository, type="win.binary")
+  .libPaths( c(ve.lib, .libPaths()) ) # push runtime library onto path stack for dependencies
 
   # External packages to build (possibly submodules)
   pkgs <- file.path(ve.install, pkgs.external[,"Path"], pkgs.external[,"Package"])
 
   build.type <- .Platform$pkgType
   if ( build.type == "win.binary" ) {
+		# Where to put the built results (these should exist after build-repository.R)
+		built.path.binary <- contrib.url(ve.dependencies, type="win.binary")
+
     for ( pkg in pkgs ) {
       if ( ! moduleExists(pkg, built.path.binary) ) {
         built.package <- devtools::build(pkg, path=built.path.binary, binary=TRUE)

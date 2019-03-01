@@ -5,11 +5,11 @@ Roots:
     ve.alt.root: n:/Git-Repos/VisionEval-dev
     ve.cache: n:/Git-Repos/VE-Cache
     ve.output: n:/Git-Repos/VE-1.02
-	# ve.output is required
-	# ve.cache is optional (alternatively, use ve.output for ve.dependencies below)
-	# ve.alt.root (or more such) is optional and only used internally
+    # ve.output is required
+    # ve.cache is optional (alternatively, use ve.output for ve.dependencies below)
+    # ve.alt.root (or more such) is optional and only used internally
 Locations:
-	# ve.install is implicitly available - relative to the running installer
+    # ve.install is implicitly available - relative to the running installer
     ve.dependencies:
         root: ve.cache
         path: pkg-dependencies
@@ -43,53 +43,53 @@ Module:
             - rhdf5
     VE2001NHTS:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
         CRAN: 
            - usethis
     VESyntheticFirms:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
         CRAN: 
             - reshape
     VESimHouseholds:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
         CRAN: 
             - car
             - pbkrtest
             - quantreg
     VELandUse:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
         CRAN: 
             - geosphere
             - fields
     VETransportSupply:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
     VETransportSupplyUse:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
     VEHouseholdTravel:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
         CRAN: 
             - pscl
     VEHouseholdVehicles:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
         CRAN: 
             - ordinal
             - reshape2
     VEPowertrainsAndFuels:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
     VETravelPerformance:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
     VEReports:
         root: ve.root
-        path: sources/modules"
+        path: sources/modules
 Source:
     models:
         root: ve.root

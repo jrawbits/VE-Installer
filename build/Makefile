@@ -1,8 +1,9 @@
 # You can override the following variables on the command line
 VE_R_VERSION=3.5.1
 VE_CONFIG=../config/VE-config.yml
+export VE_R_VERSION VE_CONFIG
 
-RSCRIPT:=$(shell find-R.bat $(VE_R_VERSION))
+RSCRIPT:="$(shell ./find-R.bat $(VE_R_VERSION))"
 
 include ve-output.make
 # Rebuilt (see below) if it is out of date; make then auto-restarts
@@ -14,12 +15,8 @@ include ve-output.make
 
 all: configure repository packages binary runtime installers
 
-clean: ve-output.make
-	rm -f all-dependencies.RData dependencies.RData
+clean: ve-output.make build-clean
 	rm -rf $(VE_OUTPUT)
-	rm -f ve-output.make
-	rm -f *.built
-	rm -f *.out
 
 runtime-clean: ve-output.make
 	rm -rf $(VE_OUTPUT)/runtime/*
@@ -30,6 +27,12 @@ build-clean:
 	rm -f ve-output.make
 	rm -f *.built
 	rm -f *.out
+
+configure: dependencies.RData ve-output.make
+
+# Note: state-dependencies.R identifies VE_CONFIG via the exported variable
+ve-output.make dependencies.RData: scripts/state-dependencies.R $(VE_CONFIG)
+	$(RSCRIPT) scripts/state-dependencies.R
 
 repository: repository.built
 
@@ -44,12 +47,6 @@ packages.built: dependencies.RData scripts/build-packages-src.R
 	$(RSCRIPT) scripts/build-packages-src.R
 	touch packages.built
 
-configure: dependencies.RData ve-output.make
-
-ve-output.make dependencies.RData: scripts/state-dependencies.R $(VE_CONFIG)
-	$(RSCRIPT) scripts/state-dependencies.R
-	# Note: identifies VE_CONFIG via the automatically generated environment variable
-
 binary: binary.built
 
 binary.built: repository.built scripts/install-velib.R scripts/build-external-bin.R scripts/build-packages-bin.R
@@ -60,7 +57,7 @@ binary.built: repository.built scripts/install-velib.R scripts/build-external-bi
 
 runtime: runtime.built
 	
-runtime.built: dependencies.RData scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst
+runtime.built: dependencies.RData scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst binary.built
 	$(RSCRIPT) scripts/setup-sources.R
 	touch runtime.built
 
@@ -69,15 +66,11 @@ runtime.built: dependencies.RData scripts/setup-sources.R $(VE_INSTALLER)/boiler
 tests: runtime.built
 	$(RSCRIPT) scripts/run-tests.R
 
-installers: installers.built runtime.built
+installers: installers.built
 
-installers.built: dependencies.RData $(VE_OUTPUT)/VE-Installer.zip $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip
-	touch installers.built
-
-$(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip: $(VE_OUTPUT)/VE-Installer.zip
-
-$(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/build-installers.sh binary.built runtime.built $(VE_INSTALLER)/boilerplate/boilerplate.lst
+installers.built: dependencies.RData runtime.built
 	bash scripts/build-installers.sh
+	touch installers.built
 
 # Experimental Docker installation
 # Docker work all happens here (not in a separate shell script)

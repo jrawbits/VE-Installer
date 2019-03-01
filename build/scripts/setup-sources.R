@@ -27,21 +27,24 @@ bp.file.list <- scan(file=file.path(ve.boilerplate, "boilerplate.lst"),
 
 bp.files <- file.path(ve.boilerplate, bp.file.list)
 if ( length(bp.files) > 0 ) {
-	# currently there's nothing to recurse into)
-	success <- suppressWarnings(file.copy(bp.files, ve.runtime, recursive=TRUE))
-	if ( any( ! success ) ) {
-		print(paste("Failed to copy boilerplate: ", basename(bp.files[!success])))
-		cat("which may not be a problem (e.g. .Rprofile missing)\n")
-		cat(".Rprofile is principally intended to house default ve.remote for online installer.\n")
-		cat("If something else is missing, you should revisit boilerplate/boilerplate.lst\n")
-	}
+  # currently there's nothing to recurse into)
+  success <- suppressWarnings(file.copy(bp.files, ve.runtime, recursive=TRUE))
+  if ( any( ! success ) ) {
+    print(paste("Failed to copy boilerplate: ", basename(bp.files[!success])))
+    cat("which may not be a problem (e.g. .Rprofile missing)\n")
+    cat(".Rprofile is principally intended to house default ve.remote for online installer.\n")
+    cat("If something else is missing, you should revisit boilerplate/boilerplate.lst\n")
+  }
 }
+
+# Create the R version tag in the runtime folder
+cat(paste(R.version[c("major","minor")],collapse="."),"\n",file=file.path(ve.runtime,"r.version"))
 
 # Get the VisionEval sources, if any are needed
 # This will process the 'copy' items listed in dependencies/VE-dependencies.csv
 
 copy.paths <- file.path(pkgs.copy[,"Root"], pkgs.copy[,"Path"], pkgs.copy[,"Package"])
 if ( length(copy.paths) > 0 ) {
-	cat(paste("Copying: ", copy.paths, "\n"))
-	invisible(file.copy(copy.paths, ve.runtime, recursive=TRUE))
+  cat(paste("Copying: ", copy.paths, "\n"))
+  invisible(file.copy(copy.paths, ve.runtime, recursive=TRUE))
 }

@@ -31,7 +31,7 @@ if ( ! suppressWarnings(require(miniCRAN)) ) {
 }
 
 sought.pkgs <- miniCRAN::pkgDep(c(pkgs.CRAN, pkgs.BioC),
-                                repos=ve.repo.url, suggests=FALSE)
+                                repos=ve.deps.url, suggests=FALSE)
 pkgs.BaseR <- as.vector(installed.packages(lib.loc=.Library,
                                            priority=c("base", "recommended"))[,"Package"])
 
@@ -50,7 +50,7 @@ if( length(new.pkgs) > 0 ) {
   install.packages(
       new.pkgs,
       lib=ve.lib,
-      repos=ve.repo.url,
+      repos=ve.deps.url,
       dependencies=c("Depends", "Imports", "LinkingTo"),
   type=build.type
   )
