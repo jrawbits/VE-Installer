@@ -1,16 +1,18 @@
+# You can override the following variables on the command line
 VE_R_VERSION=3.5.1
-VE_CONFIG=../dependencies/VE-config.yml
-RSCRIPT:=$(shell scripts/find-R.bat $(VE_R_VERSION))
+VE_CONFIG=../config/VE-config.yml
+
+RSCRIPT:=$(shell find-R.bat $(VE_R_VERSION))
 
 include ve-output.make
+# Rebuilt (see below) if it is out of date; make then auto-restarts
 # Defines VE_OUTPUT, VE_INSTALLER, VE_PLATFORM based on VE_CONFIG
 
-.PHONY: configure repository binary installers docker\
-	publish-repos publish-www\
-        clean runtime-clean www-clean build-clean all www\
-	docker-clean docker-output-clean
+.PHONY: configure repository packages binary runtime tests installers docker\
+		clean runtime-clean build-clean all\
+		docker-clean docker-output-clean
 
-all: configure repository binary installers
+all: configure repository packages binary runtime installers
 
 clean: ve-output.make
 	rm -f all-dependencies.RData dependencies.RData
@@ -23,9 +25,6 @@ runtime-clean: ve-output.make
 	rm -rf $(VE_OUTPUT)/runtime/*
 	rm runtime.built
 
-www-clean: ve-output.make
-	rm -rf $(VE_INSTALLER)/www/_site
-
 build-clean:
 	rm -f all-dependencies.RData dependencies.RData
 	rm -f ve-output.make
@@ -37,15 +36,19 @@ repository: repository.built
 repository.built: dependencies.RData scripts/build-repository.R scripts/build-external-src.R scripts/build-packages-src.R
 	$(RSCRIPT) scripts/build-repository.R
 	$(RSCRIPT) scripts/build-external-src.R
-	$(RSCRIPT) scripts/build-packages-src.R
 	touch repository.built
+
+packages: packages.built
+
+packages.built: dependencies.RData scripts/build-packages-src.R
+	$(RSCRIPT) scripts/build-packages-src.R
+	touch packages.built
 
 configure: dependencies.RData ve-output.make
 
-ve-output.make: ../dependencies/VE-dependencies.csv ../dependencies/VE-config.R scripts/yaml-dependencies.R
-	$(RSCRIPT) scripts/yaml-dependencies.R
-
-dependencies.RData: r-environ.make ve-output.make
+ve-output.make dependencies.RData: scripts/state-dependencies.R $(VE_CONFIG)
+	$(RSCRIPT) scripts/state-dependencies.R
+	# Note: identifies VE_CONFIG via the automatically generated environment variable
 
 binary: binary.built
 
@@ -55,46 +58,28 @@ binary.built: repository.built scripts/install-velib.R scripts/build-external-bi
 	$(RSCRIPT) scripts/build-packages-bin.R
 	touch binary.built
 
-tests: binary.built
-	$(RSCRIPT) scripts/run-tests.R
-
 runtime: runtime.built
 	
 runtime.built: dependencies.RData scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst
 	$(RSCRIPT) scripts/setup-sources.R
 	touch runtime.built
 
+# Note: need to keep test output distinct from runtime environment
+# used for installer base. Spin up a second runtime?
+tests: runtime.built
+	$(RSCRIPT) scripts/run-tests.R
+
 installers: installers.built runtime.built
 
 installers.built: dependencies.RData $(VE_OUTPUT)/VE-Installer.zip $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip
 	touch installers.built
-
-# Building the website requires Ruby/Jekyll - see www/ReadMe.md
-www: www.built
-
-www.built: $(VE_INSTALLER)/www/index.md $(VE_INSTALLER)/www/_includes/custom-nav-links.html
-	cd $(VE_INSTALLER)/www; bundle exec jekyll build
-	touch www.built
-
-publish-www: publish-www.built 
-
-# Must set WWW_SSH_PORT and VE_WEBSITE in website.credentials (or in environment)
-publish-www.built: www.built
-	bash scripts/publish-www.sh
-	touch publish-www.built
-
-publish-repos: publish-repos.built
-
-# Must set WWW_SSH_PORT and VE_WEBSITE in website.credentials (or in environment)
-publish-repos.built: repository.built installers.built
-	bash scripts/publish-installers.sh
-	touch publish-repos.built
 
 $(VE_OUTPUT)/VE-Installer-$(VE_PLATFORM)-R$(VE_R_VERSION).zip: $(VE_OUTPUT)/VE-Installer.zip
 
 $(VE_OUTPUT)/VE-Installer.zip: dependencies.RData scripts/build-installers.sh binary.built runtime.built $(VE_INSTALLER)/boilerplate/boilerplate.lst
 	bash scripts/build-installers.sh
 
+# Experimental Docker installation
 # Docker work all happens here (not in a separate shell script)
 VE_DOCKER=$(VE_INSTALLER)/docker
 DOCKERFILE=$(VE_DOCKER)/Dockerfile
