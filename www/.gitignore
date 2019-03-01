@@ -1,6 +1,0 @@
-*.Rhistory
-
-*.scssc
-
-_site/*
-Gemfile.lock
