@@ -45,6 +45,6 @@ cat(paste(R.version[c("major","minor")],collapse="."),"\n",file=file.path(ve.run
 
 copy.paths <- file.path(pkgs.copy[,"Root"], pkgs.copy[,"Path"], pkgs.copy[,"Package"])
 if ( length(copy.paths) > 0 ) {
-  cat(paste("Copying: ", copy.paths, "\n"))
+  cat(paste("Copying: ", copy.paths),sep="\n")
   invisible(file.copy(copy.paths, ve.runtime, recursive=TRUE))
 }

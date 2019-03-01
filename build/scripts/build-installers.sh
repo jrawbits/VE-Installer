@@ -15,26 +15,41 @@
 # Note that VE_R_VERSION is exported when this script is run from make
 # By hand, do this:
 # VE_R_VERSION=3.5.1 bash build-installers.sh
-# It would work without the R version, but the installer name will be wrong
+# Could use
+#   VE_RUNTIME
+#   VE_PKGS (source repository)
+#   VE_LIB
 
-VE_ONLINE="${VE_OUTPUT}/VE-installer.zip"
+VE_BASE="${VE_OUTPUT}/VE-Runtime.zip"
+VE_SOURCE="${VE_OUTPUT}/VE-installer-Source-R${VE_R_VERSION}.zip"
 VE_BINARY="${VE_OUTPUT}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}.zip"
-RUNTIME_PATH="${VE_OUTPUT}/runtime"
-
-cd "${RUNTIME_PATH}"
+RUNTIME_PATH="${VE_RUNTIME}"
 
 [ -f "${VE_ONLINE}" ] && rm "${VE_ONLINE}"
 [ -f "${VE_BINARY}" ] && rm "${VE_BINARY}"
 
-echo "Building online installer: ${VE_ONLINE}"
-zip --recurse-paths "${VE_ONLINE}" .
+cd "${RUNTIME_PATH}"
+
+echo "Building online installer: ${VE_BASE}"
+pwd
+zip --recurse-paths "${VE_BASE}" .
 
 # Windows installer
-cd "${VE_OUTPUT}"
-if [ -d ve-lib ] && [ ! -z "$(ls -A ve-lib)" ]
+if [ -d "${VE_LIB}" ]
 then
-    echo "Building offline (Windows) installer: ${VE_BINARY}"
-    zip --recurse-paths "--output-file=${VE_BINARY}" "${VE_ONLINE}" ve-lib
+    echo "Building Windows installer: ${VE_BINARY}"
+    cd ${VE_LIB}/..
+    pwd
+    zip --recurse-paths "--output-file=${VE_BINARY}" "${VE_BASE}" "$(basename ${VE_LIB})/${VE_R_VERSION}"
+fi
+
+# Source installer
+if [ -d "${VE_PKGS}" ]
+then
+    echo "Building Source installer: ${VE_SOURCE}"
+    cd ${VE_PKGS}/..
+    pwd
+    zip --recurse-paths "--output-file=${VE_SOURCE}" "${VE_BASE}" "$(basename ${VE_PKGS})"
 fi
 
 echo "Done building installers."

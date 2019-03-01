@@ -10,49 +10,48 @@ ve.root <- getwd()
 
 # Put the library directory into ve.lib
 # Note that ve.lib is already present and fully provisioned if we've unzipped the offline installer
-# Current version (2019-03) actually uses a subdirectory for the R version
-ve.lib <- file.path(ve.root,"ve-lib",paste(R.version[c("major","minor")],collapse="."))
+# Current version (2019-03) actually uses a subdirectory for the R
+# version
+ve.lib.name <- file.path("ve-lib",paste(R.version[c("major","minor")],collapse="."))
+ve.lib <- file.path(ve.root,ve.lib.name)
 
 if ( ! dir.exists(ve.lib) ) {
-  # We'll presume that if ve-lib can be found, it has what we need
-  # If not, delete ve-lib and re-run installation
+  # Look in the build environment for ve-lib
+  ve.lib.local <- normalizePath(file.path(ve.root,"..",ve.lib.name),winslash="/",mustWork=FALSE)
+  if ( dir.exists(ve.lib.local) ) {
+    ve.lib <- ve.lib.local # Use the build environment installed library
+  } else {
 
-  # We can also look in the build environment for ve-lib
-  ve.lib.local <- normalizePath(file.path(ve.root,"..","ve-lib"),winslash="/",mustWork=FALSE)
-
-  if (! dir.exists(ve.lib.local) ) {
-    # Check for development environment
-    ve.local  <- normalizePath(file.path(ve.root,"..","pkg-repository"),winslash="/",mustWork=FALSE)
-
-    if ( dir.exists(ve.local) ) {  
-      ve.repos <- paste("file:",ve.local,sep="")
-    } else {
-      message("Need accessible ve-lib or pkg-repository in the file system,")
+    # Check for source environment
+	ve.pkg.name <- "ve-pkg"
+    ve.local  <- normalizePath(file.path(ve.root,"..",ve.pkg.name),winslash="/",mustWork=FALSE)
+	ve.contrib.url <- contrib.url(ve.local,type="source")
+    if ( ! dir.exists(ve.contrib.url) ) {
+      message("Need accessible ve-lib or ve-pkg in the file system,")
       message("VisionEval packages are not available")
-      return(FALSE)
+	  stop("Installation failed - check error and warning messages.")
     }
 
-    VE.pkgs <- available.packages(repos=ve.repos)[,"Package"]
+	# Check availability of source packages
+	ve.contrib.url <- paste("file:",ve.contrib.url,sep="")
+    VE.pkgs <- available.packages(contriburl=ve.contrib.url,type)[,"Package"]
     # Installation list is everything in the repository
     # Consequently: test and abort if visioneval isn't in it
     if ( ! "visioneval" %in% VE.pkgs[,Package] ) {
       message(paste("VisionEval not present in",ve.repos))
       message("VisionEval packages are not available")
-      return(FALSE)
+	  stop("Installation failed - check error and warning messages.")
     }
 
-    dir.create(ve.lib)
-
+	# Install to local environment
+    dir.create(ve.lib,recursive=TRUE,showWarnings=FALSE)
     install.packages(
       VE.pkgs,
       lib=ve.lib,
       repos=ve.repos,
       quiet=TRUE
     )
-  } else {
-    ve.lib <- ve.lib.local # Use the build environment installed library
   }
-  TRUE
 }
 
 # Construct "RunVisionEval.Rdata" from the following objects
@@ -63,7 +62,9 @@ if ( ! dir.exists(ve.lib) ) {
   if ( install.success <- require(visioneval) ) {
     setwd(ve.root)
     cat("Welcome to VisionEval!\n")
-  }
+  } else {
+	  cat("VisionEval is not present: please re-run the installation")
+	}
   install.success
 }
 
@@ -109,7 +110,7 @@ verspm <- function(scenarios=FALSE) {
 
 install.success <- .First()
 if ( install.success ) {
-  save(file="RunVisionEval.RData"
+  save(file="VisionEval.RData"
     ,ve.root
     ,ve.lib
     ,.First

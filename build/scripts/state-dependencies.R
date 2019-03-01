@@ -7,14 +7,14 @@
 # Subsequent installations will come from the dependency repository
 
 if ( ! suppressWarnings(require(yaml)) ) {
-	install.packages("yaml", repos="https://cloud.r-project.org", dependencies=NA)
+  install.packages("yaml", repos="https://cloud.r-project.org", dependencies=NA)
 }
 
 # Locate the installer tree (used for boilerplate)
 # The following includes a hack to fix a common path problem if you are
 # developing on Windows in a subfolder of "My Documents"
 ve.install <- sub("My Documents", "Documents",
-	    normalizePath(file.path(getwd(), "..")))
+      normalizePath(file.path(getwd(), "..")))
 ve.install <- gsub("\\\\", "/", ve.install)
 
 # Specify dependency repositories
@@ -28,7 +28,7 @@ BioC.mirror <- rversions[[this.R]]$BioC
 ve.config.file <- Sys.getenv("VE_CONFIG")
 cat(paste("Loading Configuration File:",ve.config.file,"\n",sep=" "))
 if ( ! file.exists(ve.config.file) ) {
-	ve.config.file <- "../dependencies/VE-config.yml"
+  ve.config.file <- "../dependencies/VE-config.yml"
 }
 ve.cfg <- yaml::yaml.load_file(ve.config.file)
 
@@ -39,26 +39,27 @@ invisible(sapply(roots.lst,FUN=function(x,venv){assign(x,ve.cfg$Roots[[x]],pos=v
 # Extracting location paths:
 locs.lst <- names(ve.cfg$Locations)
 makepath <- function(x,venv) {
-	# Build a location path from root and path
-	#
-	# Args:
-	#   x - the name of a Location (and its veriable)
-	#   venv - the environment in which to create the variable
-	#
+  # Build a location path from root and path
+  #
+  # Args:
+  #   x - the name of a Location (and its veriable)
+  #   venv - the environment in which to create the variable
+  #
   loc <- ve.cfg$Locations[[x]]
   assign(x,file.path(get(loc$root),loc$path),pos=venv)
 }
 invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
 
 # Create the locations
+ve.lib.root <- ve.lib
 ve.lib <- file.path(ve.lib,this.R) # ve-lib has sub-folders for R versions
 for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE )
 
 # Convey key file locations to the 'make' environment
 make.target <- file("ve-output.make")
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
-writeLines(paste(c("VE_OUTPUT", "VE_INSTALLER", "VE_PLATFORM"),
-                 c(ve.output, ve.install, ve.platform),
+writeLines(paste(c("VE_R_VERSION","VE_OUTPUT", "VE_INSTALLER", "VE_PLATFORM", "VE_LIB", "VE_PKGS", "VE_RUNTIME"),
+                 c(this.R, ve.output, ve.install, ve.platform, ve.lib.root, ve.pkgs, ve.runtime),
                  sep="="),
            make.target)
 close(make.target)
@@ -69,7 +70,6 @@ close(make.target)
 # ve.repository <- file.path(ve.output, "pkg-repository")
 # ve.dependencies
 # ve.runtime
-# ve.pkgs
 
 # Need to nuance the following to split pkg-dependencies (no VE)
 # from pkg-repository (everything)
@@ -84,32 +84,32 @@ ve.repo.url <- paste("file:", ve.repository, sep="")
 
 pkgs.db <- data.frame(Type="Type",Package="Package",Root="Root",Path="Path")
 for ( ve.type in c("Module","Source") ) {
-	items <- ve.cfg[[ve.type]] # ve.cfg[["Module"]]
-	for ( pkg in names(items) ) {
-		it <- items[[pkg]]
-		it.db <- data.frame(Type=ve.type,Package=pkg,Root=get(it$root),Path=it$path)
-		pkgs.db <- rbind(pkgs.db,it.db)
-		if ( "CRAN" %in% names(it) ) {
-			for ( dep in it$CRAN ) {
-				dep.db <- data.frame(Type="CRAN",Package=dep,Root=NA,Path=NA)
-				pkgs.db <- rbind(pkgs.db,dep.db)
-			}
-		}
-		if ( "BioC" %in% names(it) ) {
-			for ( dep in it$BioC ) {
-				dep.db <- data.frame(Type="BioC",Package=dep,Root=NA,Path=NA)
-				pkgs.db <- rbind(pkgs.db,dep.db)
-			}
-		}
-		if ( "External" %in% names(it) ) {
-			for ( dep in it$External ) {
-				ex.nm <- names(dep)
-				dep <- dep[[ex.nm]]
-				dep.db <- data.frame(Type="External",Package=ex.nm,Root=get(dep$root),Path=dep$path)
-				pkgs.db <- rbind(pkgs.db,dep.db)
-			}
-		}
-	}
+  items <- ve.cfg[[ve.type]] # ve.cfg[["Module"]]
+  for ( pkg in names(items) ) {
+    it <- items[[pkg]]
+    it.db <- data.frame(Type=ve.type,Package=pkg,Root=get(it$root),Path=it$path)
+    pkgs.db <- rbind(pkgs.db,it.db)
+    if ( "CRAN" %in% names(it) ) {
+      for ( dep in it$CRAN ) {
+        dep.db <- data.frame(Type="CRAN",Package=dep,Root=NA,Path=NA)
+        pkgs.db <- rbind(pkgs.db,dep.db)
+      }
+    }
+    if ( "BioC" %in% names(it) ) {
+      for ( dep in it$BioC ) {
+        dep.db <- data.frame(Type="BioC",Package=dep,Root=NA,Path=NA)
+        pkgs.db <- rbind(pkgs.db,dep.db)
+      }
+    }
+    if ( "External" %in% names(it) ) {
+      for ( dep in it$External ) {
+        ex.nm <- names(dep)
+        dep <- dep[[ex.nm]]
+        dep.db <- data.frame(Type="External",Package=ex.nm,Root=get(dep$root),Path=dep$path)
+        pkgs.db <- rbind(pkgs.db,dep.db)
+      }
+    }
+  }
 }
 
 # Produce the various package lists for retrieval
@@ -227,16 +227,16 @@ moduleExists <- function( module, path ) {
 
 save(
   file="dependencies.RData",
-	list=c(locs.lst)
+  list=c(locs.lst)
   , .First
   , checkVEEnvironment
   , ve.install
-	, ve.output
+  , ve.output
   , CRAN.mirror
   , BioC.mirror
   , modulePath
   , moduleExists
-	, ve.deps.url
+  , ve.deps.url
   , ve.repo.url
   , pkgs.db
   , pkgs.all

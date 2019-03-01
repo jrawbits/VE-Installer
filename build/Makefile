@@ -49,7 +49,7 @@ packages.built: dependencies.RData scripts/build-packages-src.R
 
 binary: binary.built
 
-binary.built: repository.built scripts/install-velib.R scripts/build-external-bin.R scripts/build-packages-bin.R
+binary.built: repository.built packages.built scripts/install-velib.R scripts/build-external-bin.R scripts/build-packages-bin.R
 	$(RSCRIPT) scripts/install-velib.R
 	$(RSCRIPT) scripts/build-external-bin.R
 	$(RSCRIPT) scripts/build-packages-bin.R
@@ -69,24 +69,24 @@ tests: runtime.built
 installers: installers.built
 
 installers.built: dependencies.RData runtime.built
+	$(RSCRIPT) scripts/runtime-packages.R
 	bash scripts/build-installers.sh
 	touch installers.built
 
 # Experimental Docker installation
 # Docker work all happens here (not in a separate shell script)
+
+# Warning: Docker is broken due to use of VE_ROOT (not set) and
+# VE_OUTPUT, which is more nuanced with the YAML configuration
+
 VE_DOCKER=$(VE_INSTALLER)/docker
 DOCKERFILE=$(VE_DOCKER)/Dockerfile
-
-$(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst: repository.built
 
 docker-output-clean:
 	sudo rm -rf ${VE_OUTPUT}/Data # Files within are owned by 'root'
 docker-clean: docker-output-clean
 	rm -rf $(VE_OUTPUT)/home
 	
-# Warning: Docker is broken due to use of VE_ROOT (not set) and
-# VE_OUTPUT, which is more nuanced with the YAML configuration
-
 docker: repository.built $(DOCKERFILE) $(VE_DOCKER)/.dockerignore dependencies.RData \
 $(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst
 	mkdir -p $(VE_OUTPUT)/home/visioneval/models
