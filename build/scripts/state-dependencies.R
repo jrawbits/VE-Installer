@@ -60,8 +60,8 @@ for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE
 # Convey key file locations to the 'make' environment
 make.target <- file("ve-output.make")
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
-writeLines(paste(c( "VE_R_VERSION","VE_OUTPUT", "VE_CACHE", "VE_INSTALLER", "VE_PLATFORM", "VE_LIB",    "VE_PKGS", "VE_RUNTIME"),
-                 c( this.R,        ve.output,   ve.cache,   ve.install,     ve.platform,   ve.lib.root, ve.pkgs,   ve.runtime  ),
+writeLines(paste(c( "VE_R_VERSION","VE_OUTPUT", "VE_CACHE", "VE_INSTALLER", "VE_PLATFORM", "VE_LIB",    "VE_PKGS", "VE_RUNTIME", "VE_TEST"),
+                 c( this.R,        ve.output,   ve.cache,   ve.install,     ve.platform,   ve.lib.root, ve.pkgs,   ve.runtime,   ve.test  ),
                  sep="="),
            make.target)
 close(make.target)

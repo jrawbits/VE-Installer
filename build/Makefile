@@ -10,7 +10,7 @@ include ve-output.make
 # Defines VE_OUTPUT, VE_CACHE, VE_INSTALLER, VE_PLATFORM based on VE_CONFIG
 
 .PHONY: configure repository packages binary runtime tests installers docker\
-		clean runtime-clean build-clean cache-clean all\
+		clean runtime-clean build-clean cache-clean test-clean all\
 		docker-clean docker-output-clean
 
 all: configure repository packages binary runtime installers
@@ -30,6 +30,9 @@ build-clean:
 
 cache-clean: clean
 	rm -rf $(VE_CACHE)
+
+test-clean: ve-output.make
+	rm -rf $(VE_TEST)/*
 
 configure: dependencies.RData ve-output.make
 

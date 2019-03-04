@@ -78,5 +78,7 @@ for ( dst in df$DEST ) dir.create( dst, recursive=TRUE, showWarnings=FALSE )
 
 # Now copy everything into the test environment.
 for ( i in 1:nrow(df) ) {
-  file.copy( file.path(df$SOURCE[i],dir(df$SOURCE)[i]), df$DEST[i], recursive=TRUE )
+  file.copy( file.path(df$SOURCE[i],dir(df$SOURCE[i])), df$DEST[i], recursive=TRUE )
 }
+
+warnings()
