@@ -11,7 +11,7 @@ if ( ! checkVEEnvironment() ) {
 }
 
 if ( ! suppressWarnings(require(miniCRAN)) ) {
-	install.packages("miniCRAN", repos=CRAN.mirror, dependencies=NA)
+  install.packages("miniCRAN", repos=CRAN.mirror, dependencies=NA)
 }
 
 require(tools)
@@ -24,7 +24,7 @@ require(tools)
 bioc <- BioC.mirror
 
 if ( ! exists("pkgs.CRAN") || ! exists("pkgs.BioC") ) {
-	stop("Please run state-dependencies.R to build dependency lists")
+  stop("Please run state-dependencies.R to build dependency lists")
 }
 
 # Base R packages (so we can ignore those as dependencies)
@@ -45,27 +45,27 @@ havePackages <- function() {
   #   TRUE/FALSE depending on existing of pkg-repository file tree
   #
   # If the tree is there, don't need to build the miniCRAN from scratch
-	src.contrib <- contrib.url(ve.dependencies, type="source")
-	bin.contrib <- contrib.url(ve.dependencies, type="win.binary")
-	got.src <- FALSE
-	got.bin <- FALSE
-	if ( dir.exists(file.path(ve.dependencies, "src")) ) {
-		if ( ! file.exists(file.path(src.contrib, "PACKAGES")) ) {
-			cat("Updating VE repository source PACKAGES files\n")
-			got.src <- (write_PACKAGES(src.contrib, type="source")>0)
-		} else {
-			got.src <- TRUE
-		}
-	}
-	if ( dir.exists(file.path(ve.dependencies, "bin")) ) {
-		if ( ! file.exists(file.path(bin.contrib, "PACKAGES")) ) {
-			cat("Updating VE repository win.binary PACKAGES files\n")
-			got.bin <- (write_PACKAGES(bin.contrib, type="win.binary")>0)
-		} else {
-			got.bin <- TRUE
-		}
-	}
-	got.src && got.bin
+  src.contrib <- contrib.url(ve.dependencies, type="source")
+  bin.contrib <- contrib.url(ve.dependencies, type="win.binary")
+  got.src <- FALSE
+  got.bin <- FALSE
+  if ( dir.exists(file.path(ve.dependencies, "src")) ) {
+    if ( ! file.exists(file.path(src.contrib, "PACKAGES")) ) {
+      cat("Updating VE repository source PACKAGES files\n")
+      got.src <- (write_PACKAGES(src.contrib, type="source")>0)
+    } else {
+      got.src <- TRUE
+    }
+  }
+  if ( dir.exists(file.path(ve.dependencies, "bin")) ) {
+    if ( ! file.exists(file.path(bin.contrib, "PACKAGES")) ) {
+      cat("Updating VE repository win.binary PACKAGES files\n")
+      got.bin <- (write_PACKAGES(bin.contrib, type="win.binary")>0)
+    } else {
+      got.bin <- TRUE
+    }
+  }
+  got.src && got.bin
 }
 
 findMissingPackages <- function( required.packages ) {
@@ -81,12 +81,12 @@ findMissingPackages <- function( required.packages ) {
   #   a character vector of package names that are missing from the
   #   respective sections of the pkg-repository compared to the
   #   required.packages
-	aps <- available.packages(repos=ve.deps.url, type="source")
-	apb <- available.packages(repos=ve.deps.url, type="win.binary")
-	list(
-		src=setdiff( required.packages, aps[,"Package"]),
-		bin=setdiff( required.packages, apb[,"Package"])
-		)
+  aps <- available.packages(repos=ve.deps.url, type="source")
+  apb <- available.packages(repos=ve.deps.url, type="win.binary")
+  list(
+    src=setdiff( required.packages, aps[,"Package"]),
+    bin=setdiff( required.packages, apb[,"Package"])
+    )
 }
 
 cat("\nComputing dependencies.\n")
@@ -98,42 +98,42 @@ pkgs.BioC <- setdiff( pkgs.BioC, pkgs.CRAN ) # Possible risk here: don't double-
 
 cat("Dependencies:\n")
 stated.dependencies <- as.character(c(pkgs.CRAN, pkgs.BioC))
-all.dependencies <- as.character(c(pkgs.CRAN.all, pkgs.BioC.all))
+all.dependencies <- setdiff(as.character(c(pkgs.CRAN.all, pkgs.BioC.all)),pkgs.BaseR)
 save(stated.dependencies, all.dependencies, file="all-dependencies.RData")
 
 # Attempt a minimal build of the repository (adding just new packages if we already have the whole thing)
 # We won't attempt to delete - cleanup just by rebuilding when cruft gets to be too much.
 if ( havePackages() ) {
-	pkgs.missing.CRAN <- findMissingPackages(pkgs.CRAN)
-	if ( any(sapply(pkgs.missing.CRAN, length)) > 0 ) {
-		cat("Updating VE repository to add from CRAN:\n")
-		print(union(pkgs.missing.CRAN$src, pkgs.missing.CRAN$bin))
-		if ( length(pkgs.missing.CRAN$src) > 0 ) {
-			miniCRAN::addPackage(pkgs.missing.CRAN$src, path=ve.dependencies, repos=CRAN.mirror, type=c("source"), deps=FALSE)
-		}
-		if ( length(pkgs.missing.CRAN$bin) > 0 ) {
-			miniCRAN::addPackage(pkgs.missing.CRAN$bin, path=ve.dependencies, repos=CRAN.mirror, type=c("win.binary"), deps=FALSE)
-		}
-	}
-	pkgs.missing.BioC <- findMissingPackages(pkgs.BioC)
-	if ( any(sapply(pkgs.missing.BioC, length)) > 0 ) {
-		cat("Updating VE repository to add from BioConductor:\n")
-		print(union(pkgs.missing.BioC$src, pkgs.missing.BioC$bin))
-		if ( length(pkgs.missing.BioC$src) > 0 ) {
-			miniCRAN::addPackage(pkgs.missing.BioC$src, path=ve.dependencies, repos=bioc, type=c("source"), deps=FALSE)
-		}
-		if ( length(pkgs.missing.BioC$bin) > 0 ) {
-			miniCRAN::addPackage(pkgs.missing.BioC$bin, path=ve.dependencies, repos=bioc, type=c("win.binary"), deps=FALSE)
-		}
-	}
-	cat("Existing VE repository is up to date.\n")
+  pkgs.missing.CRAN <- findMissingPackages(pkgs.CRAN)
+  if ( any(sapply(pkgs.missing.CRAN, length)) > 0 ) {
+    cat("Updating VE repository to add from CRAN:\n")
+    print(union(pkgs.missing.CRAN$src, pkgs.missing.CRAN$bin))
+    if ( length(pkgs.missing.CRAN$src) > 0 ) {
+      miniCRAN::addPackage(pkgs.missing.CRAN$src, path=ve.dependencies, repos=CRAN.mirror, type=c("source"), deps=FALSE)
+    }
+    if ( length(pkgs.missing.CRAN$bin) > 0 ) {
+      miniCRAN::addPackage(pkgs.missing.CRAN$bin, path=ve.dependencies, repos=CRAN.mirror, type=c("win.binary"), deps=FALSE)
+    }
+  }
+  pkgs.missing.BioC <- findMissingPackages(pkgs.BioC)
+  if ( any(sapply(pkgs.missing.BioC, length)) > 0 ) {
+    cat("Updating VE repository to add from BioConductor:\n")
+    print(union(pkgs.missing.BioC$src, pkgs.missing.BioC$bin))
+    if ( length(pkgs.missing.BioC$src) > 0 ) {
+      miniCRAN::addPackage(pkgs.missing.BioC$src, path=ve.dependencies, repos=bioc, type=c("source"), deps=FALSE)
+    }
+    if ( length(pkgs.missing.BioC$bin) > 0 ) {
+      miniCRAN::addPackage(pkgs.missing.BioC$bin, path=ve.dependencies, repos=bioc, type=c("win.binary"), deps=FALSE)
+    }
+  }
+  cat("Existing VE repository is up to date.\n")
 } else {
-	cat("Building VE repository from scratch from CRAN packages\n")
-	miniCRAN::makeRepo(pkgs.CRAN, path=ve.dependencies, repos=CRAN.mirror, type=c("source", "win.binary"))
+  cat("Building VE repository from scratch from CRAN packages\n")
+  miniCRAN::makeRepo(pkgs.CRAN, path=ve.dependencies, repos=CRAN.mirror, type=c("source", "win.binary"))
 
-	cat("Adding BioConductor packages to new VE repository\n")
-	# BioConductor depends on some CRAN packages - no need to download those twice, so deps=FALSE
-	miniCRAN::addPackage(pkgs.BioC, path=ve.dependencies, repos=bioc, type=c("source", "win.binary"), deps=FALSE)
+  cat("Adding BioConductor packages to new VE repository\n")
+  # BioConductor depends on some CRAN packages - no need to download those twice, so deps=FALSE
+  miniCRAN::addPackage(pkgs.BioC, path=ve.dependencies, repos=bioc, type=c("source", "win.binary"), deps=FALSE)
 }
 
 # Verify the VE Repository with the following independent cross-check of dependencies
@@ -143,17 +143,17 @@ if ( havePackages() ) {
 # getDependencies <- function(x) {
 #   # Used in apply below to avoid a painfully long one-liner
 #   # Extracts package names from a standard list of R dependencies
-# 	strsplit(split=", [ \n]*", paste( (y<-x[c("Package", "Depends", "Imports", "Extends", "LinkingTo")])[!is.na(y)], collapse=", "))
+#   strsplit(split=", [ \n]*", paste( (y<-x[c("Package", "Depends", "Imports", "Extends", "LinkingTo")])[!is.na(y)], collapse=", "))
 # }
 # pkg <- sort(unique(unlist(apply(ap, 1, getDependencies))))
 # pkg <- unique(sub("( |\\n)*\\(.*\\)", "", pkg))
 # pkg <- setdiff(pkg, c(pkgs.BaseR, "R")) # Kill the BaseR packages from the list of dependencies, as well as dependency on R itself
 # if ( length(setdiff(pkgs.VE, pkg)) > 0 ) {
-# 	cat("Discrepancy:\n")
-# 	print(setdiff(pkgs.VE, pkg))
+#   cat("Discrepancy:\n")
+#   print(setdiff(pkgs.VE, pkg))
 # } else if (length(setdiff(pkg, pkgs.VE)) > 0 ) {
-# 	cat("Discrepancy:\n")
-# 	print(setdiff(pkg, pkgs.VE))
+#   cat("Discrepancy:\n")
+#   print(setdiff(pkg, pkgs.VE))
 # } else {
-# 	cat("VE repository contents are complete\n")
+#   cat("VE repository contents are complete\n")
 # }

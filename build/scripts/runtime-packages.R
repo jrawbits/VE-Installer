@@ -2,32 +2,59 @@
 
 # Author: Jeremy Raw
 
-# Merges dependencies and VE packages into a single repository
+# Merges dependencies and VE packages into a single source repository
 
 load("dependencies.RData")
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
 
+load("all-dependencies.RData") # use all.dependencies
+if ( ! exists("all.dependencies") ) {
+  stop("Run state-dependencies.R to set up build environment")
+}
+
 require(tools)
 
-# Copy the cached package repository into ve.pkgs
-src.package <- contrib.url(ve.repository, type="source")
-src.deps <- contrib.url(ve.dependencies, type="source")
-src.all <- contrib.url(ve.pkgs, type="source")
-if ( ! dir.exists(src.all) ) dir.create( src.all, recursive=TRUE, showWarnings=FALSE )
+ve.pkgnames <- pkgs.visioneval[,"Package"]
+src.contrib <- contrib.url(ve.pkgs, type="source")
 
-cat(src.deps,"\n")
-cat(src.all,"\n")
-
-# TODO: Use the "available.packages" function to only copy files that
-# area not already in ve-pkgs.
-
-cat("Copying",src.package,"\n")
-dir(src.package)
-invisible(file.copy(file.path(src.package,dir(src.package)), src.all, overwrite=TRUE))
-cat("\nCopying",src.deps,"\n")
-dir(src.deps)
-invisible(file.copy(file.path(src.deps,dir(src.deps)), src.all, overwrite=TRUE))
-cat("\nWriting PACKAGES in",src.all,"\n")
-write_PACKAGES(src.all, type="source")
+cat("Updating source distribution repository\n")
+if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES")) ) {
+  cat("Building fresh source distribution repository\n")
+  for ( repo in c(ve.dependencies,ve.repository) ) {
+    contriburl <- contrib.url(repo,type="source")
+    pkgs <- dir(contriburl,full.names=TRUE)
+    invisible( file.copy( pkgs, src.contrib, overwrite=TRUE ) )
+  }
+  write_PACKAGES(src.contrib, type="source")
+} else {
+  cat("Checking if required packages are present\n")
+  write_PACKAGES(src.contrib, type="source")
+  ap <- available.packages(repos=paste("file:", ve.pkgs, sep=""), type="source")
+  missing.deps <- setdiff( all.dependencies, ap[,"Package"])
+  cat("Missing dependencies:\n")
+  if ( length(missing.deps) > 0 ) {
+    cat("Adding missing dependencies to source distribution repository\n")
+    deps.dir <- contrib.url(ve.dependencies,type="source")
+    print(missing.deps)
+    missing.deps <- file.path( deps.dir,modulePath( missing.deps, deps.dir ) )
+    print(missing.deps)
+    file.copy( missing.deps, src.contrib, overwrite=TRUE )
+  } else {
+    cat("Source distribution repository dependencies are up to date\n")
+  }
+  missing.pkgs <- setdiff( ve.pkgnames, ap[,"Package"])
+  if ( length(missing.pkgs) > 0 ) {
+    cat("Adding missing VE packages to source distribution repository\n")
+    pkgs.dir <- contrib.url(ve.repository,type="source")
+    print(missing.pkgs)
+    missing.pkgs <- file.path( pkgs.dir,modulePath( missing.pkgs, pkgs.dir ) )
+    print(missing.pkgs)
+    file.copy( missing.pkgs, src.contrib, overwrite=TRUE )
+  } else {
+    cat("Source distribution repository VE packages are up to date\n")
+  }
+  if ( length(missing.deps)>0 || length(missing.pkgs)>0 ) write_PACKAGES(src.contrib, type="source")
+}
+ 

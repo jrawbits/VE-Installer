@@ -7,10 +7,10 @@ RSCRIPT:="$(shell ./find-R.bat $(VE_R_VERSION))"
 
 include ve-output.make
 # Rebuilt (see below) if it is out of date; make then auto-restarts
-# Defines VE_OUTPUT, VE_INSTALLER, VE_PLATFORM based on VE_CONFIG
+# Defines VE_OUTPUT, VE_CACHE, VE_INSTALLER, VE_PLATFORM based on VE_CONFIG
 
 .PHONY: configure repository packages binary runtime tests installers docker\
-		clean runtime-clean build-clean all\
+		clean runtime-clean build-clean cache-clean all\
 		docker-clean docker-output-clean
 
 all: configure repository packages binary runtime installers
@@ -27,6 +27,9 @@ build-clean:
 	rm -f ve-output.make
 	rm -f *.built
 	rm -f *.out
+
+cache-clean: clean
+	rm -rf $(VE_CACHE)
 
 configure: dependencies.RData ve-output.make
 
@@ -61,10 +64,9 @@ runtime.built: dependencies.RData scripts/setup-sources.R $(VE_INSTALLER)/boiler
 	$(RSCRIPT) scripts/setup-sources.R
 	touch runtime.built
 
-# Note: need to keep test output distinct from runtime environment
-# used for installer base. Spin up a second runtime?
 tests: runtime.built
-	$(RSCRIPT) scripts/run-tests.R
+	$(RSCRIPT) scripts/setup-tests.R
+	bash scripts/run-tests.sh
 
 installers: installers.built
 

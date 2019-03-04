@@ -52,14 +52,15 @@ invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
 
 # Create the locations
 ve.lib.root <- ve.lib
+ve.dependencies <- file.path(ve.dependencies,this.R)
 ve.lib <- file.path(ve.lib,this.R) # ve-lib has sub-folders for R versions
 for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE )
 
 # Convey key file locations to the 'make' environment
 make.target <- file("ve-output.make")
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
-writeLines(paste(c("VE_R_VERSION","VE_OUTPUT", "VE_INSTALLER", "VE_PLATFORM", "VE_LIB", "VE_PKGS", "VE_RUNTIME"),
-                 c(this.R, ve.output, ve.install, ve.platform, ve.lib.root, ve.pkgs, ve.runtime),
+writeLines(paste(c( "VE_R_VERSION","VE_OUTPUT", "VE_CACHE", "VE_INSTALLER", "VE_PLATFORM", "VE_LIB",    "VE_PKGS", "VE_RUNTIME"),
+                 c( this.R,        ve.output,   ve.cache,   ve.install,     ve.platform,   ve.lib.root, ve.pkgs,   ve.runtime  ),
                  sep="="),
            make.target)
 close(make.target)
@@ -83,7 +84,7 @@ ve.repo.url <- paste("file:", ve.repository, sep="")
 #   External
 
 pkgs.db <- data.frame(Type="Type",Package="Package",Root="Root",Path="Path")
-for ( ve.type in c("Module","Source") ) {
+for ( ve.type in c("Module","Source","Tests") ) {
   items <- ve.cfg[[ve.type]] # ve.cfg[["Module"]]
   for ( pkg in names(items) ) {
     it <- items[[pkg]]
@@ -111,11 +112,12 @@ for ( ve.type in c("Module","Source") ) {
     }
   }
 }
+for ( d in names(pkgs.db)) { pkgs.db[,d] <- as.character(pkgs.db[,d]) } # Otherwise we get factors, which can get weird
 
 # Produce the various package lists for retrieval
 getPackageList <- function(type="", path=FALSE) {
   # Return a subset (or everything) from the pkgs.db dependency list
-  # which was loaded from "dependencies/dependencies.csv"
+  # which was loaded from VE-config.yml
   #
   # Args:
   #   type: The type identifying a subset of pkgs.db to seek
@@ -147,6 +149,7 @@ pkgs.BioC       <- getPackageList("BioC")
 pkgs.external   <- getPackageList("External", path=TRUE)
 pkgs.visioneval <- getPackageList("Module", path=TRUE)
 pkgs.copy       <- getPackageList("Source", path=TRUE)
+pkgs.tests      <- getPackageList("Tests",path=TRUE)
 
 # Helper function for other scripts, to verify situational awareness
 
@@ -245,4 +248,5 @@ save(
   , pkgs.external
   , pkgs.visioneval
   , pkgs.copy
+  , pkgs.tests
 )

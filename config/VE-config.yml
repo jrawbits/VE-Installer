@@ -10,6 +10,7 @@ Roots:
     # ve.alt.root (or more such) is optional and only used internally
 Locations:
     # ve.install is implicitly available - relative to the running installer
+    # The others are required
     ve.dependencies:
         root: ve.cache
         path: pkg-dependencies
@@ -30,6 +31,10 @@ Locations:
         root: ve.output
         path: ve-lib
         description: install bin tree here from ve.repository
+    ve.test:
+        root: ve.output
+        path: tests
+        description: run tests here if requested during build
 Module:
     visioneval:
         root: ve.root
@@ -123,3 +128,7 @@ Source:
     VEScenarioViewer:
         root: ve.root
         path: sources
+Tests:
+    .travis.yml:
+        root: ve.root
+        path: "."
