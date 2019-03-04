@@ -54,6 +54,7 @@ invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
 ve.lib.root <- ve.lib
 ve.dependencies <- file.path(ve.dependencies,this.R)
 ve.lib <- file.path(ve.lib,this.R) # ve-lib has sub-folders for R versions
+ve.pkgs <- file.path(ve.pkgs,this.R)
 for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE )
 
 # Convey key file locations to the 'make' environment

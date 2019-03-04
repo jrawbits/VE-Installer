@@ -18,6 +18,7 @@ require(tools)
 
 ve.pkgnames <- pkgs.visioneval[,"Package"]
 src.contrib <- contrib.url(ve.pkgs, type="source")
+if ( ! dir.exists( src.contrib ) ) dir.create(src.contrib, recursive=TRUE, showWarnings=FALSE)
 
 cat("Updating source distribution repository\n")
 if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES")) ) {
@@ -25,7 +26,7 @@ if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES"
   for ( repo in c(ve.dependencies,ve.repository) ) {
     contriburl <- contrib.url(repo,type="source")
     pkgs <- dir(contriburl,full.names=TRUE)
-    invisible( file.copy( pkgs, src.contrib, overwrite=TRUE ) )
+    invisible( file.copy( pkgs, src.contrib, recursive=TRUE, overwrite=TRUE ) )
   }
   write_PACKAGES(src.contrib, type="source")
 } else {
@@ -40,7 +41,7 @@ if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES"
     print(missing.deps)
     missing.deps <- file.path( deps.dir,modulePath( missing.deps, deps.dir ) )
     print(missing.deps)
-    file.copy( missing.deps, src.contrib, overwrite=TRUE )
+    file.copy( missing.deps, src.contrib, recursive=TRUE, overwrite=TRUE )
   } else {
     cat("Source distribution repository dependencies are up to date\n")
   }
@@ -51,7 +52,7 @@ if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES"
     print(missing.pkgs)
     missing.pkgs <- file.path( pkgs.dir,modulePath( missing.pkgs, pkgs.dir ) )
     print(missing.pkgs)
-    file.copy( missing.pkgs, src.contrib, overwrite=TRUE )
+    file.copy( missing.pkgs, src.contrib, recursive=TRUE, overwrite=TRUE )
   } else {
     cat("Source distribution repository VE packages are up to date\n")
   }
