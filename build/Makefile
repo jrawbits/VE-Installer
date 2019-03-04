@@ -13,7 +13,9 @@ include ve-output.make
 		clean runtime-clean build-clean cache-clean test-clean all\
 		docker-clean docker-output-clean
 
-all: configure repository packages binary runtime installers
+all: configure repository packages binary runtime
+
+# Make tests or installers as standalone steps
 
 clean: ve-output.make build-clean
 	rm -rf $(VE_OUTPUT)
