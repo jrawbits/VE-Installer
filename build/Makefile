@@ -4,6 +4,7 @@ VE_CONFIG=../config/VE-config.yml
 export VE_R_VERSION VE_CONFIG
 
 RSCRIPT:="$(shell ./find-R.bat $(VE_R_VERSION))"
+export RSCRIPT
 
 include ve-output.make
 # Rebuilt (see below) if it is out of date; make then auto-restarts
@@ -69,9 +70,12 @@ runtime.built: dependencies.RData scripts/setup-sources.R $(VE_INSTALLER)/boiler
 	$(RSCRIPT) scripts/setup-sources.R
 	touch runtime.built
 
-tests: runtime.built
+tests: tests.built
+
+tests.built: runtime.built
 	$(RSCRIPT) scripts/setup-tests.R
 	bash scripts/run-tests.sh
+	touch tests.built 
 
 installers: installers.built
 

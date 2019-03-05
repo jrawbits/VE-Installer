@@ -101,6 +101,7 @@ stated.dependencies <- as.character(c(pkgs.CRAN, pkgs.BioC))
 all.dependencies <- setdiff(as.character(c(pkgs.CRAN.all, pkgs.BioC.all)),pkgs.BaseR)
 save(stated.dependencies, all.dependencies, file="all-dependencies.RData")
 
+cat("Repository location:",ve.dependencies,"\n")
 # Attempt a minimal build of the repository (adding just new packages if we already have the whole thing)
 # We won't attempt to delete - cleanup just by rebuilding when cruft gets to be too much.
 if ( havePackages() ) {
