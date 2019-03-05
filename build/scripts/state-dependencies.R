@@ -28,7 +28,8 @@ BioC.mirror <- rversions[[this.R]]$BioC
 ve.config.file <- Sys.getenv("VE_CONFIG")
 cat(paste("Loading Configuration File:",ve.config.file,"\n",sep=" "))
 if ( ! file.exists(ve.config.file) ) {
-  ve.config.file <- "../dependencies/VE-config.yml"
+  ve.config.file <- "../config/VE-config.yml"
+  cat("Using default ve.config:",ve.config.file,"\n")
 }
 ve.cfg <- yaml::yaml.load_file(ve.config.file)
 
@@ -51,19 +52,36 @@ makepath <- function(x,venv) {
 invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
 
 # Create the locations
+# Packages and libraries are distinguished by R versions since the
+# R versions are sometimes hidden and we may want to use the same
+# VE-config.yml with different versions of R (e.g. 3.5.1 and 3.5.2)
+
 ve.lib.root <- ve.lib
+ve.pkgs.root <- ve.pkgs
+ve.runtime.root <- ve.runtime
 ve.dependencies <- file.path(ve.dependencies,this.R)
 ve.lib <- file.path(ve.lib,this.R) # ve-lib has sub-folders for R versions
+ve.runtime <- file.path(ve.runtime,this.R)
 ve.pkgs <- file.path(ve.pkgs,this.R)
+ve.repository <- file.path(ve.repository,this.R)
 for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE )
 
 # Convey key file locations to the 'make' environment
 make.target <- file("ve-output.make")
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
-writeLines(paste(c( "VE_R_VERSION","VE_OUTPUT", "VE_CACHE", "VE_INSTALLER", "VE_PLATFORM", "VE_LIB",    "VE_PKGS", "VE_RUNTIME", "VE_TEST"),
-                 c( this.R,        ve.output,   ve.cache,   ve.install,     ve.platform,   ve.lib.root, ve.pkgs,   ve.runtime,   ve.test  ),
-                 sep="="),
-           make.target)
+make.variables <- c(
+   VE_R_VERSION = this.R
+  ,VE_PLATFORM  = ve.platform
+  ,VE_INSTALLER = ve.install
+  ,VE_OUTPUT    = ve.output
+  ,VE_LIB       = ve.lib.root
+  ,VE_PKGS      = ve.pkgs.root
+  ,VE_RUNTIME   = ve.runtime.root
+  ,VE_TEST      = ve.test
+)
+if ( exists("ve.cache") ) make.variables <- c( make.variables,VE_CACHE = ve.cache )
+
+writeLines( paste( names(make.variables), make.variables, sep="="),make.target)
 close(make.target)
 
 # The following are constructed in Locations above, and must be present
@@ -73,84 +91,157 @@ close(make.target)
 # ve.dependencies
 # ve.runtime
 
-# Need to nuance the following to split pkg-dependencies (no VE)
-# from pkg-repository (everything)
+# ve.dependencies hosts the external R packages
+# ve.repository hosts the built VE packages
 ve.deps.url <- paste("file:", ve.dependencies, sep="")
 ve.repo.url <- paste("file:", ve.repository, sep="")
 
-# Parse the Module and Source Listings for dependencies
-# Include their dependencies:
-#   CRAN
-#   BioConductor
-#   External
+# Load the Components
 
-pkgs.db <- data.frame(Type="Type",Package="Package",Root="Root",Path="Path")
-for ( ve.type in c("Module","Source","Tests") ) {
-  items <- ve.cfg[[ve.type]] # ve.cfg[["Module"]]
-  for ( pkg in names(items) ) {
-    it <- items[[pkg]]
-    it.db <- data.frame(Type=ve.type,Package=pkg,Root=get(it$root),Path=it$path)
+catn <- function(...) { cat(...); cat("\n") }
+
+component.file <- c( ve.root = file.path( ve.root,"build/VE-components.yml" ) )
+includes <- list()
+excludes <- list()
+##### WARNING - we make use of the fact that:
+#   "ve.root" will always be at component.file[1] !!!!
+if ( "Components" %in% names(ve.cfg) ) {
+  comps <- ve.cfg$Components
+  components.lst <- names(comps)
+#   catn("Component list from VE-config.yml:")
+#   print(components.lst)
+  for ( root in components.lst ) {
+    if ( ! exists(root) ) {
+      stop(paste("Undefined",root,"in Roots: section of VE-Config.yml",sep=" "))
+    }
+#     catn("Root:",root,"is",get(root))
+#     print(names(comps[[root]]))
+    component.file[root] <- file.path( get(root),comps[[root]]$Config )
+    if ( "Include" %in% names(comps[[root]]) ) {
+      includes[[root]] <- comps[[root]]$Include
+#       cat("Includes from",root,"\n")
+#       print(includes[[root]])
+    } else {
+      includes[[root]] <- character(0)
+    }
+    if ( "Exclude" %in% names(comps[[root]]) ) {
+      excludes[[root]] <- comps[[root]]$Exclude
+#       catn("Excludes from",root)
+#       print(comps[[root]]$Exclude)
+    } else {
+      excludes[[root]] <- character(0)
+    }
+  }
+#   catn("Defined Component Files:")
+#   print(component.file)
+# } else {
+#   catn("Using default component file:")
+#   print(component.file)
+}
+
+# Process component.file like this:
+#   1. Load components from file into temporary list
+#   2. Add component from "Include" if not empty
+#   3. Else skip component if it's in "Exclude"
+#   4. Put each remaining element of temporary list into final
+#      component list (by component name, so there is replacement)
+
+build.comps <- list()
+for ( root in names(component.file) ) {
+#   catn("Processing components for",root,"from",component.file[root])
+  comps <- ve.cfg <- yaml::yaml.load_file(component.file[root])$Components
+  if ( is.null(comps) ) stop("Failed to find components in",component.file[root])
+#   print(names(comps))
+  for ( cn in names(comps) ) {
+    comp <- comps[[cn]]
+    if ( ( length(excludes[[root]])==0 || ! cn %in% excludes[[root]] ) &&
+         ( length(includes[[root]])==0 || cn %in% includes[[root]] ) ) {
+      comp$Root <- get(root) # retrieves path from variable whose name is in 'root'
+      build.comps[[cn]] <- comp
+    }
+  }
+}
+# catn("Build roots:")
+# print(names(build.comps))
+# print(build.comps[[names(build.comps)[2]]])
+
+# Parse the Components for Dependencies
+# Do this in a specific order:
+#   "Type: module"
+#      Within Module by Test$Group
+#      Within Group in order from build.comps
+#   "Type: model"
+#   "Type: test"
+#   "Type: script"
+
+pkgs.db <- data.frame(Type="Type",Package="Package",Root="Root",Path="Path",Group=0,Test="Test")
+save.types <- c("module","model","script","test")
+# iterate over build.comps, creating dependencies
+for ( pkg in names(build.comps) ) {
+  it <- build.comps[[pkg]]
+  if ( it$Type %in% save.types ) {
+    it.db <- data.frame(Type=it$Type,Package=pkg,Root=it$Root,Path=it$Path)
+    if ( "Test" %in% names(it) ) {
+      tst <- names(it[["Test"]])
+      if ( "Group" %in% tst ) {
+        it.db$Group <- it$Test$Group
+      } else {
+        it.db$Group <- NA
+      }
+      if ( "Script" %in% tst ) {
+        it.db$Test <- it$Test$Script
+      } else {
+        it.db$Test <- ""
+      }
+    } else {
+      it.db$Group <- NA
+      it.db$Test <- ""
+    }
     pkgs.db <- rbind(pkgs.db,it.db)
     if ( "CRAN" %in% names(it) ) {
       for ( dep in it$CRAN ) {
-        dep.db <- data.frame(Type="CRAN",Package=dep,Root=NA,Path=NA)
+        dep.db <- data.frame(Type="CRAN",Package=dep,Root=NA,Path=NA,Group=NA,Test=NA)
         pkgs.db <- rbind(pkgs.db,dep.db)
       }
     }
     if ( "BioC" %in% names(it) ) {
       for ( dep in it$BioC ) {
-        dep.db <- data.frame(Type="BioC",Package=dep,Root=NA,Path=NA)
+        dep.db <- data.frame(Type="BioC",Package=dep,Root=NA,Path=NA,Group=NA,Test=NA)
         pkgs.db <- rbind(pkgs.db,dep.db)
       }
     }
-    if ( "External" %in% names(it) ) {
-      for ( dep in it$External ) {
-        ex.nm <- names(dep)
-        dep <- dep[[ex.nm]]
-        dep.db <- data.frame(Type="External",Package=ex.nm,Root=get(dep$root),Path=dep$path)
+    if ( "Github" %in% names(it) ) {
+      for ( dep in it$Github ) {
+        dep.db <- data.frame(Type="Github",Package=basename(dep),Root=NA,Path=dep,Group=NA,Test=NA)
         pkgs.db <- rbind(pkgs.db,dep.db)
       }
     }
   }
 }
-for ( d in names(pkgs.db)) { pkgs.db[,d] <- as.character(pkgs.db[,d]) } # Otherwise we get factors, which can get weird
+# print(pkgs.db)
+pkgs.db <- unique(pkgs.db[-1,])                   # Remove dummy row
+row.names(pkgs.db) <- NULL                # Remove artificial row.names
+for ( d in names(pkgs.db))                # Convert factors to strings
+  if ( is.factor(pkgs.db[,d]) )
+    pkgs.db[,d] <- as.character(pkgs.db[,d])
+pkgs.db <- pkgs.db[order(pkgs.db$Type,pkgs.db$Group,pkgs.db$Package),] # Sort by Group (for modules)
 
-# Produce the various package lists for retrieval
-getPackageList <- function(type="", path=FALSE) {
-  # Return a subset (or everything) from the pkgs.db dependency list
-  # which was loaded from VE-config.yml
-  #
-  # Args:
-  #   type: The type identifying a subset of pkgs.db to seek
-  #         (empty string: all)
-  #   path: If TRUE, then also return the "Path" element of pkgs.db
-  #         for the selected subset (e.g. for copying sources)
-  #
-  # Returns: if path is FALSE, a vector of package names to retrieve
-  #          from the "type" of public repository (CRAN, BioConductor,
-  #          other CRAN-like source). If path is TRUE, a data.frame of
-  #          two columns, the "Package" names and the "Path" (relative
-  #          to the standard root used for that type of package).
-  #          See the use of the pkgs.* variables in later scripts.
-  if ( ! path ) {
-    as.character(
-      if ( type > "") {
-        pkgs.db[which(pkgs.db["Type"]==type),"Package"]
-      } else {
-        pkgs.db[,"Package"]
-      }
-    )
-  } else {
-    pkgs.db[which(pkgs.db["Type"]==type), c("Package", "Root", "Path")]
-  }
-}
-pkgs.all        <- getPackageList()
-pkgs.CRAN       <- getPackageList("CRAN")
-pkgs.BioC       <- getPackageList("BioC")
-pkgs.external   <- getPackageList("External", path=TRUE)
-pkgs.visioneval <- getPackageList("Module", path=TRUE)
-pkgs.copy       <- getPackageList("Source", path=TRUE)
-pkgs.tests      <- getPackageList("Tests",path=TRUE)
+# New strategy:
+# We'll save pkgs.db into dependencies.RData
+# Also save row indices of the different types
+
+pkgs.CRAN   <- which(pkgs.db$Type=="CRAN")
+pkgs.BioC   <- which(pkgs.db$Type=="BioC")
+pkgs.Github <- which(pkgs.db$Type=="Github")
+pkgs.module <- which(pkgs.db$Type=="module")
+pkgs.model  <- which(pkgs.db$Type=="model")
+pkgs.script <- which(pkgs.db$Type=="script")
+pkgs.test   <- which(pkgs.db$Type=="test")
+
+# mods <-
+# unname(apply(pkgs.db[pkgs.module,c("Group","Root","Path","Package")],1,paste,collapse="/"))
+catn("Sorted by Group:")
+print(pkgs.db[,c("Type","Package","Group")])
 
 # Helper function for other scripts, to verify situational awareness
 
@@ -186,7 +277,7 @@ checkVEEnvironment <- function() {
   # the environment, or if you damage the environment by changing the name
   # of the VisionEval source tree root).
   if ( ! exists("checkVEEnvironment") || ! checkVEEnvironment() ) {
-    stop("Please configure VE-config.yml, then source('yaml-depedencies.R')")
+    stop("Please configure VE-config.yml, then source('state-dependencies.R')")
   }
 }
 
@@ -194,7 +285,7 @@ checkVEEnvironment <- function() {
 # Used in the scripts to detect whether a module has been built yet.
 modulePath <- function( module, path ) {
   # determine which module in a vector of names is present in the
-  # current directory
+  # path
   #
   # Args:
   #   module: a character vector of module names to look for
@@ -205,7 +296,11 @@ modulePath <- function( module, path ) {
   #   number strings) for the corresponding packages in module,
   #   if any
   mods <- dir(path)
-  result <- mods[grep(paste("^", basename(module), "_", sep=""), mods)]
+  # result <- mods[grep(paste("^", basename(module), "_", sep=""), mods)]
+  matching <- paste("^", basename(module), "_", sep="")
+  test<-sapply(matching,FUN=function(x){ grep(x,mods) },simplify=TRUE,USE.NAMES=FALSE)
+  if ( class(test)=="list" ) test <- integer(0) # weirdness of sapply(simplify=TRUE) when empty
+  result <- mods[test]
 }
 
 moduleExists <- function( module, path ) {
@@ -220,14 +315,16 @@ moduleExists <- function( module, path ) {
   #
   # Let us genuflect briefly toward a coding standard that calls for
   # a dozen lines of documentation for a one line "alias"
-  length(modulePath(module, path)) > 0
+  found <- modulePath(module,path)
+  found.test <- length(found)>0
 }
 
 # Save out the basic setup that is used in later build scripts
 
-# Non-Standard: Keep this list in an easy maintain format:
-# commas precede the item so it can be moved, or deleted, or a
-# new item added without having to edit more than one line.
+# Non-Standard Coding: Keep this list in an easy maintain format:
+
+# Commas precede the item so it can be moved, or deleted, or a new item
+# added without having to edit more than one line.
 
 save(
   file="dependencies.RData",
@@ -243,11 +340,11 @@ save(
   , ve.deps.url
   , ve.repo.url
   , pkgs.db
-  , pkgs.all
   , pkgs.CRAN
   , pkgs.BioC
-  , pkgs.external
-  , pkgs.visioneval
-  , pkgs.copy
-  , pkgs.tests
+  , pkgs.Github
+  , pkgs.module
+  , pkgs.model
+  , pkgs.script
+  , pkgs.test
 )

@@ -1,134 +1,58 @@
 Title: VisionEval
-Date: 2019-03-04
-Roots:
-    ve.root: n:/Git-Repos/visioneval
-    ve.alt.root: n:/Git-Repos/VisionEval-dev
-    ve.cache: n:/Git-Repos/VE-Cache
-    ve.output: n:/Git-Repos/VE-1.02
-    # ve.output is required
-    # ve.cache is optional (alternatively, use ve.output for ve.dependencies below)
-    # ve.alt.root (or more such) is optional and only used internally
-Locations:
+Date: 2019-03-26
+Roots: # Require ve.root and ve.output at a minimum
+    ve.root: c:/Users/jeremy.DESKTOP-OLMEAON/Documents/Git-Repos/VisionEval-JR
+    ve.output: e:/VE-built/VE-1.02  # Required
+    ve.cache: e:/VE-built/VE-Cache  # Optional
+    # However ve.cache is "special" in that, if defined, anything stored there will require
+    #    extra effort to remove between builds
+    # additional roots may be defined (with unique names); here is an illustrative alias:
+    ve.alt.root: c:/Users/jeremy.DESKTOP-OLMEAON/Documents/Git-Repos/VisionEval-JR # Optional
     # ve.install is implicitly available - relative to the running installer
-    # The others are required
-    ve.dependencies:
+Components:  # Entire section is optional
+    # Default if this section is missing is to load all components from ve.root/build/VE-components.yml
+    # The "roots" are processed in order; components from the first, then components from the second
+    # Note that ve.root is special and will always be loaded first (with its Includes and Excludes applied)
+    # Alternate roots will then be loaded in the order presented here
+    # Components with the same name in later roots will replace components from earlier roots
+    # If a new component appears in a later root it is just added to the existing set of components
+    # Adding an "Install" list reduces the root configuration to just those components before replacement
+    # Adding an "Exclude" list reduces the root configuration to everything EXCEPT those components before replacement
+    ve.root:
+        Config: "build/VE-components.yml" # relative to ve.root
+        Exclude:
+            - VE-State
+    ve.alt.root:
+      Config: "build/VE-components.yml" # relative to ve.alt.root 
+      Include:
+          - visioneval
+          - VE2001NHTS
+          - VE-State
+Locations: # "Root" elements are variables defined in "Roots" section
+    ve.dependencies:  # Required
         root: ve.cache
         path: pkg-dependencies
         description: repo for downloaded and built external dependencies
-    ve.repository:
+    ve.repository:    # Required
         root: ve.output
         path: pkg-repository
         description: src/binary repo built from ve.depends plus VE packages
-    ve.runtime:
+    ve.runtime:       # Required
         root: ve.output
         path: runtime
         description: local runtime environment + base for installers
-    ve.pkgs:
+    ve.pkgs:          # Required
         root: ve.output
         path: ve-pkg
-        description: copy src tree here from ve.repository for installer
-    ve.lib:
+        description: copy src tree here from ve.dependencies + ve.repository for installer
+    ve.lib:           # Required
         root: ve.output
         path: ve-lib
         description: install bin tree here from ve.repository
-    ve.test:
+    ve.test:          # Required, if tests are to be run
         root: ve.output
         path: tests
         description: run tests here if requested during build
-Module:
-    visioneval:
-        root: ve.root
-        path: sources/framework
-        CRAN: 
-            - jsonlite
-            - stringr
-            - filesstrings
-            - knitr
-        BioC:
-            - rhdf5
-    VE2001NHTS:
-        root: ve.root
-        path: sources/modules
-        CRAN: 
-           - usethis
-    VESyntheticFirms:
-        root: ve.root
-        path: sources/modules
-        CRAN: 
-            - reshape
-    VESimHouseholds:
-        root: ve.root
-        path: sources/modules
-        CRAN: 
-            - car
-            - pbkrtest
-            - quantreg
-    VELandUse:
-        root: ve.root
-        path: sources/modules
-        CRAN: 
-            - geosphere
-            - fields
-    VETransportSupply:
-        root: ve.root
-        path: sources/modules
-    VETransportSupplyUse:
-        root: ve.root
-        path: sources/modules
-    VEHouseholdTravel:
-        root: ve.root
-        path: sources/modules
-        CRAN: 
-            - pscl
-    VEHouseholdVehicles:
-        root: ve.root
-        path: sources/modules
-        CRAN: 
-            - ordinal
-            - reshape2
-    VEPowertrainsAndFuels:
-        root: ve.root
-        path: sources/modules
-    VETravelPerformance:
-        root: ve.root
-        path: sources/modules
-    VEReports:
-        root: ve.root
-        path: sources/modules
-Source:
-    models:
-        root: ve.root
-        path: sources
-        CRAN:
-            - data.table
-    VEGUI:
-        root: ve.root
-        path: sources
-        CRAN:
-            - data.table
-            - DT
-            - envDocument
-            - future.callr
-            - jsonlite
-            - namedCapture
-            - rhandsontable
-            - shiny
-            - shinyBS
-            - shinyFiles
-            - shinyjs
-            - shinytest
-            - testit
-            - testthat
-        BioC:
-            - rhdf5
-        External:
-            - namedCapture:
-                root: ve.install
-                path: external
-    VEScenarioViewer:
-        root: ve.root
-        path: sources
-Tests:
-    .travis.yml:
-        root: ve.root
-        path: "."
+    ve.external:      # Required if there are any Github packages
+        root: ve.install
+        path: external

@@ -58,4 +58,3 @@ if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES"
   }
   if ( length(missing.deps)>0 || length(missing.pkgs)>0 ) write_PACKAGES(src.contrib, type="source")
 }
- 

@@ -7,6 +7,7 @@ RSCRIPT:="$(shell ./find-R.bat $(VE_R_VERSION))"
 export RSCRIPT
 
 include ve-output.make
+
 # Rebuilt (see below) if it is out of date; make then auto-restarts
 # Defines VE_OUTPUT, VE_CACHE, VE_INSTALLER, VE_PLATFORM based on VE_CONFIG
 
@@ -23,7 +24,7 @@ clean: ve-output.make build-clean
 
 runtime-clean: ve-output.make
 	rm -rf $(VE_OUTPUT)/runtime/*
-	rm runtime.built
+	rm -f runtime.built
 
 build-clean:
 	rm -f all-dependencies.RData dependencies.RData
@@ -31,8 +32,21 @@ build-clean:
 	rm -f *.built
 	rm -f *.out
 
+installers-clean:
+	rm -f $(VE_OUTPUT)/*.zip
+	rm -f installers.built
+
 cache-clean: clean
+	# if this stops working, not that the command lines must
+	# start with TAB, while the conditional lines must start with
+	# SPACES.  Make is the only known programming language that
+	# treats tabs and spaces differently (though some will
+	# require spaces or require tabs)
+        ifdef VE_CACHE
 	rm -rf $(VE_CACHE)
+        else
+	echo Cache is undefined in VE configuration
+        endif
 
 test-clean: ve-output.make
 	rm -rf $(VE_TEST)/*
@@ -40,7 +54,8 @@ test-clean: ve-output.make
 configure: dependencies.RData ve-output.make
 
 # Note: state-dependencies.R identifies VE_CONFIG via the exported variable
-ve-output.make dependencies.RData: scripts/state-dependencies.R $(VE_CONFIG)
+ve-output.make dependencies.RData: scripts/state-dependencies.R $(VE_CONFIG) R-versions.yml
+
 	$(RSCRIPT) scripts/state-dependencies.R
 
 repository: repository.built

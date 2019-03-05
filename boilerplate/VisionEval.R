@@ -6,7 +6,11 @@
 require(utils)
 
 # Put the current directory into ve.root
-ve.root <- getwd()
+if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
+  ve.root <- getwd()
+} else {
+  ve.root <- normalizePath(ve.root)
+}
 
 # Put the library directory into ve.lib
 # Note that ve.lib is already present and fully provisioned if we've unzipped the offline installer
@@ -17,40 +21,11 @@ ve.lib <- file.path(ve.root,ve.lib.name)
 
 if ( ! dir.exists(ve.lib) ) {
   # Look in the build environment for ve-lib
-  ve.lib.local <- normalizePath(file.path(ve.root,"..",ve.lib.name),winslash="/",mustWork=FALSE)
+  ve.lib.local <- normalizePath(file.path(ve.root,"..","..",ve.lib.name),winslash="/",mustWork=FALSE)
   if ( dir.exists(ve.lib.local) ) {
     ve.lib <- ve.lib.local # Use the build environment installed library
   } else {
-
-    # Check for source environment
-	ve.pkg.name <- "ve-pkg"
-    ve.local  <- normalizePath(file.path(ve.root,"..",ve.pkg.name),winslash="/",mustWork=FALSE)
-	ve.contrib.url <- contrib.url(ve.local,type="source")
-    if ( ! dir.exists(ve.contrib.url) ) {
-      message("Need accessible ve-lib or ve-pkg in the file system,")
-      message("VisionEval packages are not available")
-	  stop("Installation failed - check error and warning messages.")
-    }
-
-	# Check availability of source packages
-	ve.contrib.url <- paste("file:",ve.contrib.url,sep="")
-    VE.pkgs <- available.packages(contriburl=ve.contrib.url,type)[,"Package"]
-    # Installation list is everything in the repository
-    # Consequently: test and abort if visioneval isn't in it
-    if ( ! "visioneval" %in% VE.pkgs[,Package] ) {
-      message(paste("VisionEval not present in",ve.repos))
-      message("VisionEval packages are not available")
-	  stop("Installation failed - check error and warning messages.")
-    }
-
-	# Install to local environment
-    dir.create(ve.lib,recursive=TRUE,showWarnings=FALSE)
-    install.packages(
-      VE.pkgs,
-      lib=ve.lib,
-      repos=ve.repos,
-      quiet=TRUE
-    )
+		warning("Unable to locate library for binary installation.")
   }
 }
 
@@ -63,8 +38,8 @@ if ( ! dir.exists(ve.lib) ) {
     setwd(ve.root)
     cat("Welcome to VisionEval!\n")
   } else {
-	  cat("VisionEval is not present: please re-run the installation")
-	}
+    cat("VisionEval is not present: please re-run the installation")
+  }
   install.success
 }
 

@@ -36,6 +36,8 @@ IF NOT DEFINED RSCRIPT (
 	echo SET R_HOME="!R_HOME!" >>r-paths.bat
 	echo SET RSCRIPT=!RSCRIPT! >>r-paths.bat
 	echo SET RGUI=!RGUI! >>r-paths.bat
+	for /f "usebackq tokens=*" %%v in (`cd`) do set VE_ROOT=%%v
+	echo SET VE_ROOT=!VE_ROOT! >>r-paths.bat
 ) ELSE echo Loaded installed values
 
 rem echo Found RSCRIPT %RSCRIPT%

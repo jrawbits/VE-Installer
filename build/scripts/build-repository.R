@@ -23,7 +23,7 @@ require(tools)
 # bioc <- BiocManager::repositories()
 bioc <- BioC.mirror
 
-if ( ! exists("pkgs.CRAN") || ! exists("pkgs.BioC") ) {
+if ( ! exists("pkgs.CRAN") || ! exists("pkgs.BioC") || ! exists("pkgs.db") ) {
   stop("Please run state-dependencies.R to build dependency lists")
 }
 
@@ -90,14 +90,18 @@ findMissingPackages <- function( required.packages ) {
 }
 
 cat("\nComputing dependencies.\n")
-pkgs.CRAN.all <- pkgs.CRAN <- miniCRAN::pkgDep(pkgs.CRAN, repos=CRAN.mirror, suggests=FALSE)
-pkgs.CRAN <-  setdiff(pkgs.CRAN, pkgs.BaseR) # don't keep base packages
+pkgs.CRAN.all <- pkgs.CRAN.lst <- miniCRAN::pkgDep(pkgs.db$Package[pkgs.CRAN], repos=CRAN.mirror, suggests=FALSE)
+pkgs.CRAN.lst <-  setdiff(pkgs.CRAN.lst, pkgs.BaseR) # don't keep base packages
+cat("pkgs.CRAN.all\n")
+print(sort(pkgs.CRAN.all))
 
-pkgs.BioC.all <- pkgs.BioC <- miniCRAN::pkgDep(pkgs.BioC, repos=bioc, suggests=FALSE)
-pkgs.BioC <- setdiff( pkgs.BioC, pkgs.CRAN ) # Possible risk here: don't double-install packages
+pkgs.BioC.all <- pkgs.BioC.lst <- miniCRAN::pkgDep(pkgs.db$Package[pkgs.BioC], repos=bioc, suggests=FALSE)
+pkgs.BioC.lst <- setdiff( pkgs.BioC.lst, pkgs.CRAN.lst ) # Possible risk here: don't double-install packages
+cat("pkgs.BioC.all\n")
+print(sort(pkgs.BioC.all))
 
 cat("Dependencies:\n")
-stated.dependencies <- as.character(c(pkgs.CRAN, pkgs.BioC))
+stated.dependencies <- as.character(c(pkgs.CRAN.lst, pkgs.BioC.lst))
 all.dependencies <- setdiff(as.character(c(pkgs.CRAN.all, pkgs.BioC.all)),pkgs.BaseR)
 save(stated.dependencies, all.dependencies, file="all-dependencies.RData")
 
@@ -105,7 +109,7 @@ cat("Repository location:",ve.dependencies,"\n")
 # Attempt a minimal build of the repository (adding just new packages if we already have the whole thing)
 # We won't attempt to delete - cleanup just by rebuilding when cruft gets to be too much.
 if ( havePackages() ) {
-  pkgs.missing.CRAN <- findMissingPackages(pkgs.CRAN)
+  pkgs.missing.CRAN <- findMissingPackages(pkgs.CRAN.lst)
   if ( any(sapply(pkgs.missing.CRAN, length)) > 0 ) {
     cat("Updating VE repository to add from CRAN:\n")
     print(union(pkgs.missing.CRAN$src, pkgs.missing.CRAN$bin))
@@ -116,7 +120,7 @@ if ( havePackages() ) {
       miniCRAN::addPackage(pkgs.missing.CRAN$bin, path=ve.dependencies, repos=CRAN.mirror, type=c("win.binary"), deps=FALSE)
     }
   }
-  pkgs.missing.BioC <- findMissingPackages(pkgs.BioC)
+  pkgs.missing.BioC <- findMissingPackages(pkgs.BioC.lst)
   if ( any(sapply(pkgs.missing.BioC, length)) > 0 ) {
     cat("Updating VE repository to add from BioConductor:\n")
     print(union(pkgs.missing.BioC$src, pkgs.missing.BioC$bin))
@@ -130,16 +134,16 @@ if ( havePackages() ) {
   cat("Existing VE repository is up to date.\n")
 } else {
   cat("Building VE repository from scratch from CRAN packages\n")
-  miniCRAN::makeRepo(pkgs.CRAN, path=ve.dependencies, repos=CRAN.mirror, type=c("source", "win.binary"))
+  miniCRAN::makeRepo(pkgs.CRAN.lst, path=ve.dependencies, repos=CRAN.mirror, type=c("source", "win.binary"))
 
   cat("Adding BioConductor packages to new VE repository\n")
   # BioConductor depends on some CRAN packages - no need to download those twice, so deps=FALSE
-  miniCRAN::addPackage(pkgs.BioC, path=ve.dependencies, repos=bioc, type=c("source", "win.binary"), deps=FALSE)
+  miniCRAN::addPackage(pkgs.BioC.lst, path=ve.dependencies, repos=bioc, type=c("source", "win.binary"), deps=FALSE)
 }
 
 # Verify the VE Repository with the following independent cross-check of dependencies
 
-# pkgs.VE <- c(pkgs.CRAN, pkgs.BioC)
+# pkgs.VE <- c(pkgs.CRAN.lst, pkgs.BioC.lst)
 # ap <- available.packages(repos=ve.deps.url)
 # getDependencies <- function(x) {
 #   # Used in apply below to avoid a painfully long one-liner

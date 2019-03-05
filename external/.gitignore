@@ -4,3 +4,4 @@
 namedCapture/
 webdriver/
 shinytest/
+phantomjs-*

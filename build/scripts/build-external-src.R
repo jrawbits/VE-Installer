@@ -22,11 +22,22 @@ require(tools) # for write_PACKAGES below
 
 load("all-dependencies.RData") # relay list of dependencies
 
+print(pkgs.db[pkgs.Github,])
+# Need to change this so we clone the repository into "ve.external"
+# Update Locations to require/identify ve.external (defaults to
+# "external" in the output folder).
+# Use git2r package, "clone" function, but only if cloned folder
+# does not exist.
+# Once we've retrieved the package (and have its path) we can just do
+# the build as usual
+
+quit()
+
 if ( nrow(pkgs.external) > 0 ) {
   cat("Building external packages (source)\n")
 
   if ( ! suppressWarnings(require(devtools)) ) {
-      install.packages("devtools", repos=CRAN.mirror)
+    install.packages("devtools", repos=CRAN.mirror)
   }
 
   # Where to put the built results (these should exist after build-repository.R)

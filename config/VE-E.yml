@@ -1,0 +1,133 @@
+Title: VisionEval
+Date: 2019-03-04
+Roots:
+    ve.root: e:/VisionEval/visioneval
+    ve.cache: e:/VisionEval/VE-Cache
+    ve.output: e:/VisionEval/VE-1.02
+    # ve.output is required
+    # ve.cache is optional (alternatively, use ve.output for ve.dependencies below)
+    # ve.alt.root (or more such) is optional and only used internally
+Locations:
+    # ve.install is implicitly available - relative to the running installer
+    # The others are required
+    ve.dependencies:
+        root: ve.cache
+        path: pkg-dependencies
+        description: repo for downloaded and built external dependencies
+    ve.repository:
+        root: ve.output
+        path: pkg-repository
+        description: src/binary repo built from ve.depends plus VE packages
+    ve.runtime:
+        root: ve.output
+        path: runtime
+        description: local runtime environment + base for installers
+    ve.pkgs:
+        root: ve.output
+        path: ve-pkg
+        description: copy src tree here from ve.repository for installer
+    ve.lib:
+        root: ve.output
+        path: ve-lib
+        description: install bin tree here from ve.repository
+    ve.test:
+        root: ve.output
+        path: tests
+        description: run tests here if requested during build
+Module:
+    visioneval:
+        root: ve.root
+        path: sources/framework
+        CRAN: 
+            - jsonlite
+            - stringr
+            - filesstrings
+            - knitr
+        BioC:
+            - rhdf5
+    VE2001NHTS:
+        root: ve.root
+        path: sources/modules
+        CRAN: 
+           - usethis
+    VESyntheticFirms:
+        root: ve.root
+        path: sources/modules
+        CRAN: 
+            - reshape
+    VESimHouseholds:
+        root: ve.root
+        path: sources/modules
+        CRAN: 
+            - car
+            - pbkrtest
+            - quantreg
+    VELandUse:
+        root: ve.root
+        path: sources/modules
+        CRAN: 
+            - geosphere
+            - fields
+    VETransportSupply:
+        root: ve.root
+        path: sources/modules
+    VETransportSupplyUse:
+        root: ve.root
+        path: sources/modules
+    VEHouseholdTravel:
+        root: ve.root
+        path: sources/modules
+        CRAN: 
+            - pscl
+    VEHouseholdVehicles:
+        root: ve.root
+        path: sources/modules
+        CRAN: 
+            - ordinal
+            - reshape2
+    VEPowertrainsAndFuels:
+        root: ve.root
+        path: sources/modules
+    VETravelPerformance:
+        root: ve.root
+        path: sources/modules
+    VEReports:
+        root: ve.root
+        path: sources/modules
+Source:
+    models:
+        root: ve.root
+        path: sources
+        CRAN:
+            - data.table
+    VEGUI:
+        root: ve.root
+        path: sources
+        CRAN:
+            - data.table
+            - DT
+            - envDocument
+            - future.callr
+            - jsonlite
+            - namedCapture
+            - rhandsontable
+            - shiny
+            - shinyBS
+            - shinyFiles
+            - shinyjs
+            - shinytest
+            - testit
+            - testthat
+        BioC:
+            - rhdf5
+        External:
+            - namedCapture:
+                root: ve.install
+                path: external
+    VEScenarioViewer:
+        root: ve.root
+        path: sources
+Tests:
+    .travis.yml:
+        root: ve.root
+        path: "."

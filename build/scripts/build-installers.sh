@@ -20,7 +20,7 @@
 #   VE_PKGS (source repository)
 #   VE_LIB
 
-VE_BASE="${VE_OUTPUT}/VE-Runtime.zip"
+VE_BASE="${VE_OUTPUT}/VE-Runtime-R${VE_R_VERSION}.zip"
 VE_SOURCE="${VE_OUTPUT}/VE-installer-Source-R${VE_R_VERSION}.zip"
 VE_BINARY="${VE_OUTPUT}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}.zip"
 RUNTIME_PATH="${VE_RUNTIME}"
@@ -28,7 +28,7 @@ RUNTIME_PATH="${VE_RUNTIME}"
 [ -f "${VE_ONLINE}" ] && rm "${VE_ONLINE}"
 [ -f "${VE_BINARY}" ] && rm "${VE_BINARY}"
 
-cd "${RUNTIME_PATH}"
+cd "${RUNTIME_PATH}/${VE_R_VERSION}"
 
 echo "Building online installer: ${VE_BASE}"
 pwd
@@ -49,7 +49,7 @@ then
     echo "Building Source installer: ${VE_SOURCE}"
     cd ${VE_PKGS}/..
     pwd
-    zip --recurse-paths "--output-file=${VE_SOURCE}" "${VE_BASE}" "$(basename ${VE_PKGS})"
+    zip --recurse-paths "--output-file=${VE_SOURCE}" "${VE_BASE}" "$(basename ${VE_PKGS})/${VE_R_VERSION}"
 fi
 
 echo "Done building installers."
