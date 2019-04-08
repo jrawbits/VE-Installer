@@ -1,9 +1,12 @@
 3.4.4:
     BioC:      https://www.bioconductor.org/packages/3.6/bioc
-    CRAN:      https://cran.r-project.org
+    CRAN:      https://cloud.r-project.org
 3.5.1:
     BioC:      https://www.bioconductor.org/packages/3.8/bioc
     CRAN:      https://cran.microsoft.com/snapshot/2018-12-20
 3.5.2:
     BioC:      https://www.bioconductor.org/packages/3.8/bioc
-    CRAN:      https://cran.microsoft.com/snapshot/2019-02-27
+    CRAN:      https://cran.microsoft.com/snapshot/2019-03-11
+3.5.3:
+    BioC:      https://www.bioconductor.org/packages/3.8/bioc
+    CRAN:      https://cloud.r-project.org

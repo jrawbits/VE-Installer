@@ -2,27 +2,23 @@
 
 # Author: Jeremy Raw
 
-# Build the external packages (e.g. namedCapture).
-# Use dependencies/VE-dependencies.csv to specify "install".  You must manually
-# check out the required packages (or otherwise retrieve them, e.g. from a .zip
-# snapshot)
+# Build any Github packages (e.g. namedCapture).
 
-# Intent here is to pick up packages installed from github.  Those should be
-# cloned as submodules, ideally in the VisionEval tree, not here in the
-# installer.  If they are in VisionEval, we can just treat them as any other
-# package though might want to skip tests.  Currenly only have one of those
-# (namedCapture).
-
-load("dependencies.RData")
+this.R <- paste(R.version[c("major","minor")],collapse=".")
+load(paste("dependencies",this.R,"RData",sep="."))
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
 
+if ( ! suppressWarnings(require(git2r)) ) {
+  install.packages("git2r", repos=CRAN.mirror, dependencies=NA)
+}
 require(tools) # for write_PACKAGES below
 
-load("all-dependencies.RData") # relay list of dependencies
+load(paste("all-dependencies",this.R,"RData",sep=".")) # relay list of dependencies
 
-print(pkgs.db[pkgs.Github,])
+pkgs.external <- pkgs.db[pkgs.Github,]
+
 # Need to change this so we clone the repository into "ve.external"
 # Update Locations to require/identify ve.external (defaults to
 # "external" in the output folder).
@@ -31,8 +27,6 @@ print(pkgs.db[pkgs.Github,])
 # Once we've retrieved the package (and have its path) we can just do
 # the build as usual
 
-quit()
-
 if ( nrow(pkgs.external) > 0 ) {
   cat("Building external packages (source)\n")
 
@@ -40,25 +34,38 @@ if ( nrow(pkgs.external) > 0 ) {
     install.packages("devtools", repos=CRAN.mirror)
   }
 
-  # Where to put the built results (these should exist after build-repository.R)
-  built.path.src <- contrib.url(ve.dependencies, type="source")
-
-  # External packages to build (possibly submodules)
-  pkgs <- file.path(ve.install, pkgs.external[,"Path"], pkgs.external[,"Package"])
-
+  # Update the dependencies report
   pkg.dependencies <- as.character(pkgs.external[,"Package"])
   all.dependencies <- c( all.dependencies, pkg.dependencies)
   stated.dependencies <- c( stated.dependencies, pkg.dependencies )
-  save(stated.dependencies, all.dependencies, file="all-dependencies.RData")
+  save(stated.dependencies, all.dependencies, file=paste("all-dependencies",this.R,"RData",sep="."))
+
+  # make sure the external locatione exists
+  if ( ! exists("ve.external") ) ve.external <- file.path(ve.output,"external")
+
+  # External packages to build
+  pkgs <- file.path(ve.external, pkgs.external[,"Package"])
+	paths <- paste("https://github.com/",pkgs.external[,"Path"],sep="")
 
   cat("External Packages:\n")
-  print(pkgs)
+  print(paste(paths,pkgs,sep=' AS '))
+
+  # check that there's a folder for each Github dependency
+  for ( i in seq_along(pkgs) ) {
+		if ( ! dir.exists(pkgs[i]) ) {
+			cat("Cloning missing Github dependency:",paths[i],"into",pkgs[i],"\n")
+			repo <- git2r::clone(paths[i],pkgs[i],progress=FALSE)
+		}
+  }
+
+  # Where to put the built results (these should exist after build-repository.R)
+  built.path.src <- contrib.url(ve.dependencies, type="source")
 
   # Build missing source packages
   num.built <- 0
   for ( pkg in pkgs ) {
     if ( ! moduleExists(pkg, built.path.src) ) {
-      devtools::build(pkg, path=built.path.src)
+      devtools::build(pkg, path=built.path.src,vignettes=FALSE,manual=FALSE)
             num.built <- num.built+1
     }
   }
@@ -75,4 +82,4 @@ if ( nrow(pkgs.external) > 0 ) {
 # The following for book-keeping
 # May use it in the docker build to allow a "dependencies-only" image
 write(paste(all.dependencies, collapse=" "),
-      file=file.path(ve.dependencies, "dependencies.lst"))
+      file=file.path(ve.dependencies, paste("dependencies",this.R,"lst",sep=".")))

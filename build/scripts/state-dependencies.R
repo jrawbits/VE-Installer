@@ -14,7 +14,7 @@ if ( ! suppressWarnings(require(yaml)) ) {
 # The following includes a hack to fix a common path problem if you are
 # developing on Windows in a subfolder of "My Documents"
 ve.install <- sub("My Documents", "Documents",
-      normalizePath(file.path(getwd(), "..")))
+                  normalizePath(file.path(getwd(), "..")))
 ve.install <- gsub("\\\\", "/", ve.install)
 
 # Specify dependency repositories
@@ -56,30 +56,40 @@ invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
 # R versions are sometimes hidden and we may want to use the same
 # VE-config.yml with different versions of R (e.g. 3.5.1 and 3.5.2)
 
-ve.lib.root <- ve.lib
-ve.pkgs.root <- ve.pkgs
-ve.runtime.root <- ve.runtime
+# ve.lib.root <- ve.lib
+# ve.pkgs.root <- ve.pkgs
+# ve.runtime.root <- ve.runtime
 ve.dependencies <- file.path(ve.dependencies,this.R)
 ve.lib <- file.path(ve.lib,this.R) # ve-lib has sub-folders for R versions
 ve.runtime <- file.path(ve.runtime,this.R)
 ve.pkgs <- file.path(ve.pkgs,this.R)
 ve.repository <- file.path(ve.repository,this.R)
+ve.test <- file.path(ve.test,this.R)
 for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE )
 
+# Determine whether build should include tests
+ve.runtests <- ! is.null(ve.cfg[["RunTests"]]) && all(ve.cfg[["RunTests"]])
+
 # Convey key file locations to the 'make' environment
-make.target <- file("ve-output.make")
+make.target <- file(paste("ve-output",this.R,"make",sep="."))
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
 make.variables <- c(
    VE_R_VERSION = this.R
   ,VE_PLATFORM  = ve.platform
   ,VE_INSTALLER = ve.install
   ,VE_OUTPUT    = ve.output
-  ,VE_LIB       = ve.lib.root
-  ,VE_PKGS      = ve.pkgs.root
-  ,VE_RUNTIME   = ve.runtime.root
+  ,VE_LIB       = ve.lib
+  ,VE_REPOS     = ve.repository
+  ,VE_PKGS      = ve.pkgs
+  ,VE_RUNTIME   = ve.runtime
   ,VE_TEST      = ve.test
+	,VE_RUNTESTS  = ve.runtests
 )
-if ( exists("ve.cache") ) make.variables <- c( make.variables,VE_CACHE = ve.cache )
+if ( exists("ve.cache") ) {
+  # ve.cache.root <- ve.cache
+  ve.cache <- file.path(ve.cache,this.R)
+  make.variables <- c( make.variables,VE_CACHE = ve.cache )
+}
 
 writeLines( paste( names(make.variables), make.variables, sep="="),make.target)
 close(make.target)
@@ -219,7 +229,7 @@ for ( pkg in names(build.comps) ) {
   }
 }
 # print(pkgs.db)
-pkgs.db <- unique(pkgs.db[-1,])                   # Remove dummy row
+pkgs.db <- unique(pkgs.db[-1,])           # Remove dummy row
 row.names(pkgs.db) <- NULL                # Remove artificial row.names
 for ( d in names(pkgs.db))                # Convert factors to strings
   if ( is.factor(pkgs.db[,d]) )
@@ -227,7 +237,7 @@ for ( d in names(pkgs.db))                # Convert factors to strings
 pkgs.db <- pkgs.db[order(pkgs.db$Type,pkgs.db$Group,pkgs.db$Package),] # Sort by Group (for modules)
 
 # New strategy:
-# We'll save pkgs.db into dependencies.RData
+# We'll save pkgs.db into dependencies.N.N.N.RData
 # Also save row indices of the different types
 
 pkgs.CRAN   <- which(pkgs.db$Type=="CRAN")
@@ -271,7 +281,7 @@ checkVEEnvironment <- function() {
 }
 
 .First <- function() {
-  # If you try to load dependencies.RData interactively in an incomplete
+  # If you try to load dependencies.N.N.N.RData interactively in an incomplete
   # environment, you will be busted (e.g. by checking it accidentally into
   # your repository and then checking out somewhere else without setting up
   # the environment, or if you damage the environment by changing the name
@@ -327,12 +337,13 @@ moduleExists <- function( module, path ) {
 # added without having to edit more than one line.
 
 save(
-  file="dependencies.RData",
+  file=paste("dependencies",this.R,"RData",sep="."),
   list=c(locs.lst)
   , .First
   , checkVEEnvironment
   , ve.install
   , ve.output
+	, ve.runtests
   , CRAN.mirror
   , BioC.mirror
   , modulePath

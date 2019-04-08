@@ -5,6 +5,14 @@
 
 require(utils)
 
+# Check the R version (redundant on Windows, but saves having to
+# have a separate VisionEval.R for Linux/Mac
+this.R <- paste(R.version[c("major","minor")],collapse=".")
+that.R <- scan("r.version",what=character())
+if ( this.R != that.R ) {
+  stop("Incorrect R version for this VisionEval installation: expecting R",that.R)
+}
+
 # Put the current directory into ve.root
 if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
   ve.root <- getwd()
@@ -25,7 +33,7 @@ if ( ! dir.exists(ve.lib) ) {
   if ( dir.exists(ve.lib.local) ) {
     ve.lib <- ve.lib.local # Use the build environment installed library
   } else {
-		warning("Unable to locate library for binary installation.")
+    warning("Unable to locate library for binary installation.")
   }
 }
 

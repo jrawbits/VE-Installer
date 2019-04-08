@@ -1,14 +1,14 @@
 Title: VisionEval
-Date: 2019-04-08
+Date: 2019-03-26
 RunTests: TRUE # or FALSE or just leave it out to skip detailed tests during build
 Roots: # Require ve.root and ve.output at a minimum
-    ve.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev
-    ve.output: e:/VE-built/VE-1.02  # Required
-    ve.cache: e:/VE-built/VE-Cache  # Optional
+    ve.root: N:/Git-Repos/VisionEval-dev
+    ve.output: N:/Git-Repos/VE-1.02  # Required
+    ve.cache: N:/Git-Repos/VE-Cache  # Optional
     # However ve.cache is "special" in that, if defined, anything stored there will require
     #    extra effort to remove between builds
     # additional roots may be defined (with unique names); here is an illustrative alias:
-    ve.alt.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev # Optional
+    ve.alt.root: N:/Git-Repos/VisionEval-dev # Optional
     # ve.install is implicitly available - relative to the running installer
 Components:  # Entire section is optional
     # Default if this section is missing is to load all components from ve.root/build/VE-components.yml
@@ -22,7 +22,7 @@ Components:  # Entire section is optional
     ve.root:
         Config: "build/VE-components.yml" # relative to ve.root
         Exclude:
-            - VE-State
+          
     ve.alt.root:
       Config: "build/VE-components.yml" # relative to ve.alt.root 
       Include:
@@ -37,7 +37,7 @@ Locations: # "Root" elements are variables defined in "Roots" section
     ve.repository:    # Required
         root: ve.output
         path: pkg-repository
-        description: src/binary repo built from VE packages
+        description: src/binary repo built from ve.depends plus VE packages
     ve.runtime:       # Required
         root: ve.output
         path: runtime

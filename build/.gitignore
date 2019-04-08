@@ -1,6 +1,5 @@
 *.RData
-.Renviron
-.Rprofile
 *.out
 *.built
-ve-output.make
+dev-lib/
+ve-output.*.make

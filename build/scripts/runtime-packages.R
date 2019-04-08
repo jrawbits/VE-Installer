@@ -4,12 +4,13 @@
 
 # Merges dependencies and VE packages into a single source repository
 
-load("dependencies.RData")
+this.R <- paste(R.version[c("major","minor")],collapse=".")
+load(paste("dependencies",this.R,"RData",sep="."))
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
 
-load("all-dependencies.RData") # use all.dependencies
+load(paste("all-dependencies",this.R,"RData",sep=".")) # use all.dependencies
 if ( ! exists("all.dependencies") ) {
   stop("Run state-dependencies.R to set up build environment")
 }

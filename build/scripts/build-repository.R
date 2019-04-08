@@ -5,7 +5,8 @@
 # This script downloads required R packages from CRAN and BioConductor into the
 # local pkg-repository
 
-load("dependencies.RData")
+this.R <- paste(R.version[c("major","minor")],collapse=".")
+load(paste("dependencies",this.R,"RData",sep="."))
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
@@ -103,7 +104,7 @@ print(sort(pkgs.BioC.all))
 cat("Dependencies:\n")
 stated.dependencies <- as.character(c(pkgs.CRAN.lst, pkgs.BioC.lst))
 all.dependencies <- setdiff(as.character(c(pkgs.CRAN.all, pkgs.BioC.all)),pkgs.BaseR)
-save(stated.dependencies, all.dependencies, file="all-dependencies.RData")
+save(stated.dependencies, all.dependencies, file=paste("all-dependencies",this.R,"RData",sep="."))
 
 cat("Repository location:",ve.dependencies,"\n")
 # Attempt a minimal build of the repository (adding just new packages if we already have the whole thing)

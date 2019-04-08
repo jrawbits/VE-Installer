@@ -13,7 +13,8 @@
 # NOTE: it is a bad idea to put the VE dependencies in your development
 # environment since you will not easily be able to tell if you missed one
 
-load("dependencies.RData")
+this.R <- paste(R.version[c("major","minor")],collapse=".")
+load(paste("dependencies",this.R,"RData",sep="."))
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
@@ -27,10 +28,10 @@ options(install.packages.compile.from.source="never")
 
 # you will need miniCRAN and dependencies installed in your local R environment
 if ( ! suppressWarnings(require(miniCRAN)) ) {
-	install.packages("miniCRAN", repos=CRAN.mirror)
+  install.packages("miniCRAN", repos=CRAN.mirror)
 }
 
-sought.pkgs <- miniCRAN::pkgDep(c(pkgs.CRAN, pkgs.BioC),
+sought.pkgs <- miniCRAN::pkgDep(c(pkgs.db$Package[pkgs.CRAN], pkgs.db$Package[pkgs.BioC]),
                                 repos=ve.deps.url, suggests=FALSE)
 pkgs.BaseR <- as.vector(installed.packages(lib.loc=.Library,
                                            priority=c("base", "recommended"))[,"Package"])
@@ -40,21 +41,21 @@ sought.pkgs <- setdiff(sought.pkgs, pkgs.BaseR)
 new.pkgs <- sought.pkgs[ ! (sought.pkgs %in% installed.packages(lib.loc=ve.lib)[,"Package"]) ]
 
 build.type <- .Platform$pkgType
-if ( build.type != "win.binary" ) build.type <- "source"
+if ( build.type != "win.binary" ) build.type <- "source" # Skip mac build for now...
 
 if( length(new.pkgs) > 0 ) {
   cat("---Still missing these packages:\n")
   print(sort(new.pkgs))
-	print(ve.lib)
+  print(ve.lib)
   cat("---Installing missing packages---\n")
   install.packages(
       new.pkgs,
       lib=ve.lib,
       repos=ve.deps.url,
       dependencies=c("Depends", "Imports", "LinkingTo"),
-  type=build.type
+      type=build.type
   )
   cat("---Finished installing---\n")
 } else {
-  cat("All dependencies accounted for in ve-lib\n")
+  cat("All dependencies accounted for in ve-lib (",ve.lib,")\n",sep="")
 }

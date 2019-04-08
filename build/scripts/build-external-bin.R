@@ -10,7 +10,8 @@
 # are in VisionEval, we can just treat them as any other package though might want to
 # skip tests.
 
-load("dependencies.RData")
+this.R <- paste(R.version[c("major","minor")],collapse=".")
+load(paste("dependencies",this.R,"RData",sep="."))
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
@@ -21,13 +22,15 @@ if ( ! suppressWarnings(require(devtools)) ) {
   install.packages("devtools", repos=CRAN.mirror)
 }
 
-if ( nrow(pkgs.external)> 0 ) {
+pkgs.external <- pkgs.db$Package[pkgs.Github]
+
+if ( length(pkgs.external)> 0 ) {
   cat("Building external packages (binary)\n")
 
   .libPaths( c(ve.lib, .libPaths()) ) # push runtime library onto path stack for dependencies
 
   # External packages to build (possibly submodules)
-  pkgs <- file.path(ve.install, pkgs.external[,"Path"], pkgs.external[,"Package"])
+  pkgs <- file.path(ve.external, pkgs.external)
 
   build.type <- .Platform$pkgType
   if ( build.type == "win.binary" ) {
