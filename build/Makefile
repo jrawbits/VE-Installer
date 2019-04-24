@@ -1,9 +1,8 @@
 # You can override the following variables on the command line
-VE_R_VERSION?=3.5.1
+VE_R_VERSION?=3.5.3
 VE_CONFIG?=../config/VE-config.yml
 VE_RUNTESTS?=Default
 export VE_R_VERSION VE_CONFIG VE_RUNTESTS
-
 
 # The following currently only works on Windows
 # Need to flex between batch file and path definition for Linux
@@ -18,10 +17,11 @@ export RSCRIPT
 # Defines VE_OUTPUT, VE_CACHE, VE_LIB, VE_INSTALLER, VE_PLATFORM, VE_TEST
 
 include ve-output.$(VE_R_VERSION).make
+VE_LOGS=logs/$(VE_R_VERSION)
 
 .PHONY: configure repository modules binary runtime installers all\
 	clean lib-clean runtime-clean build-clean cache-clean test-clean modules-clean\
-	dev-clean\
+	dev-clean really-clean\
 	docker-clean docker-output-clean docker
 
 all: configure repository binary modules runtime
@@ -32,22 +32,22 @@ clean: ve-output.$(VE_R_VERSION).make build-clean
 	rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
 
 lib-clean: ve-output.$(VE_R_VERSION).make
-	rm -f modules.$(VE_R_VERSION).built
+	rm -f $(VE_LOGS)/modules.built
 	rm -rf $(VE_PKGS)/*
 	rm -rf $(VE_LIB)/visioneval $(VE_LIB)/VE*
 
 runtime-clean: ve-output.$(VE_R_VERSION).make
 	rm -rf $(VE_RUNTIME)/*
-	rm -f runtime.$(VE_R_VERSION).built
+	rm -f $(VE_LOGS)/runtime.built
 
 build-clean:
 	rm -f all-dependencies.$(VE_R_VERSION).RData dependencies.$(VE_R_VERSION).RData
 	rm -f ve-output.$(VE_R_VERSION).make
-	rm -f *.$(VE_R_VERSION).built
+	rm -rf $(VE_LOGS)/*
 	rm -f *.out
 
 modules-clean:
-	rm -f modules.$(VE_R_VERSION).built
+	rm -f $(VE_LOGS)/modules.built
 
 dev-clean:
 	rm -rf dev-lib/$(VE_R_VERSION)
@@ -55,7 +55,7 @@ dev-clean:
 installers-clean:
 # installers have the R version coded in their .zip name
 	rm -f $(VE_OUTPUT)/$(VE_R_VERSION)/*.zip
-	rm -f installers.$(VE_R_VERSION).built
+	rm -f $(VE_LOGS)/installers.built
 
 cache-clean: clean
 	rm -rf $(VE_CACHE)/*
@@ -63,45 +63,50 @@ cache-clean: clean
 test-clean: ve-output.$(VE_R_VERSION).make
 	rm -rf $(VE_TEST)/*
 
+really-clean: build-clean dev-clean
+	rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
+	rm -rf $(VE_CACHE)
+
 configure: dependencies.$(VE_R_VERSION).RData ve-output.$(VE_R_VERSION).make
 
 # Note: state-dependencies.R identifies VE_CONFIG via the exported variable
 ve-output.$(VE_R_VERSION).make dependencies.$(VE_R_VERSION).RData: scripts/state-dependencies.R $(VE_CONFIG) R-versions.yml
+	mkdir -p $(VE_LOGS)
 	mkdir -p dev-lib/$(VE_R_VERSION)
 	$(RSCRIPT) scripts/state-dependencies.R
 
-repository: repository.$(VE_R_VERSION).built
+repository: $(VE_LOGS)/repository.built
 
-repository.$(VE_R_VERSION).built: dependencies.$(VE_R_VERSION).RData scripts/build-repository.R scripts/build-external-src.R
+$(VE_LOGS)/repository.built: dependencies.$(VE_R_VERSION).RData scripts/build-repository.R scripts/build-external-src.R
 	$(RSCRIPT) scripts/build-repository.R
 	$(RSCRIPT) scripts/build-external-src.R
-	touch repository.$(VE_R_VERSION).built
+	touch $(VE_LOGS)/repository.built
 
-binary: binary.$(VE_R_VERSION).built
+binary: $(VE_LOGS)/binary.built
 
-binary.$(VE_R_VERSION).built: repository.$(VE_R_VERSION).built scripts/install-velib.R scripts/build-external-bin.R
+$(VE_LOGS)/binary.built: $(VE_LOGS)/repository.built scripts/install-velib.R scripts/build-external-bin.R
 	$(RSCRIPT) scripts/install-velib.R
 	$(RSCRIPT) scripts/build-external-bin.R
-	touch binary.$(VE_R_VERSION).built
+	touch $(VE_LOGS)/binary.built
 
-modules: modules.$(VE_R_VERSION).built
+modules: $(VE_LOGS)/modules.built
 
-modules.$(VE_R_VERSION).built: binary.$(VE_R_VERSION).built dependencies.$(VE_R_VERSION).RData scripts/build-modules.R
+$(VE_LOGS)/modules.built: $(VE_LOGS)/binary.built dependencies.$(VE_R_VERSION).RData scripts/build-modules.R
 	$(RSCRIPT) scripts/build-modules.R
-	touch modules.$(VE_R_VERSION).built
+	touch $(VE_LOGS)/modules.built
 
-runtime: runtime.$(VE_R_VERSION).built
+runtime: $(VE_LOGS)/runtime.built
 	
-runtime.$(VE_R_VERSION).built: modules.$(VE_R_VERSION).built dependencies.$(VE_R_VERSION).RData scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst modules.$(VE_R_VERSION).built
+$(VE_LOGS)/runtime.built: $(VE_LOGS)/modules.built dependencies.$(VE_R_VERSION).RData scripts/setup-sources.R $(VE_INSTALLER)/boilerplate/boilerplate.lst $(VE_LOGS)/modules.built
 	$(RSCRIPT) scripts/setup-sources.R
-	touch runtime.$(VE_R_VERSION).built
+	touch $(VE_LOGS)/runtime.built
 
-installers: installers.$(VE_R_VERSION).built
+installers: $(VE_LOGS)/installers.built
 
-installers.$(VE_R_VERSION).built: dependencies.$(VE_R_VERSION).RData runtime.$(VE_R_VERSION).built
+$(VE_LOGS)/installers.built: dependencies.$(VE_R_VERSION).RData $(VE_LOGS)/runtime.built
 	$(RSCRIPT) scripts/runtime-packages.R
 	bash scripts/build-installers.sh
-	touch installers.$(VE_R_VERSION).built
+	touch $(VE_LOGS)/installers.built
 
 # Experimental Docker installation
 # Docker work all happens here (not in a separate shell script)
@@ -121,7 +126,7 @@ docker-clean: docker-output-clean
 # TODO: Need a script to do the Docker stuff, using its own boilerplate and script setup list (like
 # "setup-sources.R" and "runtime-packages.R"
 
-docker: repository.$(VE_R_VERSION).built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore dependencies.$(VE_R_VERSION).RData \
+docker: $(VE_LOGS)/repository.built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore dependencies.$(VE_R_VERSION).RData \
 $(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst
 	mkdir -p $(VE_DOCKER_OUT)/home/visioneval/models
 	mkdir -p $(VE_DOCKER_OUT)/Data

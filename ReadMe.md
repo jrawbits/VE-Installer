@@ -1,14 +1,22 @@
 # Building and Installing VisionEval
 
-The `VisionEval-install` side project" makes a VisionEval source tree "installable".  To
-use it, just clone it, setup the configuration and dependency files, and run the build
-scripts in order (or as of builder-v0.1, cd to the "build" directory and just run "make").
+The `VE-Installer` side project" makes a VisionEval source tree "installable".  To
+use it, just clone it, setup the configuration file, install a development environment,
+and build suitable `make` targets.
 
-Full instructions are below, and documentation of the setup files is in the `dependencies`
-sub-directory along with examples for many recent VisionEval branches.
+As of Version 2 of VE-Installer, the dependency information is maintained in the 
+VisionEval source tree itself (and will eventually be used to execute consistent
+continuous integration tests).  See [VisionEval-dev][VE-dev] for information on 
+the dependencies.
+
+[VE-dev]: https://github.com/visioneval/VisionEval-dev "VisionEval Development"
+
+Full instructions for installing and using VE-Installer below presented below. The
+configuration file is described in its own ReadMe.md file in the "config" subdirectory.
 
 You can use this build process with any version of VisionEval (with appropriate changes to
-configuration files describing that version).
+configuration files describing that version), though you will need to construct a suitable
+"VE-components.yml" file.
 
 This installer addresses two VisionEval use cases:
 
@@ -17,37 +25,69 @@ end users would have.
 1. Enable end users to install a runnable VisionEval with little effort on any
 computer that supports R.
 
-The following outputs are available:
+To use the VE-Installer, just clone it, install a development environment, setup the
+configuration file, and run suitable `make` targets, including a runtime environment and
+an installer.  Full instructions and references materials are included below and in
+various referenced files.
+
+You can use this build process with any version of VisionEval, though for older versions,
+you will need to construct a suitable "VE-components.yml" file.  The process for setting
+up that file is described in detail in the most recent code branches of the
+[VisionEval-dev repository][VE-dev].
+
+[VE-dev]: https://github.com/visioneval/VisionEval-dev "VisionEval Development"
+[VEInstaller]: https://github.com/visioneval/VE-Installer "VisionEval Installer"
+
+Full instructions for installing and using VE-Installer below presented below.
+
+# What You Get
+
+The following back-end outputs are available:
 
 * Self-contained VisionEval "**local**" installation that will run on your development machine
-* Windows "**offline**" installer (or the equivalent for your development system architecture)
-* Multi-Platform "**online**" installer that will get everything it needs from the web
+* (optional) Windows "**offline**" installer (or the equivalent for your development system architecture)
+* (optional) Multi-Platform "**offline**" installer that will build VisionEval from source packages
 * [Under Construction] **Docker images** for any system running Docker
-* A **local R repository** with all the required VisionEval packages (including VisionEval itself)
+
+# Getting Started
+
+* Install [RTools][getRTools]
+* Install [Git for Windows][Git4W]
+* Clone [VE-Installer][VEInstaller] and checkout the "new-deps" branch
+* Clone [VisionEval-dev][VE-dev] and checkout the "new-deps-0403" branch or equivalent
+* Configure Git for Windows `bash` shell
+        * Add RTools to the Git for Windows PATH
+        * Set up `bash` so you can easily get to the VE-Installer/build folder
+* Edit the VE-Installer/config/VE-config.yml file so it points at your VisionEval-dev
+        * ve.output : full path in which to create the "R 3.x.x" output files
+        * ve.root : full path in which to look for VisionEval itself
+* Open Git for Windows Bash window
+        * Change to the VE-Installer root folder
+        * Run `make VE_R_VERSION=3.x.x` where you substitute your R version for the 3.x.x
+                * `make` by itself is equivalent to `make VE_R_VERSION=3.5.3`
+                * `make installers` VE_R_VERSION=3.x.x` will also build the .zip files
+        * If you do not specify VE_R_VERSION, `make` will default to the R version that
+          was current when VE-Installer was last updated.
+* Once complete, you can run VisionEval.bat in ve.output/3.x.x/runtime
+        * Or you can build the installers and use the resulting windows .zip to reinstall
+          VisionEval in an arbitrary location as if you had downloaded it.
+
+Additional make targets snd setup (e.g. committing VisionEval changes to Github) are
+discussed below.
 
 # Development Environment Pre-Requisites
 
-Prerequisites to build a VisionEval runtime environment or installer include the [current
-release version of R][currentR] for your development platform, and a suitable development
-environment.  As of builder-v0.1, R 3.5.1 is required.  The R version (minimum 3.4 in any
-case) will be configurable in later builder releases.
+Prerequisites to build a VisionEval runtime environment or installer include a suitable
+version of R (R >= 3.4.4), and a suitable development environment. We recommend the
+[current release version of R][currentR] for your development platform.  On Windows, you
+will need to install the [RTools][getRTools] suite, as well as [Git for Windows][Git4W] so
+you can use `bash` scripts. On Linux, installing the R development package and
+"development essentials" will typically do, though some of the R dependency packages may
+require you to install additional Linux OS packages.
 
 [currentR]: https://cran.r-project.org "Download and Install R"
 
-The scripting is summarized in a script (`build/Build.sh`) intended to run under GNU bash.
-As of builder-v0.1, there is `Makefile` as well.  Instructions for using these are found
-below.
-
-However, the substantive work is done in R scripts that can be run interactively in R or
-from a command line using Rscript.  Just `setwd()` to the "build" subfolder and source the
-scripts, or go to the build directory and run `Rscript <scriptname.R>` in Powershell or
-Windows CMD.
-
-You can also initiate an [RStudio][getRstudio] project at the root of the installer
-directories (where this ReadMe.md file lives) and run the scripts from within RStudio.
-The self-contained VisionEval installation that results from this builder (and is included
-in the installers) includes "VisionEval.Rproj" which a runtime user can double-click to
-interact with the end-user VisionEval environment using RStudio.
+The build process is driven by the GNU `make` program avaiable in RTools and in Linux.
 
 [getRstudio]: https://www.rstudio.com/products/rstudio/download/ "Download RStudio"
 
@@ -334,6 +374,10 @@ hour).
 
 Later, you can start VisionEval just by changing to the runtime directory and
 starting R (or setting up an R shortcut with the "Start In" folder set to your runtime).
+
+The self-contained VisionEval installation that results from this builder (and is included
+in the installers) includes "VisionEval.Rproj" which a runtime user can double-click to
+interact with the end-user VisionEval environment using RStudio.
 
 Alternatively, on Windows, you can run the Install-VisionEval.bat file, then double-click
 RunVisionEval.RData.  But those shortcuts won't work unless you were able to install R

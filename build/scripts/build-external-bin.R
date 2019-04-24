@@ -40,7 +40,7 @@ if ( length(pkgs.external)> 0 ) {
         FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source)),
         USE.NAMES=FALSE))
 
-  cat("Building external packages:\n")
+  cat("Processing external packages:\n")
   cat(paste(pkg.sources,collapse="\n"),"\n",sep="")
 
   # External packages to build (possibly submodules)
@@ -57,6 +57,7 @@ if ( length(pkgs.external)> 0 ) {
     built.package <- NULL
     if ( build.type == "win.binary" ) {
       if ( ! package.built ) {
+        cat("Building",pgks.external[pkg],"\n")
         built.package <- devtools::build(file.path(ve.external, pkgs.external[pkg]), path=built.path.binary, binary=TRUE)
       } else {
         built.package <- file.path(built.path.binary, modulePath(pkgs.external[pkg], built.path.binary))
@@ -64,9 +65,12 @@ if ( length(pkgs.external)> 0 ) {
       num.built <- num.built + 1
     }
     if ( ! package.installed ) {
+      cat("Installing")
       if ( build.type == "win.binary" ) {
+        cat(built.package,"\n")
         install.packages(built.package, repos=NULL, lib=ve.lib) # so they will be available for later modules
       } else {
+        cat(pkg.sources[pkg],"\n")
         install.packages(pkg.sources[pkg], repos=NULL, lib=ve.lib, type="source")
       }
     }

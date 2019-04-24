@@ -122,7 +122,7 @@ if ( "Components" %in% names(ve.cfg) ) {
 #   print(components.lst)
   for ( root in components.lst ) {
     if ( ! exists(root) ) {
-      stop(paste("Undefined",root,"in Roots: section of VE-Config.yml",sep=" "))
+      stop(paste("Undefined",root,"in Roots: section of",ve.config.file,sep=" "))
     }
 #     catn("Root:",root,"is",get(root))
 #     print(names(comps[[root]]))
@@ -142,11 +142,6 @@ if ( "Components" %in% names(ve.cfg) ) {
       excludes[[root]] <- character(0)
     }
   }
-#   catn("Defined Component Files:")
-#   print(component.file)
-# } else {
-#   catn("Using default component file:")
-#   print(component.file)
 }
 
 # Process component.file like this:
@@ -161,7 +156,6 @@ for ( root in names(component.file) ) {
 #   catn("Processing components for",root,"from",component.file[root])
   comps <- ve.cfg <- yaml::yaml.load_file(component.file[root])$Components
   if ( is.null(comps) ) stop("Failed to find components in",component.file[root])
-#   print(names(comps))
   for ( cn in names(comps) ) {
     comp <- comps[[cn]]
     if ( ( length(excludes[[root]])==0 || ! cn %in% excludes[[root]] ) &&
@@ -359,10 +353,6 @@ newerThan <- function( pkgpath, target, quiet=TRUE ) {
 
 # Commas precede the item so it can be moved, or deleted, or a new item
 # added without having to edit more than one line.
-
-# Add ve.cache to locs.lst if it exists
-# Simplifies conditional support for ve.cache defined as a "root"
-if ( exists("ve.cache") ) locs.lst <- c( locs.lst, "ve.cache" )
 
 save(
   file=paste("dependencies",this.R,"RData",sep="."),
