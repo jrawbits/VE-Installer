@@ -1,1 +1,1 @@
-R_LIBS_USER="c:/Users/jeremy.raw/Git-Repos/VE-Installer/build/dev-lib/X-%V"
+R_LIBS_USER="c:/Users/jeremy.raw/Git-Repos/VE-Installer/build/dev-lib/%V"

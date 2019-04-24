@@ -59,30 +59,20 @@ package.paths <- file.path(ve.packages[,"Root"], ve.packages[,"Path"], package.n
 # We do "build" for Windows so we can get the .zip package file into the binary pkg-repository
 # On platforms other than Windows, simply installing will do the necessary build
 
-# Perform tests, if requested in configuration
-if (ve.runtests) {
-  # Copy any additional test folders to ve.test
-  # Mostly for "Test_Data", but any set of stuff needed for all tests
-  ve.test.files <- pkgs.db[pkgs.test,]
-  if ( nrow(ve.test.files)>0 ) {
-    test.paths <- file.path(ve.test.files[,"Root"], ve.test.files[,"Path"], ve.test.files[,"Package"])
-    cat(paste(paste("Copying Test Item",test.paths,"to",ve.test,sep=" "),"\n"),sep="")
-    invisible(file.copy(test.paths, ve.test, recursive=TRUE))
-  }
-}
-
 # Locate modules to build in source repository (always build from source package)
 built.path.source <- contrib.url(ve.repository,type="source") # VE source packages
 source.modules <- unlist(sapply(package.names,
                   FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source)),
                   USE.NAMES=FALSE))
-# Note: source.modules will have empty entries for any package not yet
-# built.  Missing packages will be built and names recorded in the next paragraph
+# Note: source.modules will have empty entries for any package not yet built.
+# Missing packages will be built and names recorded in the next stanza
 
 # Build missing source packages
 num.src <- 0
 for ( module in seq_along(package.names) ) {
-  if ( ! moduleExists(package.names[module], built.path.source) ) {
+  need.update <- newerThan( package.paths[module], source.modules[module] )
+  if ( ! moduleExists(package.names[module], built.path.source) || need.update ) {
+    if ( need.update ) cat("Updating package",package.names[module],"\n")
     source.modules[module] <- devtools::build(package.paths[module], path=built.path.src)
     num.src <- num.src + 1
   }
@@ -98,6 +88,23 @@ print(unlist(sapply(package.names,
       FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source)),
       USE.NAMES=FALSE)))
 
+# Copy test elements from components, if requested in configuration
+if (ve.runtests) {
+  # Copy any additional test folders to ve.test
+  # Mostly for "Test_Data", but any set of stuff needed for all tests
+  ve.test.files <- pkgs.db[pkgs.test,]
+  if ( nrow(ve.test.files)>0 ) {
+    test.paths <- file.path(ve.test.files$Root, ve.test.files$Path, ve.test.files$Package)
+    need.copy <- newerThan(test.paths,file.path(ve.test,ve.test.files$Package))
+    if ( need.copy ) {
+      cat(paste(paste("Copying Test Item",test.paths,"to",ve.test,sep=" "),"\n"),sep="")
+      invisible(file.copy(test.paths, ve.test, recursive=TRUE))
+    } else {
+      cat("Test data is up to date\n")
+    }
+  }
+}
+
 # Build binary packages on systems with supported .Platform$pkgType
 # (whatever R supports, currently "win.binary" and "mac.binary.el-capitan")
 
@@ -107,14 +114,22 @@ print(unlist(sapply(package.names,
 num.bin <- 0
 pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
 for ( module in seq_along(package.names) ) {
-  cat("Copying module source",package.paths[module],"to build/test environment...\n")
-  invisible(file.copy(package.paths[module],ve.test,recursive=TRUE))
   build.dir <- file.path(ve.test,package.names[module])
-  if ( ! dir.exists(build.dir) ) {
-    stop("Failed to create build/test environment:",build.dir)
+  package.built <- moduleExists(package.names[module], built.path.binary) &&
+                   dir.exists(build.dir) &&
+                   ! newerThan( source.modules[module], file.path(built.path.binary,modulePath(package.names[module],built.path.binary)) )
+  package.installed <- package.built && package.names[module] %in% pkgs.installed
+
+  if ( ! package.built ) {
+    cat("Copying module source",package.paths[module],"to build/test environment...\n")
+    invisible(file.copy(package.paths[module],ve.test,recursive=TRUE))
+    build.dir <- file.path(ve.test,package.names[module])
+    if ( ! dir.exists(build.dir) ) {
+      stop("Failed to create build/test environment:",build.dir)
+    }
   }
 
-  if (ve.runtests) {
+  if ( ve.runtests && ! package.built ) {
     cat("Running module tests for",package.names[module],"\n",sep="")
     # Run the module tests (prior to building anything)
     cat("Checking",build.dir,"\n")
@@ -129,23 +144,30 @@ for ( module in seq_along(package.names) ) {
     callr::rscript(script=test.script,wd=build.dir,libpath=.libPaths(),fail_on_status=FALSE)
     cat("Completed test script.\n")
   }
+
   if ( build.type != "source" ) {
     # This could handle mac binaries, but we need to adjust other
     # scripts to make sure mac dependencies are available
-    if ( ! package.names[module] %in% pkgs.installed || ! moduleExists(package.names[module], built.path.binary) ) {
+    if ( ! package.built ) {
       cat("building",package.names[module],"from",build.dir,"as",build.type,"\n")
       cat("building into",built.path.binary,"\n")
-      built.package <- devtools::build(build.dir,path=built.path.binary,binary=TRUE) # TODO: handle build from source.modules[module]
+      built.package <- devtools::build(build.dir,path=built.path.binary,binary=TRUE)
       num.bin <- num.bin + 1
     } else {
-      cat("Existing binary package:",package.names[module],"\n")
+      cat("Existing binary package:",package.names[module],ifelse(package.installed,"(Already Installed)",""),"\n")
       built.package <- file.path(built.path.binary, modulePath(package.names[module], built.path.binary))
     }
-    cat("Installing built package:",built.package,"\n")
-    install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type) # so they will be available for later modules
+    if ( ! package.installed ) {
+      cat("Installing built package:",built.package,"\n")
+      install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type) # so they will be available for later modules
+    }
   } else { # build.type == "source"
-    cat("Installing source package:",package.names[module],"\n")
-    install.packages(package.names[module], repos=ve.repo.url, lib=ve.lib, type="source")
+    if ( ! package.installed ) {
+      cat("Installing source package:",package.names[module],"\n")
+      install.packages(package.names[module], repos=ve.repo.url, lib=ve.lib, type="source")
+    } else {
+      cat("All VisionEval packages are already built and installed.\n")
+    }
   }
 }
 if ( num.bin > 0 ) {
@@ -157,4 +179,4 @@ if ( num.bin > 0 ) {
 }
 
 building <- paste( "building",ifelse(ve.runtests,", testing","") )
-cat("Done",building,"and installing VisionEval packages.\n")
+cat("Done ",building," and installing VisionEval packages.\n",sep="")

@@ -1,6 +1,7 @@
 Title: VisionEval
 Date: 2019-04-08
-RunTests: TRUE # or FALSE or just leave it out to skip detailed tests during build
+RunTests: FALSE # if TRUE, default module build behavior will be to run the (very time-consuming) tests
+# Override RunTests during "make" by adding VE_RUNTESTS=True when building the 'configure' target
 Roots: # Require ve.root and ve.output at a minimum
     ve.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev
     ve.output: e:/VE-built/VE-1.02  # Required
@@ -55,5 +56,5 @@ Locations: # "Root" elements are variables defined in "Roots" section
         path: tests
         description: run tests here if requested during build
     ve.external:      # Required if there are any Github packages
-        root: ve.install
-        path: external
+        root: ve.output
+        path: external-packages

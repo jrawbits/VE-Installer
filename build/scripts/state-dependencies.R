@@ -33,21 +33,23 @@ if ( ! file.exists(ve.config.file) ) {
 }
 ve.cfg <- yaml::yaml.load_file(ve.config.file)
 
-# Extracting root paths:
+# Extracting root paths
 roots.lst <- names(ve.cfg$Roots)
 invisible(sapply(roots.lst,FUN=function(x,venv){assign(x,ve.cfg$Roots[[x]],pos=venv); x},venv=sys.frame()))
 
 # Extracting location paths:
 locs.lst <- names(ve.cfg$Locations)
 makepath <- function(x,venv) {
-  # Build a location path from root and path
+  # Build a location path from root and path and assign it
+  # Note that this function is used for its SIDE-EFFECTS, not
+  # its return value.
   #
   # Args:
   #   x - the name of a Location (and its veriable)
   #   venv - the environment in which to create the variable
   #
   loc <- ve.cfg$Locations[[x]]
-  assign(x,file.path(get(loc$root),loc$path),pos=venv)
+  assign(x,file.path(get(loc$root),this.R,loc$path),pos=venv)
 }
 invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
 
@@ -56,23 +58,25 @@ invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
 # R versions are sometimes hidden and we may want to use the same
 # VE-config.yml with different versions of R (e.g. 3.5.1 and 3.5.2)
 
-# ve.lib.root <- ve.lib
-# ve.pkgs.root <- ve.pkgs
-# ve.runtime.root <- ve.runtime
-ve.dependencies <- file.path(ve.dependencies,this.R)
-ve.lib <- file.path(ve.lib,this.R) # ve-lib has sub-folders for R versions
-ve.runtime <- file.path(ve.runtime,this.R)
-ve.pkgs <- file.path(ve.pkgs,this.R)
-ve.repository <- file.path(ve.repository,this.R)
-ve.test <- file.path(ve.test,this.R)
 for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE )
 
 # Determine whether build should include tests
-ve.runtests <- ! is.null(ve.cfg[["RunTests"]]) && all(ve.cfg[["RunTests"]])
+# Look at environment (possibly from Makefile) then at ve.cfg
+# Result is TRUE (run tests) or FALSE (skip tests)
+ve.runtests <- switch(
+  tolower(Sys.getenv("VE_RUNTESTS",unset="Default")),
+  false=FALSE,
+  true=TRUE,
+  ! is.null(ve.cfg[["RunTests"]]) && all(ve.cfg[["RunTests"]])
+  )
+cat("ve.runtests is",ve.runtests,"\n")
 
 # Convey key file locations to the 'make' environment
 make.target <- file(paste("ve-output",this.R,"make",sep="."))
+
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
+ve.platform <- paste(toupper(substring(ve.platform,1,1)),substring(ve.platform,2),sep="")
+
 make.variables <- c(
    VE_R_VERSION = this.R
   ,VE_PLATFORM  = ve.platform
@@ -84,12 +88,8 @@ make.variables <- c(
   ,VE_RUNTIME   = ve.runtime
   ,VE_TEST      = ve.test
 	,VE_RUNTESTS  = ve.runtests
+  ,VE_CACHE     = ve.dependencies
 )
-if ( exists("ve.cache") ) {
-  # ve.cache.root <- ve.cache
-  ve.cache <- file.path(ve.cache,this.R)
-  make.variables <- c( make.variables,VE_CACHE = ve.cache )
-}
 
 writeLines( paste( names(make.variables), make.variables, sep="="),make.target)
 close(make.target)
@@ -329,6 +329,28 @@ moduleExists <- function( module, path ) {
   found.test <- length(found)>0
 }
 
+# Helper function to compare package path (source) to a built target (modification date)
+newerThan <- function( pkgpath, target, quiet=TRUE ) {
+  # Compare modification time for a set of files to a target file
+  #
+  # Args:
+  #   pkgpath - a single folder containing a bunch of files that might be newer, or a vector of files
+  #   target - one (or a vector) of files that may be older, or may not exist
+  #   quiet - if TRUE, then print a message about what is being tested
+  #
+  # Value: TRUE if the most recently modified source file is newer
+  #        than the oldest target file
+  if (!quiet) cat("Comparing",pkgpath,"to",target,"\n")
+  if ( any(is.null(target)) || any(is.na(target)) || any(nchar(target))==0 || ! file.exists(target) ) return(TRUE)
+  if ( dir.exists(pkgpath) ) pkgpath <- file.path(pkgpath,dir(pkgpath,recursive=TRUE))
+  if (!quiet) cat("Source path:",pkgpath,"\n")
+  source.time <- max(file.mtime(pkgpath))
+  if (!quiet) cat("Target:",target[1],"\n")
+  target.time <- max(file.mtime(target))
+  if (!quiet) cat(source.time,"newer than",target.time,"?\n")
+  source.time > target.time
+}
+
 # Save out the basic setup that is used in later build scripts
 
 # Non-Standard Coding: Keep this list in an easy maintain format:
@@ -336,18 +358,23 @@ moduleExists <- function( module, path ) {
 # Commas precede the item so it can be moved, or deleted, or a new item
 # added without having to edit more than one line.
 
+# Add ve.cache to locs.lst if it exists
+# Simplifies conditional support for ve.cache defined as a "root"
+if ( exists("ve.cache") ) locs.lst <- c( locs.lst, "ve.cache" )
+
 save(
   file=paste("dependencies",this.R,"RData",sep="."),
   list=c(locs.lst)
   , .First
   , checkVEEnvironment
-  , ve.install
   , ve.output
+  , ve.install
 	, ve.runtests
   , CRAN.mirror
   , BioC.mirror
   , modulePath
   , moduleExists
+  , newerThan
   , ve.deps.url
   , ve.repo.url
   , pkgs.db

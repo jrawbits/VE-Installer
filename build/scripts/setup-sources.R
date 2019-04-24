@@ -36,14 +36,23 @@ if ( build.type == "win.binary" ) {
 
 bp.files <- file.path(ve.boilerplate, bp.file.list)
 if ( length(bp.files) > 0 ) {
-  # there may be nothing to recurse into...
-  success <- suppressWarnings(file.copy(bp.files, ve.runtime, recursive=TRUE))
-  if ( any( ! success ) ) {
-    cat("WARNING!\n")
-    print(paste("Failed to copy boilerplate: ", basename(bp.files[!success])))
-    cat("which may not be a problem (e.g. .Rprofile missing)\n")
-    cat(".Rprofile is principally intended to house default ve.remote for online installer.\n")
-    cat("If something else is missing, you should revisit boilerplate/boilerplate.(bash.)lst\n")
+  any.newer <- FALSE
+  for ( f in bp.files ) {
+    any.newer <- any( any.newer, newerThan(f,file.path(ve.runtime,dir(ve.runtime,recursive=TRUE))) )
+  }
+  success <- FALSE
+  if ( any.newer ) {
+    # there may be nothing to recurse into...
+    success <- suppressWarnings(file.copy(bp.files, ve.runtime, recursive=TRUE))
+    if ( ! success ) {
+      cat("WARNING!\n")
+      print(paste("Failed to copy boilerplate: ", basename(bp.files[!success])))
+      cat("which may not be a problem (e.g. .Rprofile missing)\n")
+      cat(".Rprofile is principally intended to house default ve.remote for online installer.\n")
+      cat("If something else is missing, you should revisit boilerplate/boilerplate.(bash.)lst\n")
+    }
+  } else {
+    cat("Boilerplate runtime is up to date\n")
   }
 } else {
   stop("No boilerplate files defined to setup runtime!")
@@ -58,15 +67,31 @@ cat(this.R,"\n",sep="",file=file.path(ve.runtime,"r.version"))
 pkgs.script <- pkgs.db[pkgs.script,c("Root","Path","Package")]
 copy.paths <- file.path(pkgs.script$Root, pkgs.script$Path, pkgs.script$Package)
 if ( length(copy.paths) > 0 ) {
-  cat(paste("Copying Scripts: ", copy.paths),sep="\n")
-  invisible(file.copy(copy.paths, ve.runtime, recursive=TRUE))
+  any.newer <- FALSE
+  for ( f in copy.paths ) {
+    any.newer <- any( any.newer, newerThan(f,file.path(ve.runtime,dir(ve.runtime,recursive=TRUE))) )
+  }
+  if ( any.newer ) {
+    cat(paste("Copying Scripts: ", copy.paths),sep="\n")
+    invisible(file.copy(copy.paths, ve.runtime, recursive=TRUE))
+  } else {
+    cat("Script files are up to date.\n")
+  }
 }
 
 pkgs.model <- pkgs.db[pkgs.model,c("Root","Path","Package")]
 copy.paths <- file.path(pkgs.model$Root, pkgs.model$Path, pkgs.model$Package)
+model.path <- file.path(ve.runtime,"models")
 if ( length(copy.paths) > 0 ) {
-  cat(paste("Copying Models: ", copy.paths),sep="\n")
-  model.path <- file.path(ve.runtime,"models")
-  dir.create( model.path, recursive=TRUE, showWarnings=FALSE )
-  invisible(file.copy(copy.paths, model.path, recursive=TRUE))
+  any.newer <- FALSE
+  for ( f in copy.paths ) {
+    any.newer <- any( any.newer, newerThan(f,file.path(model.path,dir(model.path,recursive=TRUE))) )
+  }
+  if ( any.newer ) {
+    cat(paste("Copying Models: ", copy.paths),sep="\n")
+    dir.create( model.path, recursive=TRUE, showWarnings=FALSE )
+    invisible(file.copy(copy.paths, model.path, recursive=TRUE))
+  } else {
+    cat("Model files are up to date.\n")
+  }
 }

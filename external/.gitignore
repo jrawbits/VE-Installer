@@ -1,8 +1,0 @@
-*.exe
-*.msi
-*.tar.xz
-namedCapture/
-webdriver/
-shinytest/
-pkgbuild/
-phantomjs-*

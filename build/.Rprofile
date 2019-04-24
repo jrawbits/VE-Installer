@@ -1,6 +1,6 @@
 # Configuration for package build operation
 # If you are starting build from a running R session (instead of a new one), just source this file
-# Key item here is to make sure there's a writable repository for the required build tools:
+# Key prerequisite is to make sure there's a writable repository for the required build tools:
 #  devtools, miniCRAN.
 
 local({r <- getOption("repos")

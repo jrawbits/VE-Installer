@@ -23,36 +23,56 @@ if ( ! suppressWarnings(require(devtools)) ) {
 }
 
 pkgs.external <- pkgs.db$Package[pkgs.Github]
+      
+build.type <- .Platform$pkgType
+if ( build.type != "win.binary" ) build.type <- "source" # Skip mac build for now...
 
 if ( length(pkgs.external)> 0 ) {
-  cat("Building external packages (binary)\n")
-
   .libPaths( c(ve.lib, .libPaths()) ) # push runtime library onto path stack for dependencies
+  pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
+
+  built.path.source <- contrib.url(ve.dependencies, type="source")
+  if ( build.type == "win.binary" ) {
+		built.path.binary <- contrib.url(ve.dependencies, type="win.binary")
+  }
+
+  pkg.sources <- unlist(sapply(pkgs.external,
+        FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source)),
+        USE.NAMES=FALSE))
+
+  cat("Building external packages:\n")
+  cat(paste(pkg.sources,collapse="\n"),"\n",sep="")
 
   # External packages to build (possibly submodules)
-  pkgs <- file.path(ve.external, pkgs.external)
 
-  build.type <- .Platform$pkgType
-  if ( build.type == "win.binary" ) {
-		# Where to put the built results (these should exist after build-repository.R)
-		built.path.binary <- contrib.url(ve.dependencies, type="win.binary")
+  num.built <- 0
+  pkg.built <- TRUE
+  for ( pkg in seq_along(pkgs.external) ) {
+    if ( build.type == "win.binary" ) {
+      package.built <- moduleExists(pkgs.external[pkg], built.path.binary) &&
+                       ! newerThan( pkg.sources[pkg], file.path(built.path.binary,modulePath(pkgs.external[pkg],built.path.binary)))
+    }
+    package.installed <- package.built && pkgs.external[pkg] %in% pkgs.installed
 
-    for ( pkg in pkgs ) {
-      if ( ! moduleExists(pkg, built.path.binary) ) {
+    built.package <- NULL
+    if ( build.type == "win.binary" ) {
+      if ( ! package.built ) {
         built.package <- devtools::build(pkg, path=built.path.binary, binary=TRUE)
       } else {
-        built.package <- file.path(built.path.binary, modulePath(pkg, built.path.binary))
+        built.package <- file.path(built.path.binary, modulePath(pkgs.external[pkg], built.path.binary))
       }
-      install.packages(built.package, repos=NULL, lib=ve.lib) # so they will be available for later modules
+      num.built <- num.built + 1
     }
-    write_PACKAGES(built.path.binary, type="win.binary")
-  } else {
-    # install source package in whatever binary form works for the local environment
-    for (pkg in pkgs) {
-      install.packages(pkg, repos=NULL, lib=ve.lib, type="source")
+    if ( ! package.installed ) {
+      if ( build.type == "win.binary" ) {
+        install.packages(built.package, repos=NULL, lib=ve.lib) # so they will be available for later modules
+      } else {
+        install.packages(pkg.sources[pkg], repos=NULL, lib=ve.lib, type="source")
+      }
     }
-    cat("Done installing external binary packages.\n")
   }
+  if ( num.built > 0 ) write_PACKAGES(built.path.binary, type="win.binary")
+  cat("Done building external packages\n")
 } else {
   cat("No external packages to build (binary)\n")
 }
