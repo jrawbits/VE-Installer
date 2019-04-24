@@ -57,7 +57,7 @@ if ( length(pkgs.external)> 0 ) {
     built.package <- NULL
     if ( build.type == "win.binary" ) {
       if ( ! package.built ) {
-        built.package <- devtools::build(pkg, path=built.path.binary, binary=TRUE)
+        built.package <- devtools::build(file.path(ve.external, pkgs.external[pkg]), path=built.path.binary, binary=TRUE)
       } else {
         built.package <- file.path(built.path.binary, modulePath(pkgs.external[pkg], built.path.binary))
       }

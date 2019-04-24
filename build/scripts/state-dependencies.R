@@ -340,15 +340,17 @@ newerThan <- function( pkgpath, target, quiet=TRUE ) {
   #
   # Value: TRUE if the most recently modified source file is newer
   #        than the oldest target file
-  if (!quiet) cat("Comparing",pkgpath,"to",target,"\n")
+  if (!quiet) cat("Comparing",pkgpath,"to",paste(target,collapse="\n"),"\n")
   if ( any(is.null(target)) || any(is.na(target)) || any(nchar(target))==0 || ! file.exists(target) ) return(TRUE)
   if ( dir.exists(pkgpath) ) pkgpath <- file.path(pkgpath,dir(pkgpath,recursive=TRUE))
-  if (!quiet) cat("Source path:",pkgpath,"\n")
+  if (!quiet) cat("Source path:",pkgpath[1],"\n")
   source.time <- max(file.mtime(pkgpath))
   if (!quiet) cat("Target:",target[1],"\n")
   target.time <- max(file.mtime(target))
   if (!quiet) cat(source.time,"newer than",target.time,"?\n")
-  source.time > target.time
+  newer <- source.time > target.time
+  if (!quiet) cat("Newer:",newer,"\n")
+  newer
 }
 
 # Save out the basic setup that is used in later build scripts

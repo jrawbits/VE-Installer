@@ -32,19 +32,21 @@ if ( build.type == "win.binary" ) {
                        quiet=TRUE, what=character())
 }  
 
-# Copy the boilerplate files, checking to see if what we expected was there
+# Copy the boilerplate files, checking to see if what we expected was there.
+# WARNING: this won't work with boilerplate **directories**, only **files**
 
 bp.files <- file.path(ve.boilerplate, bp.file.list)
 if ( length(bp.files) > 0 ) {
   any.newer <- FALSE
+  target <- file.path(ve.runtime,dir(ve.runtime,recursive=TRUE))
   for ( f in bp.files ) {
-    any.newer <- any( any.newer, newerThan(f,file.path(ve.runtime,dir(ve.runtime,recursive=TRUE))) )
+    any.newer <- any( any.newer, newerThan(f,target) )
   }
   success <- FALSE
   if ( any.newer ) {
     # there may be nothing to recurse into...
     success <- suppressWarnings(file.copy(bp.files, ve.runtime, recursive=TRUE))
-    if ( ! success ) {
+    if ( ! all(success) ) {
       cat("WARNING!\n")
       print(paste("Failed to copy boilerplate: ", basename(bp.files[!success])))
       cat("which may not be a problem (e.g. .Rprofile missing)\n")
@@ -68,8 +70,11 @@ pkgs.script <- pkgs.db[pkgs.script,c("Root","Path","Package")]
 copy.paths <- file.path(pkgs.script$Root, pkgs.script$Path, pkgs.script$Package)
 if ( length(copy.paths) > 0 ) {
   any.newer <- FALSE
-  for ( f in copy.paths ) {
-    any.newer <- any( any.newer, newerThan(f,file.path(ve.runtime,dir(ve.runtime,recursive=TRUE))) )
+  for ( f in seq_along(copy.paths) ) {
+    target <- file.path(ve.runtime,pkgs.script$Package[f])
+    if ( dir.exists(target) ) target <- file.path(target,dir(target,recursive=TRUE))
+    newer <- newerThan(copy.paths[f], target)
+    any.newer <- any( any.newer, newer )
   }
   if ( any.newer ) {
     cat(paste("Copying Scripts: ", copy.paths),sep="\n")
@@ -84,8 +89,11 @@ copy.paths <- file.path(pkgs.model$Root, pkgs.model$Path, pkgs.model$Package)
 model.path <- file.path(ve.runtime,"models")
 if ( length(copy.paths) > 0 ) {
   any.newer <- FALSE
-  for ( f in copy.paths ) {
-    any.newer <- any( any.newer, newerThan(f,file.path(model.path,dir(model.path,recursive=TRUE))) )
+  for ( f in seq_along(copy.paths) ) {
+    target <- file.path(model.path,pkgs.model$Package[f])
+    if ( dir.exists(target) ) target <- file.path(target,dir(target,recursive=TRUE))
+    newer <- newerThan(copy.paths[f], target)
+    any.newer <- any( any.newer, newer )
   }
   if ( any.newer ) {
     cat(paste("Copying Models: ", copy.paths),sep="\n")
