@@ -5,12 +5,19 @@
 # This script downloads required R packages from CRAN and BioConductor into the
 # local pkg-repository
 
-this.R <- paste(R.version[c("major","minor")],collapse=".")
-load(paste("dependencies",this.R,"RData",sep="."))
+# Load runtime configuration
+default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
+ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
+if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
+  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
+       "\nRun state-dependencies.R to set up build environment")
+}
+load(ve.runtime.config)
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
 
+# Load required libraries
 if ( ! suppressWarnings(require(miniCRAN)) ) {
   install.packages("miniCRAN", repos=CRAN.mirror, dependencies=NA)
 }
@@ -104,7 +111,7 @@ print(sort(pkgs.BioC.all))
 cat("Dependencies:\n")
 stated.dependencies <- as.character(c(pkgs.CRAN.lst, pkgs.BioC.lst))
 all.dependencies <- setdiff(as.character(c(pkgs.CRAN.all, pkgs.BioC.all)),pkgs.BaseR)
-save(stated.dependencies, all.dependencies, file=paste("all-dependencies",this.R,"RData",sep="."))
+save(stated.dependencies, all.dependencies, file=ve.all.dependencies)
 
 cat("Repository location:",ve.dependencies,"\n")
 # Attempt a minimal build of the repository (adding just new packages if we already have the whole thing)

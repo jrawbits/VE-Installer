@@ -10,8 +10,13 @@
 # are in VisionEval, we can just treat them as any other package though might want to
 # skip tests.
 
-this.R <- paste(R.version[c("major","minor")],collapse=".")
-load(paste("dependencies",this.R,"RData",sep="."))
+default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
+runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
+if ( ! file.exists(normalizePath(runtime.config,winslash="/")) ) {
+  stop("Missing VE_RUNTIME_CONFIG",runtime.config,
+       "\nRun state-dependencies.R to set up build environment")
+}
+load(runtime.config)
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
@@ -57,7 +62,7 @@ if ( length(pkgs.external)> 0 ) {
     built.package <- NULL
     if ( build.type == "win.binary" ) {
       if ( ! package.built ) {
-        cat("Building",pgks.external[pkg],"\n")
+        cat("Building",pkgs.external[pkg],"\n")
         built.package <- devtools::build(file.path(ve.external, pkgs.external[pkg]), path=built.path.binary, binary=TRUE)
       } else {
         built.package <- file.path(built.path.binary, modulePath(pkgs.external[pkg], built.path.binary))

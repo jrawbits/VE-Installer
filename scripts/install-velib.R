@@ -13,8 +13,14 @@
 # NOTE: it is a bad idea to put the VE dependencies in your development
 # environment since you will not easily be able to tell if you missed one
 
-this.R <- paste(R.version[c("major","minor")],collapse=".")
-load(paste("dependencies",this.R,"RData",sep="."))
+# Load runtime configuration
+default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
+ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
+if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
+  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
+       "\nRun state-dependencies.R to set up build environment")
+}
+load(ve.runtime.config)
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }

@@ -10,12 +10,18 @@ if ( ! suppressWarnings(require(yaml)) ) {
   install.packages("yaml", repos="https://cloud.r-project.org", dependencies=NA)
 }
 
+# Identify the platform
+ve.platform <- .Platform$OS.type # Used to better identify binary installer type
+ve.platform <- paste(toupper(substring(ve.platform,1,1)),substring(ve.platform,2),sep="")
+
 # Locate the installer tree (used for boilerplate)
 # The following includes a hack to fix a common path problem if you are
 # developing on Windows in a subfolder of "My Documents"
-ve.install <- sub("My Documents", "Documents",
-                  normalizePath(file.path(getwd(), "..")))
-ve.install <- gsub("\\\\", "/", ve.install)
+ve.installer <- getwd()
+if ( ve.platform == "Windows" || Platform$pkgType == "win.binary" ) {
+  ve.installer <- sub("My Documents", "Documents", ve.installer)
+  ve.installer <- gsub("\\\\", "/", ve.installer)
+}
 
 # Specify dependency repositories
 cat("Loading R versions\n")
@@ -24,18 +30,28 @@ this.R <- paste(R.version[c("major","minor")],collapse=".")
 CRAN.mirror <- rversions[[this.R]]$CRAN
 BioC.mirror <- rversions[[this.R]]$BioC
 
+# Get the logs location
+ve.logs <- Sys.getenv("VE_LOGS",normalizePath("./logs",winslash="/"))
+
 # Read the configuration file
-ve.config.file <- Sys.getenv("VE_CONFIG")
+ve.config.file <- Sys.getenv("VE_CONFIG","config/VE-config.yml")
 cat(paste("Loading Configuration File:",ve.config.file,"\n",sep=" "))
-if ( ! file.exists(ve.config.file) ) {
-  ve.config.file <- "../config/VE-config.yml"
-  cat("Using default ve.config:",ve.config.file,"\n")
-}
+if ( !file.exists(ve.config.file) ) {
+  stop("Configuration file",ve.config.file,"not found.")
+ }
 ve.cfg <- yaml::yaml.load_file(ve.config.file)
 
 # Extracting root paths
 roots.lst <- names(ve.cfg$Roots)
-invisible(sapply(roots.lst,FUN=function(x,venv){assign(x,ve.cfg$Roots[[x]],pos=venv); x},venv=sys.frame()))
+invisible(
+  sapply(
+    roots.lst,
+    FUN=function(x,venv) {
+      assign(x,normalizePath(ve.cfg$Roots[[x]],winslash="/"),pos=venv); x
+    },
+    venv=sys.frame()
+  )
+)
 
 # Extracting location paths:
 locs.lst <- names(ve.cfg$Locations)
@@ -72,15 +88,11 @@ ve.runtests <- switch(
 cat("ve.runtests is",ve.runtests,"\n")
 
 # Convey key file locations to the 'make' environment
-make.target <- file(paste("ve-output",this.R,"make",sep="."))
-
-ve.platform <- .Platform$OS.type # Used to better identify binary installer type
-ve.platform <- paste(toupper(substring(ve.platform,1,1)),substring(ve.platform,2),sep="")
-
+make.target <- Sys.getenv("VE_MAKEVARS",unset=file.path(ve.logs,"ve-output.make"))
 make.variables <- c(
    VE_R_VERSION = this.R
   ,VE_PLATFORM  = ve.platform
-  ,VE_INSTALLER = ve.install
+  ,VE_INSTALLER = ve.installer
   ,VE_OUTPUT    = ve.output
   ,VE_LIB       = ve.lib
   ,VE_REPOS     = ve.repository
@@ -92,7 +104,6 @@ make.variables <- c(
 )
 
 writeLines( paste( names(make.variables), make.variables, sep="="),make.target)
-close(make.target)
 
 # The following are constructed in Locations above, and must be present
 # ve.runtime <- file.path(ve.output, "runtime")
@@ -110,7 +121,10 @@ ve.repo.url <- paste("file:", ve.repository, sep="")
 
 catn <- function(...) { cat(...); cat("\n") }
 
-component.file <- c( ve.root = file.path( ve.root,"build/VE-components.yml" ) )
+# ve.components can be set as a location in VE-config.yml
+if ( ! exists("ve.components") ) ve.components <- file.path( ve.root,"build/VE-components.yml" )
+if ( ! file.exists(ve.components) ) stop("Cannot find VE-components.yml in VisionEval build folder")
+component.file <- c( ve.root = ve.components )
 includes <- list()
 excludes <- list()
 ##### WARNING - we make use of the fact that:
@@ -252,8 +266,8 @@ print(pkgs.db[,c("Type","Package","Group")])
 checkVEEnvironment <- function() {
   # Check for situational awareness, and report if we are lost
   # Returns 0 or 1
-  if ( ! exists("ve.install") || is.na(ve.install) || ! file.exists(ve.install) ) {
-    cat("Missing ve.install; run state-dependencies.R\n")
+  if ( ! exists("ve.installer") || is.na(ve.installer) || ! file.exists(ve.installer) ) {
+    cat("Missing ve.installer; run state-dependencies.R\n")
     return(FALSE)
   } else if ( ! exists("ve.repository") || is.na(ve.repository) ) {
     cat("Missing ve.repository definition; run state-dependencies.R\n")
@@ -354,14 +368,20 @@ newerThan <- function( pkgpath, target, quiet=TRUE ) {
 # Commas precede the item so it can be moved, or deleted, or a new item
 # added without having to edit more than one line.
 
+default.config <- file.path(ve.logs,"dependencies.RData")
+ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
+ve.all.dependencies <- file.path(ve.logs,"all-dependencies.RData",sep=".")
+
 save(
-  file=paste("dependencies",this.R,"RData",sep="."),
+  file=ve.runtime.config,
   list=c(locs.lst)
   , .First
   , checkVEEnvironment
   , ve.output
-  , ve.install
+  , ve.logs
+  , ve.installer
 	, ve.runtests
+  , ve.all.dependencies
   , CRAN.mirror
   , BioC.mirror
   , modulePath

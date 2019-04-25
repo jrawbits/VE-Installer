@@ -46,4 +46,14 @@ rem echo Found R_VERSION %R_VERSION%
 rem echo And in the file:
 rem type r-version.bat
 %RSCRIPT% VisionEval.R
-START %RGUI% VisionEval.RData
+IF %ERRORLEVEL% EQU 0 (
+        ECHO Starting %RGUI%
+        PAUSE
+        START "VisionEval" %RGUI% VisionEval.RData
+) ELSE (
+        ECHO Error Level %ERRORLEVEL%
+        PAUSE
+        DEL VisionEval.RData r-paths.bat
+        ECHO Installation failed - see error messages above
+        PAUSE
+)

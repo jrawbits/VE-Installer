@@ -4,18 +4,30 @@
 
 # Build any Github packages (e.g. namedCapture).
 
-this.R <- paste(R.version[c("major","minor")],collapse=".")
-load(paste("dependencies",this.R,"RData",sep="."))
+# Load runtime configuration
+default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
+ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
+if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
+  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
+       "\nRun state-dependencies.R to set up build environment")
+}
+load(ve.runtime.config)
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
+
+# Load required libraries (install as needed)
 
 if ( ! suppressWarnings(require(git2r)) ) {
   install.packages("git2r", repos=CRAN.mirror, dependencies=NA)
 }
 require(tools) # for write_PACKAGES below
 
-load(paste("all-dependencies",this.R,"RData",sep=".")) # relay list of dependencies
+# relay dependencies
+load(ve.all.dependencies) # use all.dependencies
+if ( ! exists("all.dependencies") ) {
+  stop("Run state-dependencies.R to set up build environment")
+}
 
 pkgs.external <- pkgs.db[pkgs.Github,]
 
@@ -38,7 +50,7 @@ if ( nrow(pkgs.external) > 0 ) {
   pkg.dependencies <- as.character(pkgs.external[,"Package"])
   all.dependencies <- c( all.dependencies, pkg.dependencies)
   stated.dependencies <- c( stated.dependencies, pkg.dependencies )
-  save(stated.dependencies, all.dependencies, file=paste("all-dependencies",this.R,"RData",sep="."))
+  save(stated.dependencies, all.dependencies, file=ve.all.dependencies)
 
   # make sure the external locatione exists
   if ( ! exists("ve.external") ) ve.external <- file.path(ve.output,"external")
@@ -81,5 +93,4 @@ if ( nrow(pkgs.external) > 0 ) {
 
 # The following for book-keeping
 # May use it in the docker build to allow a "dependencies-only" image
-write(paste(all.dependencies, collapse=" "),
-      file=file.path(ve.dependencies, paste("dependencies",this.R,"lst",sep=".")))
+write(paste(all.dependencies, collapse=" "), file=ve.all.dependencies)

@@ -5,18 +5,8 @@
 
 require(utils)
 
-# Check the R version (redundant on Windows, but saves having to
-# have a separate VisionEval.R for Linux/Mac
-this.R <- paste(R.version[c("major","minor")],collapse=".")
-that.R <- scan("r.version",what=character())
-if ( this.R != that.R ) {
-  stop("Incorrect R version for this VisionEval installation: expecting R",that.R)
-} else {
-  cat("Loading VisionEval for R version",this.R,"\n")
-}
-
 # Put the current directory into ve.root
-if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
+if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" ) == "" ) {
   ve.root <- getwd()
 } else {
   ve.root <- normalizePath(ve.root)
@@ -26,7 +16,7 @@ if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
 # Note that ve.lib is already present and fully provisioned if we've unzipped the offline installer
 # Current version (2019-03) actually uses a subdirectory for the R
 # version
-ve.lib.name <- "ve-lib"
+ve.lib.name <- file.path("ve-lib",paste(R.version[c("major","minor")],collapse="."))
 ve.lib <- file.path(ve.root,ve.lib.name)
 
 if ( ! dir.exists(ve.lib) ) {
@@ -35,7 +25,36 @@ if ( ! dir.exists(ve.lib) ) {
   if ( dir.exists(ve.lib.local) ) {
     ve.lib <- ve.lib.local # Use the build environment installed library
   } else {
-    warning("Unable to locate library for binary installation.")
+
+  # Check for source environment
+  ve.pkg.name <- "ve-pkg"
+    ve.local  <- normalizePath(file.path(ve.root,"..",ve.pkg.name),winslash="/",mustWork=FALSE)
+  ve.contrib.url <- contrib.url(ve.local,type="source")
+    if ( ! dir.exists(ve.contrib.url) ) {
+      message("Need accessible ve-lib or ve-pkg in the file system,")
+      message("VisionEval packages are not available")
+    stop("Installation failed - check error and warning messages.")
+    }
+
+  # Check availability of source packages
+  ve.contrib.url <- paste("file:",ve.contrib.url,sep="")
+    VE.pkgs <- available.packages(contriburl=ve.contrib.url,type)[,"Package"]
+    # Installation list is everything in the repository
+    # Consequently: test and abort if visioneval isn't in it
+    if ( ! "visioneval" %in% VE.pkgs[,Package] ) {
+      message(paste("VisionEval not present in",ve.repos))
+      message("VisionEval packages are not available")
+    stop("Installation failed - check error and warning messages.")
+    }
+
+  # Install to local environment
+    dir.create(ve.lib,recursive=TRUE,showWarnings=FALSE)
+    install.packages(
+      VE.pkgs,
+      lib=ve.lib,
+      repos=ve.repos,
+      quiet=TRUE
+    )
   }
 }
 
@@ -106,4 +125,3 @@ if ( install.success ) {
 } else {
   stop("Installation failed - check error and warning messages.")
 }
-

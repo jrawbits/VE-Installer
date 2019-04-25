@@ -6,3 +6,9 @@ plan.txt
 www/R/bin
 www/R/src
 www/*.zip
+*.RData
+*.out
+*.built
+logs/
+dev-lib/
+ve-output.*.make

@@ -1,5 +1,0 @@
-*.RData
-*.out
-*.built
-dev-lib/
-ve-output.*.make

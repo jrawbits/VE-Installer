@@ -8,8 +8,14 @@
 # state-dependencies.R, and the example configurations in VE-Installer and in
 # VisionEval-dev).
 
-this.R <- paste(R.version[c("major","minor")],collapse=".")
-load(paste("dependencies",this.R,"RData",sep="."))
+# Load runtime configuration
+default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
+ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
+if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
+  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
+       "\nRun state-dependencies.R to set up build environment")
+}
+load(ve.runtime.config)
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }

@@ -6,8 +6,14 @@
 # the runtime - for things like the model data, run scripts and VEGUI app that
 # are not in packages.
 
-this.R <- paste(R.version[c("major","minor")],collapse=".")
-load(paste("dependencies",this.R,"RData",sep="."))
+# Load runtime configuration
+default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
+ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
+if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
+  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
+       "\nRun state-dependencies.R to set up build environment")
+}
+load(ve.runtime.config)
 if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
@@ -15,7 +21,7 @@ if ( ! checkVEEnvironment() ) {
 # Copy the runtime boilerplate
 
 # Set the boilperplate folder
-ve.boilerplate <- file.path(ve.install, "boilerplate")
+ve.boilerplate <- file.path(ve.installer,"boilerplate")
 
 # Get the boilerplate files from boilerplate.lst
 # boilerplate.lst just contains a list of the files to copy to runtime separated by
@@ -45,6 +51,7 @@ if ( length(bp.files) > 0 ) {
   success <- FALSE
   if ( any.newer ) {
     # there may be nothing to recurse into...
+    cat(paste("Copying Boilerplate File: ", bp.files),sep="\n")
     success <- suppressWarnings(file.copy(bp.files, ve.runtime, recursive=TRUE))
     if ( ! all(success) ) {
       cat("WARNING!\n")

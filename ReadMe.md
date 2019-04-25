@@ -1,8 +1,16 @@
 # Building and Installing VisionEval
 
-The `VE-Installer` side project" makes a VisionEval source tree "installable".  To
-use it, just clone it, setup the configuration file, install a development environment,
-and build suitable `make` targets.
+The `VE-Installer` is a build system that makes a VisionEval source tree "installable",
+and to facilitate development and testing of VisionEval.
+
+To use it, just clone it, setup the configuration file, install a development environment,
+and build suitable `make` targets, including a runtime environment and an installer.  Full
+instructions and references materials are included below and in various referenced files.
+
+You can use this build process with any version of VisionEval (with appropriate changes to
+configuration files describing that version), though for older versions, you will need to
+construct a suitable "VE-components.yml" file.  The process for doing so is described in
+detail in the most recent updates of the [VisionEval-dev repository][VE-dev].
 
 As of Version 2 of VE-Installer, the dependency information is maintained in the 
 VisionEval source tree itself (and will eventually be used to execute consistent
@@ -14,9 +22,7 @@ the dependencies.
 Full instructions for installing and using VE-Installer below presented below. The
 configuration file is described in its own ReadMe.md file in the "config" subdirectory.
 
-You can use this build process with any version of VisionEval (with appropriate changes to
-configuration files describing that version), though you will need to construct a suitable
-"VE-components.yml" file.
+
 
 This installer addresses two VisionEval use cases:
 
