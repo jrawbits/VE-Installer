@@ -8,15 +8,14 @@ This ReadMe.md file documents the structure of the configuration files.
 
 The configuration files are YAML, consisting of Key: Value pairs.
 
-The keys can be anything, but only the following will be examined:
+The keys can be anything (The samples contain 'Name', 'Date' and 'Description' for example), but
+only the following will be examined:
 
 Roots
+Components
 Locations
-Module
-Source
-Tests
 
-The values for each of those keys are sequence of elements (possibly just a single element).
+The structure of these
 
 ## Roots ##
 
