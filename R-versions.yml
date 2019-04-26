@@ -1,3 +1,7 @@
+# Known versions of R - just create additional entries as needed
+# Your chances of a successful build go down with older versions
+# or with a version different from what the Makefile reports as
+# the default.
 3.4.4:
     BioC:      https://www.bioconductor.org/packages/3.6/bioc
     CRAN:      https://cloud.r-project.org
