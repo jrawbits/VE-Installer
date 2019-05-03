@@ -14,7 +14,7 @@ computer that supports R.
 
 To use VE-Installer, just clone it, setup the configuration file, install a development
 environment (Linux R-base-dev, Windows R plus RTools), then build suitable `make` targets,
-such as the runtime environment and an installer.  Full instructions and references
+such as the runtime environment and an installer.  Full instructions and reference
 materials are included below and in various referenced files.
 
 You can use VE-Installer with any version of VisionEval (with appropriate changes to
@@ -59,29 +59,31 @@ below and in various referenced files.
 * Clone [VE-Installer][VEInstaller] and [VisionEval-dev][VE-dev]
     * As of this writing, you want the "development" branch
     * Configuration will be simplest if VE-Installer and VisionEval-dev are
-      subdirectories of the same directory
-* Configure Git for Windows `bash` shell (instructions later on)
+      subdirectories of the same parent directory
+* Configure Git for Windows `bash` shell
     * Add RTools to the Windows PATH
     * Set up `bash` so you can easily get to the VE-Installer/build folder
-    * Set up any SSH keys or other credentials you may need for Github
+    * Set up any SSH keys or other credentials you may need for Github access
 * Edit the VE-Installer/config/VE-config.yml file so it points at your VisionEval-dev
     * ve.root : full path in which to look for VisionEval itself (defaults to
       "../VisionEval.dev" (".." relative to home of VE-Installer)
     * ve.output : Path in which to create gigabytes of output files (in subdirectories
       named after the version of R you used to build them, e.g. 3.5.3). "../VE-Built"
-      will create a new directory adjacent to VE-Installer.
-* Open Git for Windows Bash window
-    * Do the setup called for above, if you haven't already
+      will create a new directory adjacent to VE-Installer (and make a subfolder called
+      "3.5.3" to hold the built files if you choose VE_R_VERSION=3.5.3).
+* Run the build from a Git for Windows Bash window
+    * Open a bash window
     * Change to the VE-Installer root folder
         * cd /path/to/VE-Installer
     * Run these commands from the Bash command prompt
-        * Build the runtime: `bash build-VE.sh 3.5.3` (defaults to 3.5.3)
+        * Build the runtime: `bash build-VE.sh 3.5.2` (defaults to 3.5.3)
         * Build an installer: `bash build-VE-sh 3.5.3 installer
     * If you have the VE-Installer native version of R installed (currently 3.5.3),
       you can just run `bash build-VE.sh`, or even just `make` to assemble a
       runtime.
-* Once complete, you can run VisionEval.bat in ve.output/3.x.x/runtime
-    * ve.output is whatever you set it to in VE-Config.yml
+* Once complete, you can run VisionEval.bat in ve.output/3.x.x/runtime in order to start R
+  and load VisionEval.
+    * ve.output is whatever you set it to in VE-Config.yml (see above)
     * If you built an installer, you'll find it in a zip file in the root
       of the build (ve.output/3.x.x).
 * To launch VisionEval, just double-click VisionEval.bat (on Windows)
@@ -128,12 +130,12 @@ To build the packages and installers on a Windows system, you need to install
 [RTools][getRTools].  Installing RTools does not require administrator rights.  But you
 will need to point the installer at a writable directory (i.e. one that you as a user have
 write permission for). It also helps to put the RTools bin directory at the head of your
-path (otherwise the repository build process may fail if the Git for Windows version of
+PATH (otherwise the repository build process may fail if the Git for Windows version of
 "tar" is called during the R package build process, rather than the RTools version).
 
 To edit the PATH (as a non-administrator) on Windows 10, hit the "start" box (Windows icon
 at the end of the taskbar), just start typing "environment", the display will show the search
-results. Pick "Edit environment variables for your account", select PATH from the list (or
+results. Pick "Edit environment variables for your account", then select PATH from the list (or
 create a PATH variable if it's not there), and enter the full path (drive and directory)
 to "RTools/bin" (notice the "/bin"!).
 
@@ -154,7 +156,7 @@ VisionEval will include the required non-standard Linux libraries as explicit de
 
 On Ubuntu 18.04, installing the following packages will probably be needed (plus X11 and a
 few other odds and ends - watch for errors when the build scripts try to build the
-externals and packages).
+externals and dependency packages).
 
 To build "cairo" (used for nice image rendering):
 
@@ -183,13 +185,13 @@ test runs and committed unnecessarily to the repository.  Using the `-b` option 
 `master` with your chosen branch such as `development`) selects a specific branch, which
 may often be necessary if the default is some obsolete version languishing in `master` or
 if the repository offers a documentation tree as the default branch (as does
-VisionEval-dev).  Naming the folder to clone into (`My-VisionEval` in the example above)
-makes it simple to clone different branches (or VisionEval repositories) to different
-places.
+VisionEval-dev).  Naming the folder in which to put the clone (`My-VisionEval` in the
+example above) makes it simple to clone different branches (or VisionEval repositories) to
+different places.
 
 Note that cloning with `--depth=1` only gets one branch, so you can't change branches
-within a repository clone created that way. Look at git documentation on --depth for
-further information.
+within a repository clone created that way. Look at `git clone` documentation on --depth
+for further information.
 
 ## Building, Rebuilding and Updating dependencies
 
@@ -204,7 +206,8 @@ further instructions.
 
 You can use `make` (with various command line options described below) to build
 VisionEval.  A simple bash script is also provideded to run a "one line" build without
-having to mess with options.  You can also use the script to build any of the targets
+having to mess with options.  The script is useful if you want to build multiple runtimes
+for different R versions.  You can also use the script to build any of the targets
 listed below, but you do need to name the R version explicitly (e.g `bash build-VE.sh
 3.5.3 repository` - whereas `bash build-VE.sh` will do the same thing as `make` (i.e. make
 everything) using the version of R that VE-Installer currently prefers (not necessarily
@@ -213,14 +216,15 @@ one you have installed!).
 Learning to use make will give you much greater flexibility in selecting build targets,
 rebuidling things, or using different R versions.
 
-Here is how to use make:
+Here is an overview of how to use make:
 
 * `make`
   Just do it!  Defaults to `make configure; make repository; make binary; make runtime`
   see below. You get a built VisionEval that you can run on your local machine.
 * `make configure`
   This reads your VE-config.yml and turns it into something the other scripts can use.
-  Nothing else can happen until this step completes successfully.
+  Nothing else can happen until this step completes successfully, so if you're having
+  trouble, start here until your configuration is working.
 * `make repository`
   Builds a local package repository with all the VisionEval dependencies (and
   their dependencies, and their dependencies, and so on all the way down). At the end
@@ -228,7 +232,7 @@ Here is how to use make:
   dependencies, plus built source packages (only) for any Github packages. Packages
   can come from CRAN, BioConductor, or Github.
 * `make binary`
-  Builds VisionEval binaries and install them for the machine architecture
+  Builds VisionEval binaries and installs them for the machine architecture
   of your development environment.  If you want Windows binaries, run this on a
   Windows machine.  Likewise, you can use it to create a runtime for Linux or
   Macintosh if that's where you're developing.  After running this step, you'll
@@ -241,6 +245,8 @@ Here is how to use make:
     * in the bash shell, before calling `make` or `build-VE.sh` do `export VE_RUNTESTS=TRUE`
     * Add VE_RUNTESTS to the make command line: `make VE_RUNTESTS=TRUE ...`
     * Add VE_RUNTESTS to the `build-VE.sh` command line: `bash build-VE.sh 3.5.3 VE_RUNTESTS=TRUE ...`
+  Note that if you want to rebuild (or retest) any built packages, you should
+  manually delete them from the ve.lib location. See below.
 * `make runtime`
   Copy non-package source files and test data to the runtime folder (basis for
   the installers, and also for a local runtime test environment for the developer)
@@ -250,7 +256,7 @@ Here is how to use make:
   but that is a slow process that generates a gigantic file so you probably don't
   want to do it.
 * `make docker`
-  This target builds a docker image; see the **docker** subdirectory and its
+  This target builds a docker image; see the `docker` subdirectory and its
   ReadMe.md for details. **This target is currently broken, due to the change in
   how the VisionEval dependency configuration is handled.**
 
@@ -277,23 +283,51 @@ scratch (run `make really-clean` and then `make installer`).
 Otherwise you risk including obsolete dependencies. That's probably harmless; it just
 makes the installer bigger than necessary.
 
+### Using the Installer to develop VisionEval packages and models
+
+VE-Installer is designed not to do a lot of time-consuming redundant work.  It uses
+file time stampts to manage most of that.  So if you're developing a model and you
+change Run_Model.R, you can just run `make` and that file (only) will get recopied
+to your runtime.
+
+The same thing happens with modules. So if you're working (for example) on VEScenario
+(a module which, as of this writing, needs work), you can just go and edit the
+package code, DESCRIPTION or whatever and when you next run `make`, VE-Installer will
+recognize that files were changed and will (only) rebuild VEScenario.
+
+The result is an easy workflow:
+
+* Edit something in your VisionEval clone
+* Run `make build-clean` to force an update status on all VisionEval files
+* Run `make` from a bash window with VE-Installer as working directory
+* Lather, rinse, repeat until you've got it to build without errors
+    * Extra credit: run `make lib-clean; make VE_RUNTESTS=TRUE`
+* Run `VisionEval.bat` from your runtime output folder and try out
+  the modules and models
+* Repeat from the top until it all does what you want without errors.
+
 # Key outputs of the build process
 
 Inside the `ve.output\3.x.x` folder, you will find the following:
 
-**Table needs to be updated**
 Item | Contents
 --------- | --------
-home | Only present if you ran `make docker` - this is the basis for the docker image
-pkg-repository | R repository with all built and required packages (for online installer)
+external | Location where Github dependency packages are cloned and built from
+pkg-dependencies | CRAN and BioConductor package repository (source and Windows binary\*) for dependencies
+pkg-repository | Repository of built VisionEval packages (source and Windows binary\*)
 runtime | the VisionEval folder with the installed / installable elements (see below)
-ve-lib | Library of installed packages for Windows (used to build "offline" installer)
-VE-installer.zip | the online installer (needs access to a miniCRAN)
-VE-installer-windows-R3.5.1.zip | the offline Windows installer
+tests | Copies of the VisionEval TestData and package folders used for running tests and saving test output
+ve-lib | Library of installed packages for the local machine architecture
+ve-pkg | Repository of source packages (VisionEval plus dependencies) used in source installer (optional)
+VE-Runtime-Rx.x.x.zip | Just the runtime folder (for the local architecture and R version x.x.x) zipped up
+VE-installer-Windows-R3.5.3.zip | the offline Windows installer for end users
+VE-installer-Source-R3.5.3.zip | the offline source installer for end users
 
-If you build on a Linux system, you'll get `VE-installer-unix-R3.x.x.zip` as the offline
-binary installer instead.  If you `make installer` on Linux or Mac, you'll get a "unix"
-installer suitable for your local architecture.
+\* If building on a Windows machine.
+
+If you `make installer` on Linux or Mac, you'll get a "unix" installer suitable for your local architecture.
+Run `make installer-src` to make the offline source installer.  Run `make installer-clean` to force
+the installers to be rebuilt.
 
 # Running VisionEval locally
 
@@ -304,7 +338,7 @@ a shortcut if you prefer.
 
 The startup is very fast on Windows, but on other systems where you do a "source"
 installation, it can take a long time (though typically under an hour) to build a native
-`ve-lib`. Startup will subsequently be much faster. 
+`ve-lib` the first time you run it. Startup will subsequently be much faster. 
 
 The self-contained VisionEval installation that results from this builder (and is included
 in the installers) includes "VisionEval.Rproj" which a runtime user can double-click to
@@ -315,6 +349,8 @@ RStudio. Once the basic installation is complete, just open the .Rproj file.
 [getRstudio]: https://www.rstudio.com/products/rstudio/download/ "Download RStudio"
 
 # Docker Images
+
+**Warning: Docker build currently doesn't work**.
 
 See the Docker Readme.md in the **docker** directory for an explanation of how to
 build the Docker images for VisionEval, and also what they provide.  You can use

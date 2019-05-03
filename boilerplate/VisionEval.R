@@ -24,8 +24,6 @@ if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
 
 # Put the library directory into ve.lib
 # Note that ve.lib is already present and fully provisioned if we've unzipped the offline installer
-# Current version (2019-03) actually uses a subdirectory for the R
-# version
 ve.lib.name <- "ve-lib"
 ve.lib <- file.path(ve.root,ve.lib.name)
 
@@ -35,7 +33,40 @@ if ( ! dir.exists(ve.lib) ) {
   if ( dir.exists(ve.lib.local) ) {
     ve.lib <- ve.lib.local # Use the build environment installed library
   } else {
-    warning("Unable to locate library for binary installation.")
+    warning("Attempting source installation.")
+    ve.pkg.name <- "ve-pkg"
+    ve.pkg <- file.path(ve.root,ve.pkg.name)
+    ve.contrib.url <- contrib.url(ve.pkg,type="source")
+    if ( ! dir.exists(ve.contrib.url) ) {
+      ve.pkg.local  <- normalizePath(file.path(ve.root,"..",ve.pkg.name),winslash="/",mustWork=FALSE)
+      if ( dir.exists(ve.pkg.local) ) {
+        ve.contrib.url <- contrib.url(ve.pkg.local,type="source")
+      } else {
+        message("Unable to locate ve-lib or ve-pkg in the file system,")
+        message("VisionEval packages are not available")
+        stop("Installation failed - check error and warning messages.")
+      }
+    }
+
+    # Check availability of source packages
+    ve.contrib.url <- paste("file:",ve.contrib.url,sep="")
+    VE.pkgs <- available.packages(contriburl=ve.contrib.url,type)[,"Package"]
+    # Installation list is everything in the repository
+    # Consequently: test and abort if visioneval isn't in it
+    if ( ! "visioneval" %in% VE.pkgs[,Package] ) {
+      message(paste("VisionEval not present in",ve.repos))
+      message("VisionEval packages are not available")
+      stop("Installation failed - check error and warning messages.")
+    }
+
+    # Install to local environment
+    dir.create(ve.lib,recursive=TRUE,showWarnings=FALSE) # under ve.root
+    install.packages(
+      VE.pkgs,
+      lib=ve.lib,
+      repos=ve.repos,
+      quiet=TRUE
+    )
   }
 }
 
