@@ -90,7 +90,3 @@ if ( nrow(pkgs.external) > 0 ) {
 } else {
     cat("No external packages configured.\n")
 }
-
-# The following for book-keeping
-# May use it in the docker build to allow a "dependencies-only" image
-write(paste(all.dependencies, collapse=" "), file=ve.all.dependencies)

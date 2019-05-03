@@ -27,7 +27,7 @@ if [ -z "${VE_R_VERSION}" ]; then
   exit 1
 fi
 
-if [ -z "$(VE_MAKEVARS)" ]; then
+if [ -z "${VE_MAKEVARS}" ]; then
   echo VE_MAKEVARS environment variable should locate ve-output.${VE_R_VERSION}.make
   VE_MAKEVARS=$(realpath "./logs/${VE_R_VERSION}/ve-output.make")
   echo Using "${VE_MAKEVARS}"
@@ -47,22 +47,20 @@ VE_SOURCE="${VE_OUTPUT}/${VE_R_VERSION}/VE-installer-Source-R${VE_R_VERSION}.zip
 VE_BINARY="${VE_OUTPUT}/${VE_R_VERSION}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}.zip"
 RUNTIME_PATH="${VE_RUNTIME}"
 
-[ -f "${VE_BASE}" ]   && rm "${VE_BASE}"
-[ -f "${VE_SOURCE}" ] && rm "${VE_SOURCE}"
-[ -f "${VE_BINARY}" ] && rm "${VE_BINARY}"
-
 cd "${RUNTIME_PATH}"
 
 if [ "${INSTALLER_TYPE}" == "BINARY" ]
 then
 
   echo "Building base installer: ${VE_BASE}"
+  rm -f "${VE_BASE}"
   zip --recurse-paths "${VE_BASE}" .
 
   # Binary installer (for VE_PLATFORM i.e. where we're running the scripts)
   if [ -d "${VE_LIB}" ]
   then
       echo "Building ${VE_PLATFORM} binary installer: ${VE_BINARY}"
+      rm -f "${VE_BINARY}"
       cd ${VE_LIB}/..
       zip --recurse-paths "--output-file=${VE_BINARY}" "${VE_BASE}" "$(basename ${VE_LIB})"
   fi
@@ -74,6 +72,7 @@ then
   if [ -d "${VE_PKGS}" ]
   then
       echo "Building Source installer: ${VE_SOURCE}"
+      rm -f "${VE_SOURCE}"
       cd ${VE_PKGS}/..
       pwd
       zip --recurse-paths "--output-file=${VE_SOURCE}" "${VE_BASE}" "$(basename ${VE_PKGS})"
