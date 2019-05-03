@@ -31,8 +31,6 @@ ve.boilerplate <- file.path(ve.installer,"boilerplate")
 # # Use .sh files for "source" and .bat files for "win.binary"
 # build.type <- .Platform$pkgType
 # if ( build.type == "win.binary" ) {
-#   bp.file.list <- scan(file=file.path(ve.boilerplate, "boilerplate.lst"),
-#                        quiet=TRUE, what=character())
 # } else {
 #   bp.file.list <- scan(file=file.path(ve.boilerplate, "boilerplate.bash.lst"),
 #                        quiet=TRUE, what=character())
@@ -40,6 +38,9 @@ ve.boilerplate <- file.path(ve.installer,"boilerplate")
 
 # Copy the boilerplate files, checking to see if what we expected was there.
 # WARNING: this won't work with boilerplate **directories**, only **files**
+
+bp.file.list <- scan(file=file.path(ve.boilerplate, "boilerplate.lst"),
+                     quiet=TRUE, what=character())
 
 bp.files <- file.path(ve.boilerplate, bp.file.list)
 if ( length(bp.files) > 0 ) {
