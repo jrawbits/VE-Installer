@@ -50,7 +50,7 @@ clean: $(VE_MAKEVARS) build-clean
 
 lib-clean: $(VE_MAKEVARS)
 	rm -f $(VE_LOGS)/modules.built
-	rm -rf $(VE_PKGS)/*
+	rm -rf $(VE_REPOS)/*
 	rm -rf $(VE_LIB)/visioneval $(VE_LIB)/VE*
 
 runtime-clean: $(VE_MAKEVARS)
@@ -71,6 +71,7 @@ dev-clean:
 installer-clean: $(VE_MAKEVARS)
 # installers have the R version coded in their .zip name
 	rm -f $(VE_OUTPUT)/$(VE_R_VERSION)/*.zip
+	rm -rf $(VE_PKGS)/*
 	rm -f $(VE_LOGS)/installer*.built
 
 depends-clean: clean
