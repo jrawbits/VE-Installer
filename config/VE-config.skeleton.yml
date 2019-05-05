@@ -3,7 +3,7 @@ Date: 2019-04-25
 RunTests: FALSE # if TRUE, default module build behavior will be to run the (very time-consuming) tests
 # Override RunTests during "make" by adding VE_RUNTESTS=True when building the 'configure' target
 Roots: # TODO: Edit ve.root and ve.output to identify directories on the local machine
-    ve.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev
+    ve.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev # Required
     ve.output: e:/VE-built/VE-1.02  # Required
     # ve.cache: e:/VE-built/VE-Cache  # Optional
     # However ve.cache is "special" in that, if defined, anything stored there will require
@@ -16,6 +16,7 @@ Roots: # TODO: Edit ve.root and ve.output to identify directories on the local m
     # Default if this section is missing is to load all components from ve.root/build/VE-components.yml
     # The "roots" are processed in order; components from the first, then components from the second
     # Note that ve.root is special and will always be loaded first (with its Includes and Excludes applied)
+    # Also note that you can leave ve.root out and list only other roots which will replace some of it
     # Alternate roots will then be loaded in the order presented here
     # Components with the same name in later roots will replace components from earlier roots
     # If a new component appears in a later root it is just added to the existing set of components
@@ -32,6 +33,10 @@ Roots: # TODO: Edit ve.root and ve.output to identify directories on the local m
     #       - VE2001NHTS
     #       - VE-State
 Locations: # "Root" elements are variables defined in "Roots" section; path is relative to that
+#     ve.components: # Optional
+#         root: ve.installer # root of components file; not necessarily ve.root
+#         path: config/VE-components-old.yml
+#         description: how to add a component file for ve.root if it doesn't have its own
     ve.dependencies:  # Required
         root: ve.output
         path: pkg-dependencies
