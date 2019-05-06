@@ -42,16 +42,27 @@ if ( !file.exists(ve.config.file) ) {
 ve.cfg <- yaml::yaml.load_file(ve.config.file)
 
 # Extracting root paths
-roots.lst <- names(ve.cfg$Roots)
-invisible(
-  sapply(
-    roots.lst,
-    FUN=function(x,venv) {
-      assign(x,normalizePath(ve.cfg$Roots[[x]],winslash="/"),pos=venv); x
-    },
-    venv=sys.frame()
+if ( "Roots" %in% names(ve.cfg) ) {
+  roots.lst <- names(ve.cfg$Roots)
+  invisible(
+    sapply(
+      roots.lst,
+      FUN=function(x,venv) {
+        assign(x,normalizePath(ve.cfg$Roots[[x]],winslash="/"),pos=venv); x
+      },
+      venv=sys.frame()
+    )
   )
-)
+}
+
+# Default ve.root presumes VE-Installer is running in a sub-folder of VisionEval
+if ( ! exists("ve.root") ) ve.root <- normalizePath("..")
+
+# Default ve.output creates a "built" folder below VE-Installer root.
+if ( ! exists("ve.output") ) {
+  ve.output <- normalizePath("built")
+  dir.create( ve.output, recursive=TRUE, showWarnings=FALSE )
+}
 
 # Extracting location paths:
 locs.lst <- names(ve.cfg$Locations)
@@ -99,7 +110,7 @@ make.variables <- c(
   ,VE_PKGS      = ve.pkgs
   ,VE_RUNTIME   = ve.runtime
   ,VE_TEST      = ve.test
-	,VE_RUNTESTS  = ve.runtests
+  ,VE_RUNTESTS  = ve.runtests
   ,VE_CACHE     = ve.dependencies
 )
 

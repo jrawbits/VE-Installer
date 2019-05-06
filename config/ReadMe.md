@@ -1,48 +1,67 @@
 # VisionEval Installer Configuration
 
-This folder contains configuration files that are used to build (and rebuild) versions of
-VisionEval.  It is feasible to mix and match different code trees (e.g. pulling the framework
-from one repository and the models plus modules from another).
+This folder contains example configuration files that are used to build (and rebuild) versions of
+VisionEval.  It is feasible to mix and match different code trees (e.g. pulling the framework from
+one repository and the models plus modules from another).
 
 This ReadMe.md file documents the structure of the configuration files.
 
 The configuration files are YAML, consisting of Key: Value pairs.
 
-The keys can be anything (The samples contain 'Name', 'Date' and 'Description' for example), but
-only the following will be examined:
+The top-level keys can be anything (The samples contain 'Name', 'Date' and 'Description' for
+example), but only the following will be examined:
 
+RunTests
 Roots
 Components
 Locations
 
 The structure of these
 
+## RunTests ##
+
+The "RunTests" key holds a single value, conventionally either TRUE or FALSE.
+
+If TRUE, the build will run `R CMD check` as well as any tests configured for the VE Modeles.
+Any other value is considered FALSE. By default, the Makefile will consult the value set
+here in this configuration .yml file. The value set here can be overridden when running `make`
+either by setting an environment variable (VE_RUNTESTS) to TRUE or FALSE, or by setting it on the
+make command line as `make VE_RUNTESTS=TRUE`.
+
 ## Roots ##
 
-In the "Roots" key, each elements is a tag:directory pair, where the tag is a symbolic name
-used to define sources and targets for other elements that are processed during the build.  The
-directory is an absolute path on the machine that will run the build (in whatever local syntax,
-Windows or Linux or Macintosh, is appropriate).
+In the "Roots" key, each elements is a tag:directory pair, where the tag is a symbolic name used
+later to define sources and targets for the various VisionEval elements that are processed during
+the build.  The directory value is an absolute path on the machine that will run the build (in
+whatever local syntax is appropriate, Windows or Linux or Macintosh).
 
 In general, to use a configuration file on a different machine or with a different VisionEval
 source tree, it is enough just to change the directory part of each root pair to point to
 the correct directory.
 
-While no root tags are formally required, it is conventional at a minimum to set ve.root to
-the folder containing the source code for VisionEval, and ve.output to the folder that will contain
-the build artifacts.
+While no root tags are formally required, it is conventional at a minimum to set ve.root to the
+folder containing the source code for VisionEval, and ve.output to the folder that will contain the
+build artifacts. If ve.root is not defined, it defaults to ".." relative to wherever VE-Installer is
+located. If ve.output is not defined, it defaults to the folder "built" relative to the
+VE-Installer root.
 
-In order to define Locations, at least one Root tag must be defined (see the Locations description
-below.
+In order to define Locations, at least one Root tag must be defined (see the "Locations" section
+below).
 
-A special root, ve.install, is always available and is set internally during the build process
-to the parent directory from which the build was launched.
+A special root, ve.installer, is always available and is set internally during the build process
+to the VE-Installer directory itself.
+
+Alternate roots can be used in the "Components" section to specify different versions of VisionEval
+to merge into a single build, and in the "Locations" section to identify where to put the output.
+One application of an alternate output location might be to put certain build artifacts (like the
+dependency repository) in a different location so they will survive "cleanup" (and thus effectively
+be cached).
 
 ## Locations ##
 
-The Locations key contains elements that are name:specification pairs identifying the output
-folders for each of the build steps.  The following Locations are the only ones recognized,
-and each must have a definition:
+The Locations key contains elements that are name:specification pairs identifying the output folders
+for each of the build steps.  The following Locations are recognized, and they should each have a
+definition (ther are no defaults for these).
 
 	- ve.dependencies
 	- ve.repository
@@ -51,41 +70,63 @@ and each must have a definition:
 	- ve.lib
 	- ve.test
 
-The specification for each Location is a sequence of key:value pairs.  At least two key:value pairs
+In addition, an optional Location `ve.components` can specify an alternate location for
+`VE-components.yml` (see below in the "Components" section to learn how that works).
+
+The specification for each Location is a collection of key:value pairs.  At least two key:value pairs
 must be defined:
 
 	- root
+    - path
 
-The configuration files should be adjusted to conform to the structure of the
-VisionEval that you would like to install.  Samples are provided for some of the
-key active development trees.  At a minimum, you'll need to update the paths for
-your own system.
+Other keys may be defined but they will be ignored.
 
-VE-config.R provides definitions for these file locations:
-	* `ve.root` (required, full path to the VisionEval that is to be installed)
-	* `ve.output` (optional, full path to the directory in which VE installation will be built)
+The `root` key has as its value one of the symbolic names defined (explicitly or implicitly) in the
+`Roots` section. It defaults (if not specified) to "ve.output".
 
-VE-dependencies.csv has the following structure:
+The `path` is the directory location for this location relative to the `root`.
 
-	* Columns "Package","Type","Path"
-		* Package is the name of the package (or object) to be assembled
-		  according to "Type" (with optional parameter "Path")
-	* Choices for "Type" are
-		* "CRAN"
-		* "BioConductor",
-		* "install" (a package, such as namedCapture, located in the install tree)
-		* "visioneval" (for visioneval packages)
-		* "copy" (for visioneval source trees not in packages [models,VEGUI])
-	* The path is a string interpreted as follows:
-		* it is ignored for CRAN and BioConductor Types
-		* relative to ve.install for "install" Type
-		* relative to ve.root for "visioneval" or "copy" Type
+## Components ##
 
-If there is a dependency order among the VE modules (type "visioneval"), they must be
-listed in VE-dependencies.csv in the order in which they will be built, but the types do
-not need to be listed consecutiavely.
+The "Components" section is used to mix and match VisionEval components from alternate root
+locations (e.g. a principal VisionEval version in ve.root, and a second repository possibly called
+ve.alt.root).
 
-The "install" type is intended to handle GitHub packages.  To use this installer, they
-must be cloned or downloaded into the `ve.install` tree (that's what the "external" folder
-is for).  Those packages will be built into source and binary packages and inserted into
-the local repository, ready for local installation.  See the example dependencies.
+The entire "Components" key is optional. If it is not present, VE-Installer will search for
+the file "VE-Components.yml" in a subfolder called "build" of the location specified in "ve.root".
+
+The "Components" section, if present, contains key:value pairs, where the key is one of the root
+identifiers (ve.root, ve.alt.root, or whatever) used to furnish part of what will be built into
+VisionEval.  The "value" is a sequence of key:value pairs with the following keys:
+
+    - Config (required)
+    - Include (optional)
+    - Exclude (optional)
+
+The "Config" key has as its value the path (relative to the root of these components) and name of
+the "VE-Components.yml" file. By default, that file is presumed to exist in the "build"
+sub-directory of ve.root.
+
+The roots are processed in order, with "ve.root" always being processed first.  The "Include"
+and "Exclude" options name components found in the corresponding VE-components.yml file for that
+root.  Components listed in "Include" are treated as the only elements in that root (even if others
+exist).  Components listed in "Exclude" are considered not to exist in that root, and they will
+be left out (so you could exclude "VEGUI", for example, to build a version that does not have the
+VEGUI scripts in it).
+
+If "Include" and "Exclude" are not used, components from subsequent roots
+after ve.root will be added to the list of components to build. If the component has the same name
+as a component included from an earlier root, it will replace the component from the earlier root.
+
+So if ve.root and ve.alt.root are both listed, their VE-Component.yml files are the same, and no
+"Include" or "Exclude" is provided, then only the versions from ve.alt.root will be used. It will
+be as if ve.root was never mentioned! In general it is best to use "Include" and "Exclude" as
+necessary to ensure that the correct component versions are built.
+
+Finally, because older versions of VisionEval will not have a VE-Components.yml file, you can create
+one yourself and use that instead.  In that case, you do not get to have multiple roots.  Only
+"ve.root" is used.  To set up a local VE-Components.yml file, define ve.components in the
+"Locations" section.  The "root" element will specify the root (typically "ve.installer"), and the
+"path" will list the path relative to root and the filename for "VE-Components.yml".
+
+

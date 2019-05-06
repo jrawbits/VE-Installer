@@ -28,7 +28,7 @@ include $(VE_MAKEVARS)
 #   and others
 
 .PHONY: configure repository modules binary runtime installers all\
-	clean lib-clean runtime-clean build-clean cache-clean test-clean modules-clean\
+	clean lib-clean runtime-clean build-clean test-clean modules-clean\
 	dev-clean really-clean\
 	docker-clean docker-output-clean docker
 
