@@ -28,7 +28,7 @@ include $(VE_MAKEVARS)
 #   and others
 
 .PHONY: configure repository modules binary runtime installers all\
-	clean lib-clean runtime-clean build-clean test-clean modules-clean\
+	clean lib-clean runtime-clean build-clean test-clean\
 	dev-clean really-clean\
 	docker-clean docker-output-clean docker
 
@@ -49,21 +49,15 @@ clean: $(VE_MAKEVARS) build-clean
 	rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
 
 lib-clean: $(VE_MAKEVARS)
-	rm -f $(VE_LOGS)/modules.built
 	rm -rf $(VE_REPOS)/*
 	rm -rf $(VE_LIB)/visioneval $(VE_LIB)/VE*
 
 runtime-clean: $(VE_MAKEVARS)
 	rm -rf $(VE_RUNTIME)/*
-	rm -f $(VE_LOGS)/runtime.built
 
 build-clean:
-        # Use "*dependencies" to catch "all-dependencies.RData"
 	rm -rf $(VE_LOGS)/*
 	rm -f *.out
-
-modules-clean:
-	rm -f $(VE_LOGS)/modules.built
 
 dev-clean:
 	rm -rf dev-lib/$(VE_R_VERSION)
@@ -105,17 +99,13 @@ $(VE_LOGS)/binary.built: $(VE_LOGS)/repository.built scripts/install-velib.R scr
 	$(RSCRIPT) scripts/build-external-bin.R
 	touch $(VE_LOGS)/binary.built
 
-modules: $(VE_LOGS)/modules.built
-
-$(VE_LOGS)/modules.built: $(VE_LOGS)/binary.built $(VE_RUNTIME_CONFIG) scripts/build-modules.R
+# We'll always "build" the modules and the runtime, but only out-of-date stuff
+# gets built (file time stamps are checked in the R scripts)
+modules: $(VE_LOGS)/binary.built $(VE_RUNTIME_CONFIG) scripts/build-modules.R
 	$(RSCRIPT) scripts/build-modules.R
-	touch $(VE_LOGS)/modules.built
 
-runtime: $(VE_LOGS)/runtime.built
-
-$(VE_LOGS)/runtime.built: $(VE_RUNTIME_CONFIG) $(VE_BOILERPLATE) scripts/setup-sources.R
+runtime: $(VE_RUNTIME_CONFIG) $(VE_BOILERPLATE) scripts/setup-sources.R
 	$(RSCRIPT) scripts/setup-sources.R
-	touch $(VE_LOGS)/runtime.built
 
 installer: installer-bin
 
