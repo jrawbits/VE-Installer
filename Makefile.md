@@ -37,7 +37,7 @@ The first part sets up necessary environment variables:
 </dl>
 
 
-'''
+~~~
 # You can override VE_CONFIG, VE_RUNTESTS and VE_R_VERSION on the command line
 VE_CONFIG?=config/VE-config.yml
 VE_RUNTESTS?=Default
@@ -60,7 +60,7 @@ VE_MAKEVARS:=$(VE_LOGS)/ve-output.make
 export VE_LOGS VE_RUNTIME_CONFIG VE_MAKEVARS
 
 VE_BOILERPLATE:=$(wildcard boilerplate/boilerplate*.lst)
-'''
+~~~
 
 The "include" directive forces the file identified by VE_MAKEVARS to
 be rebuilt if it is out of date compared to VE-Config.yml. The
@@ -68,37 +68,37 @@ makefile is then reloaded.  VE_MAKEVARS includes definitions of lots
 of important locations that are set up in the configuration so the
 makefile can inspect and build them suitably.
 
-'''
+~~~
 include $(VE_MAKEVARS)
 # $(VE_MAKEVARS) gets rebuilt (see below) if it is out of date, using state-dependencies.R
 # Make then auto-restarts to read:
 #   VE_OUTPUT, VE_CACHE, VE_LIB, VE_INSTALLER, VE_PLATFORM, VE_TEST
 #   and others
-'''
+~~~
 
 .PHONY make targets are things you can ask to build that do not
 generate a file.  They will always get "built", but make won't bother
 to see if there's an up-to-date target.
 
-'''
+~~~
 .PHONY: configure repository modules binary runtime installers all\
 	clean lib-clean runtime-clean build-clean test-clean modules-clean\
 	dev-clean really-clean\
 	docker-clean docker-output-clean docker
-'''
+~~~
 
 all is a target that builds the basic runtime by building each of the
 steps (or verifying that they are up to date).  See the subsequent
 targets for configure, repository, binary, modules and runtime
 
-'''
+~~~
 all: configure repository binary modules runtime
-'''
+~~~
 
 Use `make show-defaults` to dump some of make's key variables. Use to
 debug environment variables and command line definitions.
 
-'''
+~~~
 show-defaults:
 	echo Make defaults:
 	echo VE_R_VERSION $(VE_R_VERSION)
@@ -106,12 +106,12 @@ show-defaults:
 	echo VE_CONFIG $(VE_CONFIG)
 	echo RSCRIPT $(RSCRIPT)
 	echo VE_OUTPUT $(VE_OUTPUT)
-'''
+~~~
 
 The following 'clean' targets will blow away various artifacts of
 previous builds and force make to start again.
 
-'''
+~~~
 # Should have the "clean" target depend on $(VE_MAKEVARS) if it uses
 # any of the folders like VE_OUTPUT that are read in from there.
 clean: $(VE_MAKEVARS) build-clean
@@ -151,7 +151,7 @@ test-clean: $(VE_MAKEVARS)
 
 really-clean: $(VE_MAKEVARS) build-clean dev-clean
 	rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
-'''
+~~~
 
 Finally, we get down to the targets that do real work:
 
@@ -175,7 +175,7 @@ Finally, we get down to the targets that do real work:
    <dt>installers</dt><dd>Builds installer-bin and installer-src</dd>
 </dl>
 
-'''
+~~~
 configure: $(VE_RUNTIME_CONFIG) $(VE_MAKEVARS)
 
 # Note: state-dependencies.R identifies VE_CONFIG via the exported variable
@@ -226,7 +226,7 @@ $(VE_LOGS)/installer-src.built: $(VE_LOGS)/installer-bin.built
 	$(RSCRIPT) scripts/runtime-packages.R
 	bash scripts/build-installers.sh SOURCE
 	touch $(VE_LOGS)/installer-src.built
-'''
+~~~
 
 Finally, there's some Docker stuff not documented here, since it's
 still under construction and what is in the Makefile doesn't current
