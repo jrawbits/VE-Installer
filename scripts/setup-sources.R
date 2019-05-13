@@ -111,3 +111,4 @@ if ( length(copy.paths) > 0 ) {
     cat("Model files are up to date.\n")
   }
 }
+cat("Runtime setup is complete.\n")
