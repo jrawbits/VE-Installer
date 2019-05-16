@@ -70,29 +70,6 @@ built.path.source <- contrib.url(ve.repository,type="source") # VE source packag
 source.modules <- unlist(sapply(package.names,
                   FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source)),
                   USE.NAMES=FALSE))
-# Note: source.modules will have empty entries for any package not yet built.
-# Missing packages will be built and names recorded in the next stanza
-
-# Build missing source packages
-num.src <- 0
-for ( module in seq_along(package.names) ) {
-  need.update <- newerThan( package.paths[module], source.modules[module] )
-  if ( ! moduleExists(package.names[module], built.path.source) || need.update ) {
-    if ( need.update ) cat("Updating package",package.names[module],"\n")
-    source.modules[module] <- devtools::build(package.paths[module], path=built.path.src)
-    num.src <- num.src + 1
-  }
-}
-if ( num.src > 0 ) {
-  cat("Writing source PACKAGES file\n")
-  write_PACKAGES(built.path.source, type="source")
-} else {
-  cat("No source packages need to be built\n")
-}
-cat("Source modules available:\n")
-print(unlist(sapply(package.names,
-      FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source)),
-      USE.NAMES=FALSE)))
 
 # Copy test elements from components, if requested in configuration
 if (ve.runtests) {
@@ -117,9 +94,20 @@ if (ve.runtests) {
 # WARNING: The binary build will not rebuild packages once they have been built.
 # To force a rebuild, delete the binary from ve-lib
 
+num.src <- 0
 num.bin <- 0
 pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
 for ( module in seq_along(package.names) ) {
+
+  # Build missing our out-of-date source modules
+  need.update <- newerThan( package.paths[module], source.modules[module] )
+  if ( ! moduleExists(package.names[module], built.path.source) || need.update ) {
+    if ( need.update ) cat("Updating package",package.names[module],"in",package.paths[module],"\n")
+    source.modules[module] <- devtools::build(package.paths[module], path=built.path.src)
+    num.src <- num.src + 1
+  }
+
+  # Build binary packages and conduct tests if needed
   build.dir <- file.path(ve.test,package.names[module])
   package.built <- moduleExists(package.names[module], built.path.binary) &&
                    dir.exists(build.dir) &&
@@ -172,16 +160,21 @@ for ( module in seq_along(package.names) ) {
       cat("Installing source package:",package.names[module],"\n")
       install.packages(package.names[module], repos=ve.repo.url, lib=ve.lib, type="source")
     } else {
-      cat("All VisionEval packages are already built and installed.\n")
+      cat("Existing source package",package.names[module],"(Already Installed)\n")
     }
   }
+}
+if ( num.src > 0 ) {
+  cat("Writing source PACKAGES file\n")
+  write_PACKAGES(built.path.source, type="source")
+} else {
+  cat("No source packages needed to be built\n")
 }
 if ( num.bin > 0 ) {
   cat("Writing binary PACKAGES file\n")
   write_PACKAGES(built.path.binary, type=build.type)
 } else {
   cat("No binary packages needed to be built.\n")
-  cat("WARNING: you need to manually remove obsolete packages, e.g. via make lib-clean\n")
 }
 
 building <- paste( "building",ifelse(ve.runtests,", testing","") )
