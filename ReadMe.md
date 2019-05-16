@@ -52,6 +52,8 @@ below and in various referenced files.
 * Install [RTools][getRTools]
     * You need an implementation of GNU Make and Info-Zip (available in RTools
       as `make.exe` and `zip.exe` respectively)
+    * Put RTools at the beginning of your PATH, either by setting user environment
+      variables or by adjusting PATH in your `.bashrc` file.
 * Install [Git for Windows][Git4W]
     * You need an implementation of GNU bash and GNU tools to run some of the scripts
     * Having command-line git is handy for accessing repositories
@@ -138,6 +140,10 @@ at the end of the taskbar), just start typing "environment", the display will sh
 results. Pick "Edit environment variables for your account", then select PATH from the list (or
 create a PATH variable if it's not there), and enter the full path (drive and directory)
 to "RTools/bin" (notice the "/bin"!).
+
+If for some reason you don't want to re-order the PATH, you can also avoid build problems
+by adding `export TAR=internal` to your `.bashrc`, or putting `TAR=internal` into your
+Windows user environment.  The `tar` program in Git for Windows does not work with R.
 
 [getRTools]: https://cran.r-project.org/bin/windows/Rtools/Rtools35.exe "RTools for R 3.5"
 
@@ -276,6 +282,47 @@ look at the build output while the background process is running. You can Ctrl-C
 process and the build will keep going.  To see later where it is, you can just rerun the
 `tail -f make.out` command to start watching again.
 
+### Rebuilding after you change the VisionEval sources
+
+The `make` process is set up to do as little repetitive work as possible. There are
+several `make` targets that will undo some of what you have built so as to check and
+rebuild things that would otherwise be untouched.  Here is a list of those targets
+that tell `make` to take a closer look at what is built.  It will still try to do as
+little as possible:
+
+* `make build-clean`
+  This target will remove all the log file output (in the `logs` subdirectory of
+  VE-installer). It will also remove the parsed configuration file data.  Use this
+  target if you change `VE-config.yml` or if any of the VisionEval package dependencies
+  have been changed, or if you want to use a different value for VE_RUNTESTS
+* `make lib-clean`
+  Perform `build-clean` and `test-clean` then also delete all the built VisionEval packages
+  (source and binary).  Use this if have already built the packages but want to change
+  the value of VE_RUNTESTS or if you have checked out a different VisionEval branch and
+  want to rebuild everything without completely redoing all the dependency downloads.
+* `make runtime-clean`
+  Removes the model scripts, VEGUI and other source files from the runtime.  They will be
+  copied again when the runtime is next built.  Use this if you have deleted or renamed
+  files for the runtime.  New or modified files will always be copied when the runtime is
+  built.
+* `make installer-clean`
+  Removes any installer `.zip` files and supporting data in the package source repository
+* `make dev-clean`
+  Removes the packages that were downloaded into the development library. Those development
+  library contains packages used by the installer, but not required by VisionEval itself.
+  They will be downloaded again as needed when you subsequently run `make`.
+* `make depends-clean`
+  Removes the downloaded package dependencies so the local repository can be rebuilt.
+* `make test-clean`
+  Removes test data, test results and the copies of the module sources used for testiong
+* `make clean`
+  Remove the standard output files, but leave behind things like dependencies if
+  they have been stored in an alternate output root location. See documentation of
+  VE-Config.yml.  Same as running `build-clean` and `test-clean` and then removing
+  all the other files in the configured output location.
+* `make really-clean`
+  This target combines `clean`, `depends-clean` and `dev-clean`
+
 ### Remember to build fresh to make an installer
 
 If you are planning to distribute one of the .zip installers, you should build from
@@ -320,8 +367,19 @@ tests | Copies of the VisionEval TestData and package folders used for running t
 ve-lib | Library of installed packages for the local machine architecture
 ve-pkg | Repository of source packages (VisionEval plus dependencies) used in source installer (optional)
 VE-Runtime-Rx.x.x.zip | Just the runtime folder (for the local architecture and R version x.x.x) zipped up
-VE-installer-Windows-R3.5.3.zip | the offline Windows installer for end users
-VE-installer-Source-R3.5.3.zip | the offline source installer for end users
+VE-installer-Windows-Rx.x.x.zip | the offline Windows installer for end users using R version x.x.x
+VE-installer-Source-Rs.x.x.zip | the offline source installer for end users using R version x.x.x
+
+Inside the VE-Installer hierarchy, you will find the following new (built) directories (with
+sub-directories for each R version you have used to perform the build):
+
+Item | Contents
+--------- | --------
+dev-lib | Package library for dependencies used by VE-Installer itself (but not necessarily by VisionEval)
+logs | Log files and tracking files constructed during the build.
+
+Remember that logs from the `R CMD check` tests go into sub-directories of each module's
+copy in the output `tests` folder.
 
 \* If building on a Windows machine.
 
