@@ -45,10 +45,10 @@ show-defaults:
 
 # Should have the "clean" target depend on $(VE_MAKEVARS) if it uses
 # any of the folders like VE_OUTPUT that are read in from there.
-clean: $(VE_MAKEVARS) build-clean
+clean: $(VE_MAKEVARS) build-clean test-clean
 	rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
 
-lib-clean: $(VE_MAKEVARS)
+lib-clean: $(VE_MAKEVARS) build-clean test-clean
 	rm -rf $(VE_REPOS)/*
 	rm -rf $(VE_LIB)/visioneval $(VE_LIB)/VE*
 
@@ -71,11 +71,10 @@ installer-clean: $(VE_MAKEVARS)
 depends-clean: clean
 	rm -rf $(VE_DEPS)/*
 
-test-clean: $(VE_MAKEVARS)
+test-clean: $(VE_MAKEVARS) lib-clean
 	rm -rf $(VE_TEST)/*
 
-really-clean: $(VE_MAKEVARS) build-clean dev-clean
-	rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
+really-clean: clean depends-clean dev-clean
 
 configure: $(VE_RUNTIME_CONFIG) $(VE_MAKEVARS)
 

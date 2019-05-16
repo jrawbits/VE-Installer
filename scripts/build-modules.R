@@ -117,7 +117,6 @@ for ( module in seq_along(package.names) ) {
   if ( ! package.built ) {
     cat("Copying module source",package.paths[module],"to build/test environment...\n")
     invisible(file.copy(package.paths[module],ve.test,recursive=TRUE))
-    build.dir <- file.path(ve.test,package.names[module])
     if ( ! dir.exists(build.dir) ) {
       stop("Failed to create build/test environment:",build.dir)
     }
