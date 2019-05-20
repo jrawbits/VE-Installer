@@ -72,7 +72,7 @@ installer-clean: $(VE_MAKEVARS)
 depends-clean: clean
 	rm -rf $(VE_DEPS)/*
 
-test-clean: $(VE_MAKEVARS) lib-clean
+test-clean: $(VE_MAKEVARS)
 	rm -rf $(VE_TEST)/*
 
 really-clean: clean depends-clean dev-clean

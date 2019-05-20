@@ -56,6 +56,8 @@ if ( length(pkgs.external)> 0 ) {
     if ( build.type == "win.binary" ) {
       package.built <- moduleExists(pkgs.external[pkg], built.path.binary) &&
                        ! newerThan( pkg.sources[pkg], file.path(built.path.binary,modulePath(pkgs.external[pkg],built.path.binary)))
+    } else {
+      package.built <- TRUE
     }
     package.installed <- package.built && pkgs.external[pkg] %in% pkgs.installed
 

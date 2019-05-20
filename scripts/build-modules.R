@@ -109,9 +109,13 @@ for ( module in seq_along(package.names) ) {
 
   # Build binary packages and conduct tests if needed
   build.dir <- file.path(ve.test,package.names[module])
-  package.built <- moduleExists(package.names[module], built.path.binary) &&
-                   dir.exists(build.dir) &&
-                   ! newerThan( source.modules[module], file.path(built.path.binary,modulePath(package.names[module],built.path.binary)) )
+  if ( build.type != 'source' ) {
+	  package.built <- moduleExists(package.names[module], built.path.binary) &&
+             			   dir.exists(build.dir) &&
+			               ! newerThan( source.modules[module], file.path(built.path.binary,modulePath(package.names[module],built.path.binary)) )
+  } else {
+    package.built <- ! newerThan( source.modules[module], build.dir )
+  }
   package.installed <- package.built && package.names[module] %in% pkgs.installed
 
   if ( ! package.built ) {
@@ -157,7 +161,7 @@ for ( module in seq_along(package.names) ) {
   } else { # build.type == "source"
     if ( ! package.installed ) {
       cat("Installing source package:",package.names[module],"\n")
-      install.packages(package.names[module], repos=ve.repo.url, lib=ve.lib, type="source")
+      install.packages(source.modules[module], repos=NULL, lib=ve.lib, type="source")
     } else {
       cat("Existing source package",package.names[module],"(Already Installed)\n")
     }
