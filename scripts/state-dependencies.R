@@ -18,7 +18,7 @@ ve.platform <- paste(toupper(substring(ve.platform,1,1)),substring(ve.platform,2
 # The following includes a hack to fix a common path problem if you are
 # developing on Windows in a subfolder of "My Documents"
 ve.installer <- getwd()
-if ( ve.platform == "Windows" || Platform$pkgType == "win.binary" ) {
+if ( ve.platform == "Windows" || .Platform$pkgType == "win.binary" ) {
   ve.installer <- sub("My Documents", "Documents", ve.installer)
   ve.installer <- gsub("\\\\", "/", ve.installer)
 }
@@ -111,7 +111,7 @@ make.variables <- c(
   ,VE_RUNTIME   = ve.runtime
   ,VE_TEST      = ve.test
   ,VE_RUNTESTS  = ve.runtests
-  ,VE_CACHE     = ve.dependencies
+  ,VE_DEPS      = ve.dependencies
 )
 
 writeLines( paste( names(make.variables), make.variables, sep="="),make.target)
@@ -381,7 +381,7 @@ newerThan <- function( pkgpath, target, quiet=TRUE ) {
 
 default.config <- file.path(ve.logs,"dependencies.RData")
 ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
-ve.all.dependencies <- file.path(ve.logs,"all-dependencies.RData",sep=".")
+ve.all.dependencies <- file.path(ve.logs,"all-dependencies.RData")
 
 save(
   file=ve.runtime.config,

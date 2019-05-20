@@ -41,6 +41,7 @@ show-defaults:
 	echo VE_CONFIG $(VE_CONFIG)
 	echo RSCRIPT $(RSCRIPT)
 	echo VE_OUTPUT $(VE_OUTPUT)
+	echo VE_DEPS $(VE_DEPS)
 	
 
 # Should have the "clean" target depend on $(VE_MAKEVARS) if it uses
