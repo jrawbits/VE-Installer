@@ -11,4 +11,3 @@ if ( ! is.null(argv) && length(argv) == 2 ) {
 } else {
 	cat(paste(sep="","run_model.r: Malformed Model '",argv[1],"' or Data '",argv[2], "'\n"))
 }
-

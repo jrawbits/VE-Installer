@@ -2,30 +2,28 @@
 # 
 FROM rocker/r-ver as VE-dependencies
 
-COPY /pkg-repository/src /home/visioneval/pkg-repository/src
-COPY /pkg-repository/*.lst /home/visioneval/
+COPY /ve-pkgs/src /home/visioneval/ve-pkgs/src
+COPY /ve-pkgs/*.lst /home/visioneval/
 
 WORKDIR /home/visioneval
 
-# Don't need libit2 - packaged version is not recent enough;
-# Can build it as part of the dependency (it's bundled)
 RUN apt-get update && apt-get install -y \
 	libcurl4-gnutls-dev \
 	libssh2-1-dev \
-    libssl-dev \
-    zlib1g-dev \
-    libpng-dev \
-    libtool 
+  libssl-dev \
+  zlib1g-dev \
+  libpng-dev \
+  libtool 
 
 RUN mkdir /home/visioneval/ve-lib \
 	&& install2.r \
-    -r "file:pkg-repository" \
+    -r "file:ve-pkgs" \
     -l "ve-lib" \
     $(cat dependencies.lst) \
 	&& rm dependencies.lst
 
 RUN install2.r \
-    -r "file:pkg-repository" \
+    -r "file:ve-pkgs" \
     -l "ve-lib" \
     $(cat visioneval.lst) \
 	&& rm visioneval.lst

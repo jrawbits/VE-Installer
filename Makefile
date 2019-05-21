@@ -126,11 +126,6 @@ $(VE_LOGS)/installer-src.built: $(VE_LOGS)/installer-bin.built
 	touch $(VE_LOGS)/installer-src.built
 
 # Experimental Docker installation
-# Docker work all happens here (not in a separate shell script)
-
-# Warning: Docker is broken due to use of VE_ROOT (not set), which
-# includes multiple possible locations with the YAML configuration
-# We'll need to move the Docker stuff back into (probably R) scripts
 
 ifeq ($(WINDOWS),TRUE)
 docker-output-clean docker-clean docker:
@@ -146,5 +141,6 @@ docker-clean: docker-output-clean
 	rm -rf $(VE_DOCKER_OUT)/home
 	
 docker: $(VE_LOGS)/repository.built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore
-	bash scripts/build-docker.sh
+	$(RSCRIPT) scripts/runtime-packages.R
+#	bash scripts/build-docker.sh
 endif

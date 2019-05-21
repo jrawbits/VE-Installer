@@ -27,11 +27,17 @@ if ( ! exists("all.dependencies") ) {
 
 require(tools)
 
-# Start work...
+# Prepare package names and output repository contriburl
 
 ve.pkgnames <- pkgs.db[pkgs.module,]$Package
 src.contrib <- contrib.url(ve.pkgs, type="source")
 if ( ! dir.exists( src.contrib ) ) dir.create(src.contrib, recursive=TRUE, showWarnings=FALSE)
+
+# Save out lists of dependencies and packages
+cat(file=file.path(ve.pkgs,"dependencies.lst"),paste(all.dependencies,collapse=" "),"\n")
+cat(file=file.path(ve.pkgs,"visioneval.lst"),paste(ve.pkgnames,collapse=" "),"\n")
+
+# Start work...
 
 cat("Preparing source distribution repository\n")
 if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES")) ) {
@@ -44,10 +50,12 @@ if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES"
   write_PACKAGES(src.contrib, type="source")
 } else {
   cat("Checking if required packages are present\n")
-  write_PACKAGES(src.contrib, type="source")
+  if ( any( ! file.exists(file.path(src.contrib,dir(src.contrib,pattern="PACKAGES.*"))) ) ) {
+    # Probably no way for packages to sneak in unannounced, but just in case...
+    write_PACKAGES(src.contrib, type="source")
+  }
   ap <- available.packages(repos=paste("file:", ve.pkgs, sep=""), type="source")
   missing.deps <- setdiff( all.dependencies, ap[,"Package"])
-  cat("Missing dependencies:\n")
   if ( length(missing.deps) > 0 ) {
     cat("Adding missing dependencies to source distribution repository\n")
     deps.dir <- contrib.url(ve.dependencies,type="source")
@@ -55,7 +63,6 @@ if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES"
     missing.deps <- file.path( deps.dir,modulePath( missing.deps, deps.dir ) )
     print(missing.deps)
     file.copy( missing.deps, src.contrib, recursive=TRUE, overwrite=TRUE )
-    write_PACKAGES(src.contrib, type="source")
   } else {
     cat("Source distribution repository dependencies are up to date\n")
   }
@@ -67,7 +74,6 @@ if ( ! dir.exists(src.contrib) || ! file.exists(file.path(src.contrib,"PACKAGES"
     missing.pkgs <- file.path( pkgs.dir,modulePath( missing.pkgs, pkgs.dir ) )
     print(missing.pkgs)
     file.copy( missing.pkgs, src.contrib, recursive=TRUE, overwrite=TRUE )
-    write_PACKAGES(src.contrib, type="source")
   } else {
     cat("Source distribution repository VE packages are up to date\n")
   }

@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ -z "${VE_OUTPUT}" ]
+then
+	echo Must set VE_DOCKER_IN \(location of Dockerfile etc.\)
+	exit 1
+fi
+
 if [ -z "${VE_DOCKER_IN}" ]
 then
 	echo Must set VE_DOCKER_IN \(location of Dockerfile etc.\)

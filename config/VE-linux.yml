@@ -1,37 +1,11 @@
 Title: VisionEval
-Date: 2019-04-25
-RunTests: FALSE # if TRUE, default module build behavior will be to run the (very time-consuming) tests
-# Override RunTests during "make" by adding VE_RUNTESTS=True when building the 'configure' target
-Roots: # TODO: Edit ve.root and ve.output to identify directories on the local machine
-    ve.root: /home/jeremy/Git-Repos/VisionEval-dev
-    ve.output: /home/jeremy/VE-Built  # Required
-    # ve.cache: e:/VE-built/VE-Cache  # Optional
-    # However ve.cache is "special" in that, if defined, anything stored there will require
-    #    extra effort to remove between builds
-    # Additional roots may be defined (with unique names); here is an illustrative alias:
-    # Typically additional roots will be used in the optional Components section below
-    #   ve.alt.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev # Optional
-    # ve.install is implicitly available - relative to the running installer
-# Components:  # Entire section is optional
-    # Default if this section is missing is to load all components from ve.root/build/VE-components.yml
-    # The "roots" are processed in order; components from the first, then components from the second
-    # Note that ve.root is special and will always be loaded first (with its Includes and Excludes applied)
-    # Alternate roots will then be loaded in the order presented here
-    # Components with the same name in later roots will replace components from earlier roots
-    # If a new component appears in a later root it is just added to the existing set of components
-    # Adding an "Install" list reduces the root configuration to just those components before replacement
-    # Adding an "Exclude" list reduces the root configuration to everything EXCEPT those components before replacement
-    # ve.root:
-    #     Config: "build/VE-components.yml" # relative to ve.root
-    #     Exclude:
-    #         - VE-State
-    # ve.alt.root:
-    #   Config: "build/VE-components.yml" # relative to ve.alt.root 
-    #   Include:
-    #       - visioneval
-    #       - VE2001NHTS
-    #       - VE-State
-Locations: # "Root" elements are variables defined in "Roots" section; path is relative to that
+Date: 2019-04-26
+Description: A minimal VE-config.yml
+RunTests: FALSE
+Roots: # Require ve.root and ve.output at a minimum
+    ve.root: ../VisionEval-dev # Eventually, just ".." if a submodule
+    ve.output: ../VE-Built
+Locations: # "Root" elements are variables defined in "Roots" section
     ve.dependencies:  # Required
         root: ve.output
         path: pkg-dependencies
@@ -39,15 +13,15 @@ Locations: # "Root" elements are variables defined in "Roots" section; path is r
     ve.repository:    # Required
         root: ve.output
         path: pkg-repository
-        description: src/binary repo built from VE packages (only)
+        description: src/binary repo built from VE packages
     ve.runtime:       # Required
         root: ve.output
         path: runtime
         description: local runtime environment + base for installers
     ve.pkgs:          # Required
         root: ve.output
-        path: ve-pkg
-        description: copy src tree here from ve.dependencies + ve.repository for installer
+        path: docker/ve-pkg
+        description: copy src tree here from ve.dependencies + ve.repository for installer/docker
     ve.lib:           # Required
         root: ve.output
         path: ve-lib
@@ -58,4 +32,4 @@ Locations: # "Root" elements are variables defined in "Roots" section; path is r
         description: run tests here if requested during build
     ve.external:      # Required if there are any Github packages
         root: ve.output
-        path: external-packages
+        path: external
