@@ -1,4 +1,5 @@
 # You can override VE_CONFIG, VE_RUNTESTS and VE_R_VERSION on the command line
+# Or change export them from your environment
 VE_CONFIG?=config/VE-config.yml
 VE_RUNTESTS?=Default
 ifeq ($(OS),Windows_NT)
@@ -131,6 +132,10 @@ $(VE_LOGS)/installer-src.built: $(VE_LOGS)/installer-bin.built
 # includes multiple possible locations with the YAML configuration
 # We'll need to move the Docker stuff back into (probably R) scripts
 
+ifeq ($(WINDOWS),TRUE)
+docker-output-clean docker-clean docker:
+	echo Docker building is not available on Windows
+else
 VE_DOCKER_IN=docker
 VE_DOCKER_OUT=$(VE_OUTPUT)/$(VE_R_VERSION)/Docker
 DOCKERFILE=$(VE_DOCKER_IN)/Dockerfile
@@ -140,15 +145,6 @@ docker-output-clean:
 docker-clean: docker-output-clean
 	rm -rf $(VE_DOCKER_OUT)/home
 	
-# TODO: Need a script to do the Docker stuff, using its own boilerplate and script setup
-# list (like "setup-sources.R" and "runtime-packages.R"
-
-docker: $(VE_LOGS)/repository.built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore $(VE_RUNTIME_CONFIG) \
-$(VE_OUTPUT)/pkg-repository/dependencies.lst $(VE_OUTPUT)/pkg-repository/visioneval.lst
-	mkdir -p $(VE_DOCKER_OUT)/home/visioneval/models
-	mkdir -p $(VE_DOCKER_OUT)/Data
-	cp -R $(VE_ROOT)/sources/models/VERSPM $(VE_ROOT)/sources/models/VERPAT \
-		$(VE_DOCKER_OUT)/home/visioneval/models/
-	cp $(VE_DOCKER_IN)/.dockerignore $(VE_DOCKER_OUT)
-	cp -a $(VE_DOCKER_IN)/home/* $(VE_DOCKER_OUT)/home/ cd $(VE_DOCKER_OUT); docker build -f
-	${DOCKERFILE} -t visioneval .
+docker: $(VE_LOGS)/repository.built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore
+	bash scripts/build-docker.sh $(VE_ROOT)
+endif
