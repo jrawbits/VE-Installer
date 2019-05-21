@@ -198,11 +198,13 @@ if ( num.src > 0 ) {
 } else {
   cat("No source packages needed to be built\n")
 }
-if ( num.bin > 0 ) {
-  cat("Writing binary PACKAGES file\n")
-  write_PACKAGES(built.path.binary, type=build.type)
-} else {
-  cat("No binary packages needed to be built.\n")
+if ( build.type != "source" ) {
+  if ( num.bin > 0 ) {
+    cat("Writing binary PACKAGES file\n")
+    write_PACKAGES(built.path.binary, type=build.type)
+  } else {
+    cat("No binary packages needed to be built.\n")
+  }
 }
 
 building <- paste( "building",ifelse(ve.runtests,", testing","") )

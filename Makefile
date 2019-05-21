@@ -146,5 +146,5 @@ docker-clean: docker-output-clean
 	rm -rf $(VE_DOCKER_OUT)/home
 	
 docker: $(VE_LOGS)/repository.built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore
-	bash scripts/build-docker.sh $(VE_ROOT)
+	bash scripts/build-docker.sh
 endif
