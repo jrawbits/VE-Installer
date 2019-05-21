@@ -65,11 +65,17 @@ package.paths <- file.path(ve.packages[,"Root"], ve.packages[,"Path"], package.n
 # We do "build" for Windows so we can get the .zip package file into the binary pkg-repository
 # On platforms other than Windows, simply installing will do the necessary build
 
+debug <- 0 # 0: no debug, 1: lightweight, 2: full details
+
 # Locate modules to build in source repository (always build from source package)
 built.path.source <- contrib.url(ve.repository,type="source") # VE source packages
 source.modules <- unlist(sapply(package.names,
-                  FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source)),
-                  USE.NAMES=FALSE))
+                  FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source))))
+if ( debug>1 ) {
+  print(source.modules)
+  cat("Source modules identified:\n")
+  print(paste(package.names,source.modules[package.names],file.exists(source.modules[package.names]),sep=":"))
+}
 
 # Copy test elements from components, if requested in configuration
 if (ve.runtests) {
@@ -98,29 +104,48 @@ num.src <- 0
 num.bin <- 0
 pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
 for ( module in seq_along(package.names) ) {
+  src.module <- source.modules[package.names[module]]
 
   # Build missing our out-of-date source modules
-  need.update <- newerThan( package.paths[module], source.modules[module] )
-  if ( ! moduleExists(package.names[module], built.path.source) || need.update ) {
-    if ( need.update ) cat("Updating package",package.names[module],"in",package.paths[module],"\n")
-    source.modules[module] <- devtools::build(package.paths[module], path=built.path.src)
+  need.update <- newerThan( package.paths[module], src.module, quiet=(debug<2) )
+  if ( ! (me <- moduleExists(package.names[module], built.path.source)) || need.update ) {
+    if ( need.update ) {
+      cat("Updating package",package.names[module],"from",package.paths[module],"(Exists: ",me,")\n")
+    } else {
+      cat("Creating package",package.names[module],"from",package.paths[module],"(Exists:",me,")\n")
+    }
+    src.module <- devtools::build(package.paths[module], path=built.path.src)
     num.src <- num.src + 1
   }
 
   # Build binary packages and conduct tests if needed
   build.dir <- file.path(ve.test,package.names[module])
   if ( build.type != 'source' ) {
-	  package.built <- moduleExists(package.names[module], built.path.binary) &&
-             			   dir.exists(build.dir) &&
-			               ! newerThan( source.modules[module], file.path(built.path.binary,modulePath(package.names[module],built.path.binary)) )
+	  package.built <- (me <- moduleExists(package.names[module], built.path.binary)) &&
+             			   (de <- dir.exists(build.dir)) &&
+			               (nt <- ! newerThan( quiet=(debug<2),
+                              src.module,
+                              file.path(built.path.binary,
+                                        modulePath(package.names[module],built.path.binary))) )
+    if ( debug && ! package.built ) {
+      cat("Status of unbuilt ",package.names[module],"\n")
+      cat("Module",me," ","Dir",de," ","Newer",nt," ","Inst",(package.names[module] %in% pkgs.installed),"\n")
+    }
   } else {
-    package.built <- ! newerThan( source.modules[module], build.dir )
+    package.built <- ! newerThan( src.module, build.dir )
   }
+  if ( ! package.built ) cat(package.names[module],"is",ifelse(package.built,"built","NOT built"),"\n")
   package.installed <- package.built && package.names[module] %in% pkgs.installed
+  if ( ! package.installed ) cat(package.names[module],"is",ifelse(package.installed,"installed","NOT installed"),"\n")
 
   if ( ! package.built ) {
-    cat("Copying module source",package.paths[module],"to build/test environment...\n")
-    invisible(file.copy(package.paths[module],ve.test,recursive=TRUE))
+    pkg.files <- file.path(package.paths[module],dir(package.paths[module],recursive=TRUE))
+    if ( debug ) {
+      cat(paste("Copying",pkg.files,"to",build.dir,"\n",sep=" "),sep="")
+    } else {
+      cat("Copying module source",package.paths[module],"to build/test environment...\n")
+    }
+    invisible(file.copy(pkg.files,build.dir))
     if ( ! dir.exists(build.dir) ) {
       stop("Failed to create build/test environment:",build.dir)
     }
@@ -161,7 +186,7 @@ for ( module in seq_along(package.names) ) {
   } else { # build.type == "source"
     if ( ! package.installed ) {
       cat("Installing source package:",package.names[module],"\n")
-      install.packages(source.modules[module], repos=NULL, lib=ve.lib, type="source")
+      install.packages(src.module, repos=NULL, lib=ve.lib, type="source")
     } else {
       cat("Existing source package",package.names[module],"(Already Installed)\n")
     }

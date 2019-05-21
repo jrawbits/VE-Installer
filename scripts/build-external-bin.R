@@ -51,7 +51,6 @@ if ( length(pkgs.external)> 0 ) {
   # External packages to build (possibly submodules)
 
   num.built <- 0
-  pkg.built <- TRUE
   for ( pkg in seq_along(pkgs.external) ) {
     if ( build.type == "win.binary" ) {
       package.built <- moduleExists(pkgs.external[pkg], built.path.binary) &&

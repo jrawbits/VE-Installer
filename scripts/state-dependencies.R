@@ -366,8 +366,10 @@ newerThan <- function( pkgpath, target, quiet=TRUE ) {
   source.time <- max(file.mtime(pkgpath))
   if (!quiet) cat("Target:",target[1],"\n")
   target.time <- max(file.mtime(target))
-  if (!quiet) cat(source.time,"newer than",target.time,"?\n")
-  newer <- source.time > target.time
+  if (!quiet) cat(strftime(source.time,"%d/%m/%y %H:%M:%S"),
+                  "newer than",
+                  strftime(target.time,"%d/%m/%y %H:%M:%S"),"?\n")
+  newer <- source.time >= target.time
   if (!quiet) cat("Newer:",newer,"\n")
   newer
 }
