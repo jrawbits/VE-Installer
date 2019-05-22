@@ -121,9 +121,10 @@ for ( module in seq_along(package.names) ) {
   # Build binary packages and conduct tests if needed
   build.dir <- file.path(ve.test,package.names[module])
   if ( build.type != 'source' ) {
-	  package.built <- (me <- moduleExists(package.names[module], built.path.binary)) &&
-             			   (de <- dir.exists(build.dir)) &&
-			               (nt <- ! newerThan( quiet=(debug<2),
+    nt <- de <- me <- as.logical(NA)
+    package.built <- (me <- moduleExists(package.names[module], built.path.binary)) &&
+                     (de <- dir.exists(build.dir)) &&
+                     (nt <- ! newerThan( quiet=(debug<2),
                               src.module,
                               file.path(built.path.binary,
                                         modulePath(package.names[module],built.path.binary))) )
@@ -139,13 +140,13 @@ for ( module in seq_along(package.names) ) {
   if ( ! package.installed ) cat(package.names[module],"is",ifelse(package.installed,"installed","NOT installed"),"\n")
 
   if ( ! package.built ) {
-    pkg.files <- file.path(package.paths[module],dir(package.paths[module],recursive=TRUE))
     if ( debug ) {
+      pkg.files <- file.path(package.paths[module],dir(package.paths[module],recursive=TRUE))
       cat(paste("Copying",pkg.files,"to",build.dir,"\n",sep=" "),sep="")
     } else {
       cat("Copying module source",package.paths[module],"to build/test environment...\n")
     }
-    invisible(file.copy(pkg.files,build.dir))
+    invisible(file.copy(from=package.paths[module],to=ve.test,recursive=TRUE))
     if ( ! dir.exists(build.dir) ) {
       stop("Failed to create build/test environment:",build.dir)
     }

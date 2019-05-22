@@ -29,7 +29,7 @@ include $(VE_MAKEVARS)
 #   and others
 
 .PHONY: configure repository modules binary runtime installers all\
-	clean lib-clean runtime-clean build-clean test-clean\
+	clean lib-clean module-clean runtime-clean build-clean test-clean\
 	dev-clean really-clean\
 	docker-clean docker-output-clean docker
 
@@ -50,7 +50,7 @@ show-defaults:
 clean: $(VE_MAKEVARS) build-clean test-clean
 	rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
 
-lib-clean: $(VE_MAKEVARS) build-clean test-clean
+lib-clean module-clean: $(VE_MAKEVARS) test-clean
 	rm -rf $(VE_REPOS)/*
 	rm -rf $(VE_LIB)/visioneval $(VE_LIB)/VE*
 
