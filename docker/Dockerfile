@@ -2,14 +2,16 @@
 # 
 FROM rocker/r-ver as VE-dependencies
 
-COPY /ve-pkgs/src /home/visioneval/ve-pkgs/src
-COPY /ve-pkgs/*.lst /home/visioneval/
+COPY /ve-pkg/src /home/visioneval/ve-pkg/src
+COPY /ve-pkg/*.lst /home/visioneval/
 
 WORKDIR /home/visioneval
 
 RUN apt-get update && apt-get install -y \
 	libcurl4-gnutls-dev \
 	libssh2-1-dev \
+  libxml2-dev \
+  libudunits2-dev \
   libssl-dev \
   zlib1g-dev \
   libpng-dev \
@@ -17,13 +19,13 @@ RUN apt-get update && apt-get install -y \
 
 RUN mkdir /home/visioneval/ve-lib \
 	&& install2.r \
-    -r "file:ve-pkgs" \
+    -r "file:ve-pkg" \
     -l "ve-lib" \
     $(cat dependencies.lst) \
 	&& rm dependencies.lst
 
 RUN install2.r \
-    -r "file:ve-pkgs" \
+    -r "file:ve-pkg" \
     -l "ve-lib" \
     $(cat visioneval.lst) \
 	&& rm visioneval.lst

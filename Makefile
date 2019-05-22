@@ -131,9 +131,10 @@ ifeq ($(WINDOWS),TRUE)
 docker-output-clean docker-clean docker:
 	echo Docker building is not available on Windows
 else
-VE_DOCKER_IN=docker
-VE_DOCKER_OUT=$(VE_OUTPUT)/$(VE_R_VERSION)/Docker
-DOCKERFILE=$(VE_DOCKER_IN)/Dockerfile
+export VE_OUTPUT VE_RUNTIME
+export VE_DOCKER_IN=$(VE_INSTALLER)/docker
+export VE_DOCKER_OUT=$(VE_OUTPUT)/$(VE_R_VERSION)/docker
+export DOCKERFILE=$(VE_DOCKER_IN)/Dockerfile
 
 docker-output-clean:
 	sudo rm -rf ${VE_DOCKER_OUT}/Data # Files within are owned by 'root'
@@ -142,5 +143,5 @@ docker-clean: docker-output-clean
 	
 docker: $(VE_LOGS)/repository.built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore
 	$(RSCRIPT) scripts/runtime-packages.R
-#	bash scripts/build-docker.sh
+	bash scripts/build-docker.sh
 endif
