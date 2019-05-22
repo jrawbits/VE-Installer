@@ -217,7 +217,7 @@ for ( module in seq_along(package.names) ) {
   } else { # build.type == "source"
     # For source build, just do installation from source package (no binary package created)
     if ( ! package.installed ) {
-      cat("Installing source package:",package.names[module],"\n")
+      cat("Installing source package:",src.module,"\n")
       install.packages(src.module, repos=NULL, lib=ve.lib, type="source")
     } else {
       cat("Existing source package",package.names[module],"(Already Installed)\n")
