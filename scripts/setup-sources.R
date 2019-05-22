@@ -45,9 +45,8 @@ bp.file.list <- scan(file=file.path(ve.boilerplate, "boilerplate.lst"),
 bp.files <- file.path(ve.boilerplate, bp.file.list)
 if ( length(bp.files) > 0 ) {
   any.newer <- FALSE
-  target <- file.path(ve.runtime,dir(ve.runtime,recursive=TRUE))
   for ( f in bp.files ) {
-    any.newer <- any( any.newer, newerThan(f,target) )
+    any.newer <- any( any.newer, newerThan(f,ve.runtime) )
   }
   success <- FALSE
   if ( any.newer ) {
@@ -80,7 +79,6 @@ if ( length(copy.paths) > 0 ) {
   any.newer <- FALSE
   for ( f in seq_along(copy.paths) ) {
     target <- file.path(ve.runtime,pkgs.script$Package[f])
-    if ( dir.exists(target) ) target <- file.path(target,dir(target,recursive=TRUE))
     newer <- newerThan(copy.paths[f], target)
     any.newer <- any( any.newer, newer )
   }
@@ -99,7 +97,6 @@ if ( length(copy.paths) > 0 ) {
   any.newer <- FALSE
   for ( f in seq_along(copy.paths) ) {
     target <- file.path(model.path,pkgs.model$Package[f])
-    if ( dir.exists(target) ) target <- file.path(target,dir(target,recursive=TRUE))
     newer <- newerThan(copy.paths[f], target)
     any.newer <- any( any.newer, newer )
   }

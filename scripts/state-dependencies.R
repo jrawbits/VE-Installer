@@ -362,6 +362,7 @@ newerThan <- function( pkgpath, target, quiet=TRUE ) {
   if (!quiet) cat("Comparing",pkgpath,"to",paste(target,collapse="\n"),"\n")
   if ( any(is.null(target)) || any(is.na(target)) || any(nchar(target))==0 || ! file.exists(target) ) return(TRUE)
   if ( dir.exists(pkgpath) ) pkgpath <- file.path(pkgpath,dir(pkgpath,recursive=TRUE))
+  if ( dir.exists(target) ) target <- file.path(target,dir(target,recursive=TRUE))
   source.time <- file.mtime(pkgpath)
   target.time <- file.mtime(target)
   source.newest <- order(source.time,decreasing=TRUE)

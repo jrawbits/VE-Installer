@@ -65,7 +65,8 @@ package.paths <- file.path(ve.packages[,"Root"], ve.packages[,"Path"], package.n
 # We do "build" for Windows so we can get the .zip package file into the binary pkg-repository
 # On platforms other than Windows, simply installing will do the necessary build
 
-debug <- 0 # 0: no debug, 1: lightweight, 2: full details
+debug <- as.integer(Sys.getenv("VE_DEBUG_LEVEL",0)) # 0: no debug, 1: lightweight, 2: full details
+if ( is.na(debug) ) debug <- 0 # in case VE_INST_DEBUG
 
 # Locate modules to build in source repository (always build from source package)
 built.path.source <- contrib.url(ve.repository,type="source") # VE source packages
@@ -103,13 +104,15 @@ if (ve.runtests) {
 num.src <- 0
 num.bin <- 0
 pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
+
+# Build missing or out-of-date source modules
 for ( module in seq_along(package.names) ) {
   src.module <- source.modules[package.names[module]]
 
-  # Build missing our out-of-date source modules
+  # Step one: compare package source to built source package
   need.update <- newerThan( package.paths[module], src.module, quiet=(debug<2) )
   if ( ! (me <- moduleExists(package.names[module], built.path.source)) || need.update ) {
-    if ( need.update ) {
+    if ( me ) { # module exists
       cat("Updating package",package.names[module],"from",package.paths[module],"(Exists: ",me,")\n")
     } else {
       cat("Creating package",package.names[module],"from",package.paths[module],"(Exists:",me,")\n")
@@ -118,40 +121,61 @@ for ( module in seq_along(package.names) ) {
     num.src <- num.src + 1
   }
 
-  # Build binary packages and conduct tests if needed
+  # Step two: Determine package status (built, installed)
   build.dir <- file.path(ve.test,package.names[module])
+  if ( debug ) cat( build.dir,"exists:",dir.exists(build.dir),"\n")
   if ( build.type != 'source' ) {
+    # On Windows, the package is built if:
+    #   a. Binary package is present, and
+    #   b. package source is not newer than ve.test copy of source
+    #   c. Binary package is newer than source package
     nt <- de <- me <- as.logical(NA)
     package.built <- (me <- moduleExists(package.names[module], built.path.binary)) &&
-                     (de <- dir.exists(build.dir)) &&
+                     (de <- ( dir.exists(build.dir) && ! newerThan(package.paths[module],build.dir,quiet=(!debug)) )) &&
                      (nt <- ! newerThan( quiet=(debug<2),
                               src.module,
                               file.path(built.path.binary,
                                         modulePath(package.names[module],built.path.binary))) )
     if ( debug && ! package.built ) {
-      cat("Status of unbuilt ",package.names[module],"\n")
+      cat("Status of unbuilt",package.names[module],"\n")
       cat("Module",me," ","Dir",de," ","Newer",nt," ","Inst",(package.names[module] %in% pkgs.installed),"\n")
     }
   } else {
-    package.built <- ! newerThan( src.module, build.dir )
+    # If Source build, the package is "built" if:
+    #   a. package source is not newer than ve.test copy of source
+    package.built <- dir.exists(build.dir) && ! newerThan( package.paths[module], build.dir )
   }
-  if ( ! package.built ) cat(package.names[module],"is",ifelse(package.built,"built","NOT built"),"\n")
-  package.installed <- package.built && package.names[module] %in% pkgs.installed
-  if ( ! package.installed ) cat(package.names[module],"is",ifelse(package.installed,"installed","NOT installed"),"\n")
+  if ( ! package.built ) cat(package.names[module],"is NOT built\n")
 
+  # Package is installed if it is built and is an available installed package
+  package.installed <- package.built && package.names[module] %in% pkgs.installed
+  if ( ! package.installed ) cat(package.names[module],"is NOT installed\n")
+
+  # Step 3: If package is not built, copy package source to ve.test
+  # On Windows: ve.test copy is used to build binary package and to run tests
+  # For Source build: ve.test copy is always created but only used if running tests
   if ( ! package.built ) {
-    if ( debug ) {
+    if ( debug>1 ) {
+      # Dump list of package source files if debugging
       pkg.files <- file.path(package.paths[module],dir(package.paths[module],recursive=TRUE))
       cat(paste("Copying",pkg.files,"to",build.dir,"\n",sep=" "),sep="")
     } else {
       cat("Copying module source",package.paths[module],"to build/test environment...\n")
     }
-    invisible(file.copy(from=package.paths[module],to=ve.test,recursive=TRUE))
+    invisible(file.copy(from=package.paths[module],to=ve.test,recursive=TRUE, copy.date=TRUE))
     if ( ! dir.exists(build.dir) ) {
       stop("Failed to create build/test environment:",build.dir)
     }
+    if ( newerThan(package.paths[module],build.dir,quiet=(!debug)) ) {
+      stop("After copying, build/test environment is still older than package.paths")
+    }
   }
 
+  # Step 4: If tests are requested and package is not built, run the tests
+  # NOTE: tests will NOT run if the package is "built"
+  # To force tests on a module:
+  #   a. delete its ve.test folder, just for one module or using make test-clean (all modules)
+  #   b. touch any file in package source (but that will also rebuild binary and reinstall package)
   if ( ve.runtests && ! package.built ) {
     cat("Running module tests for",package.names[module],"\n",sep="")
     # Run the module tests (prior to building anything)
@@ -168,10 +192,15 @@ for ( module in seq_along(package.names) ) {
     cat("Completed test script.\n")
   }
 
+  # Step 5: Build the binary package (Windows only) and install the package
   if ( build.type != "source" ) {
-    # This could handle mac binaries, but we need to adjust other
-    # scripts to make sure mac dependencies are available
+    # Windows build and install works a little differently from source
     if ( ! package.built ) {
+      # Rebuild the binary package from the ve.test folder
+      # We do this on Windows (rather than building from the source package) because
+      # we want to use devtools::build, but a bug in devtools prior to R 3.5.3 or so
+      # prevents devtools:build from correctly building from a source package (it
+      # requires an unpacked source directory, which we have in build.dir)
       cat("building",package.names[module],"from",build.dir,"as",build.type,"\n")
       cat("building into",built.path.binary,"\n")
       built.package <- devtools::build(build.dir,path=built.path.binary,binary=TRUE)
@@ -181,10 +210,12 @@ for ( module in seq_along(package.names) ) {
       built.package <- file.path(built.path.binary, modulePath(package.names[module], built.path.binary))
     }
     if ( ! package.installed ) {
+      # On Windows, install from the binary package
       cat("Installing built package:",built.package,"\n")
       install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type) # so they will be available for later modules
     }
   } else { # build.type == "source"
+    # For source build, just do installation from source package (no binary package created)
     if ( ! package.installed ) {
       cat("Installing source package:",package.names[module],"\n")
       install.packages(src.module, repos=NULL, lib=ve.lib, type="source")
@@ -193,6 +224,9 @@ for ( module in seq_along(package.names) ) {
     }
   }
 }
+
+# Update the repository PACKAGES files (source and binary) if we rebuilt any
+# of the packages.
 if ( num.src > 0 ) {
   cat("Writing source PACKAGES file\n")
   write_PACKAGES(built.path.source, type="source")
@@ -208,5 +242,6 @@ if ( build.type != "source" ) {
   }
 }
 
+# Completion message, reporting what happened in this step
 building <- paste( "building",ifelse(ve.runtests,", testing","") )
 cat("Done ",building," and installing VisionEval packages.\n",sep="")
