@@ -104,8 +104,11 @@ $(VE_LOGS)/velib.built: $(VE_LOGS)/repository.built scripts/build-velib.R
 modules: $(VE_LOGS)/velib.built $(VE_RUNTIME_CONFIG) scripts/build-modules.R
 	$(RSCRIPT) scripts/build-modules.R
 
-runtime: $(VE_RUNTIME_CONFIG) $(VE_BOILERPLATE) scripts/build-runtime.R
+runtime: $(VE_LOGS)/runtime.built
+
+$(VE_LOGS)/runtime.built: $(VE_RUNTIME_CONFIG) $(VE_BOILERPLATE) scripts/build-runtime.R
 	$(RSCRIPT) scripts/build-runtime.R
+	touch $(VE_LOGS)/runtime.built
 
 installer: installer-bin
 
