@@ -23,7 +23,7 @@ export VE_LOGS VE_RUNTIME_CONFIG VE_MAKEVARS
 VE_BOILERPLATE:=$(wildcard boilerplate/boilerplate*.lst)
 
 include $(VE_MAKEVARS)
-# $(VE_MAKEVARS) gets rebuilt (see below) if it is out of date, using state-dependencies.R
+# $(VE_MAKEVARS) gets rebuilt (see below) if it is out of date, using build-config.R
 # Make then auto-restarts to read:
 #   VE_OUTPUT, VE_CACHE, VE_LIB, VE_INSTALLER, VE_PLATFORM, VE_TEST
 #   and others
@@ -80,33 +80,32 @@ really-clean: clean depends-clean dev-clean
 
 configure: $(VE_RUNTIME_CONFIG) $(VE_MAKEVARS)
 
-# Note: state-dependencies.R identifies VE_CONFIG via the exported variable
-$(VE_MAKEVARS) $(VE_RUNTIME_CONFIG): scripts/state-dependencies.R $(VE_CONFIG) R-versions.yml
+# Note: build-config.R identifies VE_CONFIG via the exported variable
+$(VE_MAKEVARS) $(VE_RUNTIME_CONFIG): scripts/build-config.R $(VE_CONFIG) R-versions.yml
 	mkdir -p $(VE_LOGS)
 	mkdir -p dev-lib/$(VE_R_VERSION)
-	$(RSCRIPT) scripts/state-dependencies.R
+	$(RSCRIPT) scripts/build-config.R
 
 repository: $(VE_LOGS)/repository.built
 
-$(VE_LOGS)/repository.built: $(VE_RUNTIME_CONFIG) scripts/build-repository.R scripts/build-external-src.R
+$(VE_LOGS)/repository.built: $(VE_RUNTIME_CONFIG) scripts/build-repository.R scripts/build-external.R
 	$(RSCRIPT) scripts/build-repository.R
-	$(RSCRIPT) scripts/build-external-src.R
+	$(RSCRIPT) scripts/build-external.R
 	touch $(VE_LOGS)/repository.built
 
-binary: $(VE_LOGS)/binary.built
+binary: $(VE_LOGS)/velib.built
 
-$(VE_LOGS)/binary.built: $(VE_LOGS)/repository.built scripts/install-velib.R scripts/build-external-bin.R
-	$(RSCRIPT) scripts/install-velib.R
-	$(RSCRIPT) scripts/build-external-bin.R
-	touch $(VE_LOGS)/binary.built
+$(VE_LOGS)/velib.built: $(VE_LOGS)/repository.built scripts/build-velib.R
+	$(RSCRIPT) scripts/build-velib.R
+	touch $(VE_LOGS)/velib.built
 
 # We'll always "build" the modules and the runtime, but only out-of-date stuff
 # gets built (file time stamps are checked in the R scripts)
-modules: $(VE_LOGS)/binary.built $(VE_RUNTIME_CONFIG) scripts/build-modules.R
+modules: $(VE_LOGS)/velib.built $(VE_RUNTIME_CONFIG) scripts/build-modules.R
 	$(RSCRIPT) scripts/build-modules.R
 
-runtime: $(VE_RUNTIME_CONFIG) $(VE_BOILERPLATE) scripts/setup-sources.R
-	$(RSCRIPT) scripts/setup-sources.R
+runtime: $(VE_RUNTIME_CONFIG) $(VE_BOILERPLATE) scripts/build-runtime.R
+	$(RSCRIPT) scripts/build-runtime.R
 
 installer: installer-bin
 
@@ -121,7 +120,7 @@ $(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/runtime.built
 installer-src: $(VE_LOGS)/installer-src.built
 
 $(VE_LOGS)/installer-src.built: $(VE_LOGS)/installer-bin.built
-	$(RSCRIPT) scripts/runtime-packages.R
+	$(RSCRIPT) scripts/build-runtime-packages.R
 	bash scripts/build-installers.sh SOURCE
 	touch $(VE_LOGS)/installer-src.built
 
@@ -142,6 +141,6 @@ docker-clean: docker-output-clean
 	rm -rf $(VE_DOCKER_OUT)/home
 	
 docker: $(VE_LOGS)/repository.built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore
-	$(RSCRIPT) scripts/runtime-packages.R
+	$(RSCRIPT) scripts/build-runtime-packages.R
 	bash scripts/build-docker.sh
 endif
