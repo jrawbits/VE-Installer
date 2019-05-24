@@ -295,26 +295,27 @@ little as possible:
   VE-installer). It will also remove the parsed configuration file data.  Use this
   target if you change `VE-config.yml` or if any of the VisionEval package dependencies
   have been changed, or if you want to use a different value for VE_RUNTESTS
+* `make module-clean`
+  Clear all the built VisionEval modules so they will get completely rebuilt (and optionally
+  tested).
 * `make lib-clean`
-  Perform `build-clean` and `test-clean` then also delete all the built VisionEval packages
-  (source and binary).  Use this if have already built the packages but want to change
-  the value of VE_RUNTESTS or if you have checked out a different VisionEval branch and
-  want to rebuild everything without completely redoing all the dependency downloads.
+  Clear the installed package library for the runtime.  Will force complete rebuild
+  of the binary packages for the local environment.
 * `make runtime-clean`
   Removes the model scripts, VEGUI and other source files from the runtime.  They will be
   copied again when the runtime is next built.  Use this if you have deleted or renamed
   files for the runtime.  New or modified files will always be copied when the runtime is
   built.
-* `make installer-clean`
-  Removes any installer `.zip` files and supporting data in the package source repository
-* `make dev-clean`
-  Removes the packages that were downloaded into the development library. Those development
-  library contains packages used by the installer, but not required by VisionEval itself.
-  They will be downloaded again as needed when you subsequently run `make`.
-* `make depends-clean`
-  Removes the downloaded package dependencies so the local repository can be rebuilt.
 * `make test-clean`
   Removes test data, test results and the copies of the module sources used for testiong
+* `make installer-clean`
+  Removes any installer `.zip` files and supporting data in the package source repository
+* `make depends-clean`
+  Removes the downloaded package dependencies so the local repository can be rebuilt.
+* `make dev-clean`
+  Removes the packages that were downloaded into the development library. Those are
+  packages used by the installer, but not required by VisionEval itself.
+  They will be downloaded again as needed when you subsequently run `make`.
 * `make clean`
   Remove the standard output files, but leave behind things like dependencies if
   they have been stored in an alternate output root location. See documentation of

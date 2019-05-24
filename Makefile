@@ -13,6 +13,12 @@ else
   override VE_R_VERSION:=$(shell $(RSCRIPT) --no-init-file scripts/find-R.R)
   WINDOWS=FALSE
 endif
+ifeq ($(RSCRIPT),"")
+  $(error R Version $(VE_R_VERSION) not found)
+else
+  $(info VE_R_VERSION is $(VE_R_VERSION), using [$(RSCRIPT)])
+endif
+
 export VE_R_VERSION VE_CONFIG VE_RUNTESTS RSCRIPT
 
 VE_LOGS:=logs/$(VE_R_VERSION)
@@ -35,57 +41,71 @@ include $(VE_MAKEVARS)
 
 all: configure repository binary modules runtime
 
-show-defaults:
-	echo Make defaults:
-	echo VE_R_VERSION $(VE_R_VERSION)
-	echo WINDOWS $(WINDOWS)
-	echo VE_CONFIG $(VE_CONFIG)
-	echo RSCRIPT $(RSCRIPT)
-	echo VE_OUTPUT $(VE_OUTPUT)
-	echo VE_DEPS $(VE_DEPS)
-	
+# Check 
+show-defaults: $(VE_MAKEVARS)
+	: Make defaults:
+	: WINDOWS      $(WINDOWS)       # Running on Windows?
+	: VE_R_VERSION $(VE_R_VERSION)  # R Version for build
+	: RSCRIPT      $(RSCRIPT)       # Rscript (should match R Version)
+	: VE_CONFIG    $(VE_CONFIG)     # Location of VE-Config.yml
+	: VE_MAKEVARS  $(VE_MAKEVARS)   # Make's version of VE-Config.yml
+	: VE_OUTPUT    $(VE_OUTPUT)     # Root of build output
+	: VE_DEPS      $(VE_DEPS)       # Location of dependency repository
+	: VE_REPOS     $(VE_REPOS)      # Location of build VE packages (repo)
+	: VE_LIB       $(VE_LIB)        # Location of installed packages
+	: VE_RUNTIME   $(VE_RUNTIME)    # Location of local runtime
+	: VE_PKGS      $(VE_PKGS)       # Location of runtime packages (for installer/docker)
 
 # Should have the "clean" target depend on $(VE_MAKEVARS) if it uses
 # any of the folders like VE_OUTPUT that are read in from there.
-clean: $(VE_MAKEVARS) build-clean test-clean
-	rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
-
-lib-clean module-clean: $(VE_MAKEVARS) test-clean
-	rm -rf $(VE_REPOS)/*
-	rm -rf $(VE_LIB)/visioneval $(VE_LIB)/VE*
-
-runtime-clean: $(VE_MAKEVARS)
-	rm -rf $(VE_RUNTIME)/*
-
-build-clean:
-	rm -rf $(VE_LOGS)/*
+build-clean: # Resets the built status of all the targets
+	[[ -n "$(VE_LOGS)" ]] && rm -rf $(VE_LOGS)/*
 	rm -f *.out
 
-dev-clean:
-	rm -rf dev-lib/$(VE_R_VERSION)
+module-clean: $(VE_MAKEVARS) test-clean # Reset all VE modules for complete rebuild
+	[[ -n "$(VE_REPOS)" ]] && rm -rf $(VE_REPOS)/*
+	rm -rf $(VE_LIB)/visioneval $(VE_LIB)/VE*
 
-installer-clean: $(VE_MAKEVARS)
-# installers have the R version coded in their .zip name
-	rm -f $(VE_OUTPUT)/$(VE_R_VERSION)/*.zip
-	rm -rf $(VE_PKGS)/*
-	rm -f $(VE_LOGS)/installer*.built
+lib-clean: $(VE_MAKEVARS) # Reset installed package library for complete rebuild
+	[[ -n "$(VE_LIB)" ]] && rm -rf $(VE_LIB)/*
 
-depends-clean: clean
-	rm -rf $(VE_DEPS)/*
+runtime-clean: $(VE_MAKEVARS) # Reset all models and scripts for complete rebuild
+	[[ -n "$(VE_RUNTIME)" ]] && rm -rf $(VE_RUNTIME)/*
 
-test-clean: $(VE_MAKEVARS)
-	rm -rf $(VE_TEST)/*
+test-clean: $(VE_MAKEVARS) # Reset the test copies of the packages
+	[[ -n "$(VE_TEST)" ]] && rm -rf $(VE_TEST)/*
 
-really-clean: clean depends-clean dev-clean
+installer-clean: $(VE_MAKEVARS) # Reset the installers for rebuild
+	# installers have the R version coded in their .zip name
+	[[ -n "$(VE_OUTPUT)" ]] && [[ -n "$(VE_R_VERSION)" ]] && rm -f $(VE_OUTPUT)/$(VE_R_VERSION)/*.zip
+	[[ -n "$(VE_PKGS)" ]] && rm -rf $(VE_PKGS)/*
+	[[ -n "$(VE_LOGS)" ]] && rm -f $(VE_LOGS)/installer*.built
 
+depends-clean: clean # Reset the CRAN, BioConductor and Github dependency packages for fresh download
+	[[ -n "$(VE_DEPS)" ]] && rm -rf $(VE_DEPS)/*
+
+dev-clean: $(VE_MAKEVARS) # Reset the developer packages for VE-Installer itself
+	[[ -n "$(VE_R_VERSION)" ]] && rm -rf dev-lib/$(VE_R_VERSION)
+
+clean: $(VE_MAKEVARS) build-clean test-clean # Reset everything except developer packages
+	[[ -n "$(VE_OUTPUT)" ]] && [[ -n "$(VE_R_VERSION)" ]] && rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
+
+really-clean: clean depends-clean dev-clean # Scorched earth: reset all VE-Installer artifacts
+
+# The remaining targets build the various VisionEval pieces
+
+# Make sure configuration is up to date
 configure: $(VE_RUNTIME_CONFIG) $(VE_MAKEVARS)
 
-# Note: build-config.R identifies VE_CONFIG via the exported variable
+# This rule reads the configuration about what to build. Use build-clean to reset
+# Note: build-config.R identifies VE_CONFIG via the exported environment variable
 $(VE_MAKEVARS) $(VE_RUNTIME_CONFIG): scripts/build-config.R $(VE_CONFIG) R-versions.yml
 	mkdir -p $(VE_LOGS)
 	mkdir -p dev-lib/$(VE_R_VERSION)
-	$(RSCRIPT) scripts/build-config.R
+	[[ -n "$(RSCRIPT)" ]] && $(RSCRIPT) scripts/build-config.R
 
+# This rule and the following one rebuild the repository of dependencies for VE_R_VERSION
+# Will skip if repository.built is up to date with VE_Config and the scripts themselves
 repository: $(VE_LOGS)/repository.built
 
 $(VE_LOGS)/repository.built: $(VE_RUNTIME_CONFIG) scripts/build-repository.R scripts/build-external.R
@@ -93,30 +113,40 @@ $(VE_LOGS)/repository.built: $(VE_RUNTIME_CONFIG) scripts/build-repository.R scr
 	$(RSCRIPT) scripts/build-external.R
 	touch $(VE_LOGS)/repository.built
 
+# This rule and the following one rebuild the installed library of dependencies and VE packages
+# Will skip if velib.built is up to date with the repository build and with the script itself
+# Use build-clean to reset velib.built and lib-clean to force complete rebuild of library
 binary: $(VE_LOGS)/velib.built
 
 $(VE_LOGS)/velib.built: $(VE_LOGS)/repository.built scripts/build-velib.R
 	$(RSCRIPT) scripts/build-velib.R
 	touch $(VE_LOGS)/velib.built
 
-# We'll always "build" the modules and the runtime, but only out-of-date stuff
-# gets built (file time stamps are checked in the R scripts)
-modules: $(VE_LOGS)/velib.built $(VE_RUNTIME_CONFIG) scripts/build-modules.R
+# This rule will check the VE modules and rebuild as needed
+# We'll almost always "build" the modules
+# but only out-of-date stuff gets built
+# (File time stamps are checked in the R scripts)
+modules: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built
 	$(RSCRIPT) scripts/build-modules.R
 
-runtime: $(VE_LOGS)/runtime.built
-
-$(VE_LOGS)/runtime.built: $(VE_RUNTIME_CONFIG) $(VE_BOILERPLATE) scripts/build-runtime.R
+# This rule will (re-)copy out of date scripts and models to the runtime
+# We'll almost always "build" the runtime,
+# but only out-of-date stuff gets built
+# (File time stamps are checked in the R scripts)
+runtime: 
 	$(RSCRIPT) scripts/build-runtime.R
 	touch $(VE_LOGS)/runtime.built
 
+# The next rules build the installer .zip files
+# 'bin' is the binary installer for the local architecture (e.g. Windows)
+# 'src' is a multiplatform source installer (requires rebuilding packages on client side)
 installer: installer-bin
 
 installers: installer-bin installer-src
 
 installer-bin: $(VE_LOGS)/installer-bin.built
 
-$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/runtime.built
+$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) runtime
 	bash scripts/build-installers.sh BINARY
 	touch $(VE_LOGS)/installer-bin.built
 
@@ -128,7 +158,7 @@ $(VE_LOGS)/installer-src.built: $(VE_LOGS)/installer-bin.built
 	touch $(VE_LOGS)/installer-src.built
 
 # Experimental Docker installation
-
+# This will run, but the resulting images probably won't work (2019-05-24)
 ifeq ($(WINDOWS),TRUE)
 docker-output-clean docker-clean docker:
 	echo Docker building is not available on Windows
