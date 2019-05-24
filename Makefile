@@ -1,5 +1,5 @@
 # You can override VE_CONFIG, VE_RUNTESTS and VE_R_VERSION on the command line
-# Or change export them from your environment
+# Or export them from your environment
 VE_CONFIG?=config/VE-config.yml
 VE_RUNTESTS?=Default
 ifeq ($(OS),Windows_NT)
@@ -41,7 +41,6 @@ include $(VE_MAKEVARS)
 
 all: configure repository binary modules runtime
 
-# Check 
 show-defaults: $(VE_MAKEVARS)
 	: Make defaults:
 	: WINDOWS      $(WINDOWS)       # Running on Windows?
@@ -102,7 +101,7 @@ configure: $(VE_RUNTIME_CONFIG) $(VE_MAKEVARS)
 $(VE_MAKEVARS) $(VE_RUNTIME_CONFIG): scripts/build-config.R $(VE_CONFIG) R-versions.yml
 	mkdir -p $(VE_LOGS)
 	mkdir -p dev-lib/$(VE_R_VERSION)
-	[[ -n "$(RSCRIPT)" ]] && $(RSCRIPT) scripts/build-config.R
+	[[ $(RSCRIPT) != "" ]] && $(RSCRIPT) scripts/build-config.R
 
 # This rule and the following one rebuild the repository of dependencies for VE_R_VERSION
 # Will skip if repository.built is up to date with VE_Config and the scripts themselves

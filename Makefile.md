@@ -98,7 +98,7 @@ won't bother to see if there's an up-to-date target.
 	clean lib-clean module-clean runtime-clean build-clean test-clean\
 	dev-clean really-clean\
 	docker-clean docker-output-clean docker
-jjj~~~
+~~~
 
 all is a target that builds the basic runtime by building each of the
 steps (or verifying that they are up to date).  See the subsequent
@@ -112,7 +112,7 @@ Use `make show-defaults` to dump some of make's key variables. Use to
 debug environment variables and command line definitions.
 
 ~~~
-aults: $(VE_MAKEVARS)
+show-defaults: $(VE_MAKEVARS)
 	: Make defaults:
 	: WINDOWS      $(WINDOWS)       # Running on Windows?
 	: VE_R_VERSION $(VE_R_VERSION)  # R Version for build
@@ -152,7 +152,7 @@ test-clean: $(VE_MAKEVARS) # Reset the test copies of the packages
 
 installer-clean: $(VE_MAKEVARS) # Reset the installers for rebuild
 	# installers have the R version coded in their .zip name
-	[[ -n "$(VE_OUTPUT)" -a -n "$(VE_R_VERSION)" ]] && rm -f $(VE_OUTPUT)/$(VE_R_VERSION)/*.zip
+	[[ -n "$(VE_OUTPUT)" ]] && [[ -n "$(VE_R_VERSION)" ]] && rm -f $(VE_OUTPUT)/$(VE_R_VERSION)/*.zip
 	[[ -n "$(VE_PKGS)" ]] && rm -rf $(VE_PKGS)/*
 	[[ -n "$(VE_LOGS)" ]] && rm -f $(VE_LOGS)/installer*.built
 
@@ -163,7 +163,7 @@ dev-clean: $(VE_MAKEVARS) # Reset the developer packages for VE-Installer itself
 	[[ -n "$(VE_R_VERSION)" ]] && rm -rf dev-lib/$(VE_R_VERSION)
 
 clean: $(VE_MAKEVARS) build-clean test-clean # Reset everything except developer packages
-	[[ -n "$(VE_OUTPUT)" -a -n "$(VE_R_VERSION)" ]] && rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
+	[[ -n "$(VE_OUTPUT)" ]] && [[ -n "$(VE_R_VERSION)" ]] && rm -rf $(VE_OUTPUT)/$(VE_R_VERSION)
 
 really-clean: clean depends-clean dev-clean # Scorched earth: reset all VE-Installer artifacts
 ~~~
@@ -199,7 +199,7 @@ configure: $(VE_RUNTIME_CONFIG) $(VE_MAKEVARS)
 $(VE_MAKEVARS) $(VE_RUNTIME_CONFIG): scripts/build-config.R $(VE_CONFIG) R-versions.yml
 	mkdir -p $(VE_LOGS)
 	mkdir -p dev-lib/$(VE_R_VERSION)
-	$(RSCRIPT) scripts/build-config.R
+	[[ $(RSCRIPT) != "" ]] && $(RSCRIPT) scripts/build-config.R
 
 # This rule and the following one rebuild the repository of dependencies for VE_R_VERSION
 # Will skip if repository.built is up to date with VE_Config and the scripts themselves
@@ -223,7 +223,7 @@ $(VE_LOGS)/velib.built: $(VE_LOGS)/repository.built scripts/build-velib.R
 # We'll almost always "build" the modules
 # but only out-of-date stuff gets built
 # (File time stamps are checked in the R scripts)
-modules: repository.built velib.built
+modules: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built
 	$(RSCRIPT) scripts/build-modules.R
 
 # This rule will (re-)copy out of date scripts and models to the runtime
@@ -253,7 +253,6 @@ $(VE_LOGS)/installer-src.built: $(VE_LOGS)/installer-bin.built
 	$(RSCRIPT) scripts/build-runtime-packages.R
 	bash scripts/build-installers.sh SOURCE
 	touch $(VE_LOGS)/installer-src.built
-
 ~~~
 
 Finally, there are some Docker targets that work to build images,
