@@ -42,9 +42,10 @@ if [ "${OLD_R_VERSION}" != "${VE_R_VERSION}" ]; then
   exit 2
 fi
 
-VE_BASE="${VE_OUTPUT}/${VE_R_VERSION}/VE-Runtime-R${VE_R_VERSION}.zip"
-VE_SOURCE="${VE_OUTPUT}/${VE_R_VERSION}/VE-installer-Source-R${VE_R_VERSION}.zip"
-VE_BINARY="${VE_OUTPUT}/${VE_R_VERSION}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}.zip"
+VE_BUILD_DATE="(`date +%Y-%m-%d`)"
+VE_BASE="${VE_OUTPUT}/${VE_R_VERSION}/VE-Runtime-R${VE_R_VERSION}${VE_BUILD_DATE}.zip"
+VE_SOURCE="${VE_OUTPUT}/${VE_R_VERSION}/VE-installer-Source-R${VE_R_VERSION}${VE_BUILD_DATE}.zip"
+VE_BINARY="${VE_OUTPUT}/${VE_R_VERSION}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}${VE_BUILD_DATE}.zip"
 RUNTIME_PATH="${VE_RUNTIME}"
 
 cd "${RUNTIME_PATH}"

@@ -47,7 +47,7 @@ bp.files <- file.path(ve.boilerplate, bp.file.list)
 if ( length(bp.files) > 0 ) {
   any.newer <- FALSE
   for ( f in bp.files ) {
-    any.newer <- any( any.newer, newerThan(f,file.path(ve.runtime,basename(f)),quiet=FALSE) )
+    any.newer <- any( any.newer, newerThan(f,file.path(ve.runtime,basename(f))) )
   }
   success <- FALSE
   if ( any.newer ) {
