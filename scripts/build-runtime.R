@@ -42,11 +42,12 @@ ve.boilerplate <- file.path(ve.installer,"boilerplate")
 bp.file.list <- scan(file=file.path(ve.boilerplate, "boilerplate.lst"),
                      quiet=TRUE, what=character())
 
+cat("Copying boilerplate files...\n")
 bp.files <- file.path(ve.boilerplate, bp.file.list)
 if ( length(bp.files) > 0 ) {
   any.newer <- FALSE
   for ( f in bp.files ) {
-    any.newer <- any( any.newer, newerThan(f,ve.runtime) )
+    any.newer <- any( any.newer, newerThan(f,file.path(ve.runtime,basename(f)),quiet=FALSE) )
   }
   success <- FALSE
   if ( any.newer ) {
@@ -73,6 +74,8 @@ cat(this.R,"\n",sep="",file=file.path(ve.runtime,"r.version"))
 # Get the VisionEval sources, if any are needed
 # This will process the 'script' and 'model' items listed in dependencies/VE-dependencies.csv
 
+cat("Script sources...\n")
+
 pkgs.script <- pkgs.db[pkgs.script,c("Root","Path","Package")]
 copy.paths <- file.path(pkgs.script$Root, pkgs.script$Path, pkgs.script$Package)
 if ( length(copy.paths) > 0 ) {
@@ -89,6 +92,8 @@ if ( length(copy.paths) > 0 ) {
     cat("Script files are up to date.\n")
   }
 }
+
+cat("Model sources...\n")
 
 pkgs.model <- pkgs.db[pkgs.model,c("Root","Path","Package")]
 copy.paths <- file.path(pkgs.model$Root, pkgs.model$Path, pkgs.model$Package)
