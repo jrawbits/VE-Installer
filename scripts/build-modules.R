@@ -176,20 +176,25 @@ for ( module in seq_along(package.names) ) {
   # To force tests on a module:
   #   a. delete its ve.test folder, just for one module or using make test-clean (all modules)
   #   b. touch any file in package source (but that will also rebuild binary and reinstall package)
-  if ( ve.runtests && ! package.built ) {
-    cat("Running module tests for",package.names[module],"\n",sep="")
+  if ( ! package.built ) {
+    cat("Checking and pre-processing ",package.names[module],"\n",sep="")
     # Run the module tests (prior to building anything)
-    cat("Checking",build.dir,"\n")
     check.results <- devtools::check(build.dir,check_dir=build.dir,error_on="error")
     print(check.results)
     # devtools::check leaves the package loaded after its test installation to a temporary library
     # Therefore we need to explicitly detach it so we can install it properly later on
     detach(paste("package:",package.names[module],sep=""),character.only=TRUE,unload=TRUE)
 
-    test.script <- file.path(build.dir,ve.packages$Test[module])
-    cat("Executing tests from ",test.script,"\n")
-    callr::rscript(script=test.script,wd=build.dir,libpath=.libPaths(),fail_on_status=FALSE)
-    cat("Completed test script.\n")
+    # Then get rid of the temporary (and possibly obsolete) source package that is left behind
+    tmp.build <- modulePath(package.names[module],build.dir)
+    if ( file.exists(tmp.build) ) unlink(tmp.build)
+
+    if ( ve.runtests ) {
+      test.script <- file.path(build.dir,ve.packages$Test[module])
+      cat("Executing tests from ",test.script,"\n")
+      callr::rscript(script=test.script,wd=build.dir,libpath=.libPaths(),fail_on_status=FALSE)
+      cat("Completed test script.\n")
+    }
   }
 
   # Step 5: Build the binary package (Windows only) and install the package
