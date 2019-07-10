@@ -109,7 +109,7 @@ pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
 for ( module in seq_along(package.names) ) {
   src.module <- source.modules[package.names[module]]
 
-  # Step one: compare package source to built source package
+  # Step one: picky message to see if we're updating or creating the module fressh
   need.update <- newerThan( package.paths[module], src.module, quiet=(debug<2) )
   if ( ! (me <- moduleExists(package.names[module], built.path.source)) || need.update ) {
     if ( me ) { # module exists
@@ -117,8 +117,6 @@ for ( module in seq_along(package.names) ) {
     } else {
       cat("Creating package",package.names[module],"from",package.paths[module],"(Exists:",me,")\n")
     }
-    src.module <- devtools::build(package.paths[module], path=built.path.src)
-    num.src <- num.src + 1
   }
 
   # Step two: Determine package status (built, installed)
@@ -171,11 +169,7 @@ for ( module in seq_along(package.names) ) {
     }
   }
 
-  # Step 4: If tests are requested and package is not built, run the tests
-  # NOTE: tests will NOT run if the package is "built"
-  # To force tests on a module:
-  #   a. delete its ve.test folder, just for one module or using make test-clean (all modules)
-  #   b. touch any file in package source (but that will also rebuild binary and reinstall package)
+  # Step 4: Check the module in order to rebuild the /data directory in build.dir
   if ( ! package.built ) {
     cat("Checking and pre-processing ",package.names[module],"\n",sep="")
     # Run the module tests (prior to building anything)
@@ -189,6 +183,7 @@ for ( module in seq_along(package.names) ) {
     tmp.build <- modulePath(package.names[module],build.dir)
     if ( file.exists(tmp.build) ) unlink(tmp.build)
 
+    # Run the tests on build.dir if requested
     if ( ve.runtests ) {
       test.script <- file.path(build.dir,ve.packages$Test[module])
       cat("Executing tests from ",test.script,"\n")
@@ -197,7 +192,13 @@ for ( module in seq_along(package.names) ) {
     }
   }
 
-  # Step 5: Build the binary package (Windows only) and install the package
+  # If not built, rebuild the source module from build.dir
+  if ( ! package.built ) {
+    src.module <- devtools::build(build.dir, path=built.path.src)
+    num.src <- num.src + 1
+  }
+
+  # Step 6: Build the binary package (Windows only) and install the package
   if ( build.type != "source" ) {
     # Windows build and install works a little differently from source
     if ( ! package.built ) {
