@@ -16,6 +16,13 @@ if ( ! checkVEEnvironment() ) {
   stop("Run state-dependencies.R to set up build environment")
 }
 
+# uncomment the following line on Windows if you just want the pre-compiled
+# binaries otherwise, if RTools is installed the newer sources packages will be
+# compiled.  You should allow compilation to happen if there is discrepancy in
+# behavior between a Windows installation and a source (e.g. Linux/Docker)
+# installation
+options(install.packages.compile.from.source="never")
+
 # Load required libraries (install as needed)
 
 if ( ! suppressWarnings(require(git2r)) ) {

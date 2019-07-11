@@ -2,9 +2,17 @@
 
 # Author: Jeremy Raw
 
+# uncomment the following line on Windows if you just want the pre-compiled
+# binaries otherwise, if RTools is installed the newer sources packages will be
+# compiled.  You should allow compilation to happen if there is discrepancy in
+# behavior between a Windows installation and a source (e.g. Linux/Docker)
+# installation
+options(install.packages.compile.from.source="never")
+
 # Load the yaml library
 # Note: hardwire installation source to the cloud of CRAN repository mirrors
-# Subsequent installations will come from the dependency repository
+# Subsequent package installations will come from the dependency repository for this
+# R version, contained in R-versions.yml
 
 if ( ! suppressWarnings(require(yaml)) ) {
   install.packages("yaml", repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
