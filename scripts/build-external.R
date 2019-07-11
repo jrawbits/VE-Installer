@@ -19,7 +19,7 @@ if ( ! checkVEEnvironment() ) {
 # Load required libraries (install as needed)
 
 if ( ! suppressWarnings(require(git2r)) ) {
-  install.packages("git2r", repos=CRAN.mirror, dependencies=NA)
+  install.packages("git2r", repos=CRAN.mirror, dependencies=NA, type=.Platform$pkgType)
 }
 require(tools) # for write_PACKAGES below
 
@@ -43,7 +43,7 @@ if ( nrow(pkgs.external) > 0 ) {
   cat("Building external packages\n")
 
   if ( ! suppressWarnings(require(devtools)) ) {
-    install.packages("devtools", repos=CRAN.mirror)
+    install.packages("devtools", repos=CRAN.mirror, type=.Platform$pkgType)
   }
 
   # Set build.type which controls what exactly gets built and how

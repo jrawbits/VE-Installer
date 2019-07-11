@@ -34,7 +34,7 @@ options(install.packages.compile.from.source="never")
 
 # you will need miniCRAN and dependencies installed in your local R environment
 if ( ! suppressWarnings(require(miniCRAN)) ) {
-  install.packages("miniCRAN", repos=CRAN.mirror)
+  install.packages("miniCRAN", repos=CRAN.mirror, type=.Platform$pkgType )
 }
 
 sought.pkgs <- miniCRAN::pkgDep(c(pkgs.db$Package[pkgs.CRAN], pkgs.db$Package[pkgs.BioC]),

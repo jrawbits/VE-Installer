@@ -7,7 +7,7 @@
 # Subsequent installations will come from the dependency repository
 
 if ( ! suppressWarnings(require(yaml)) ) {
-  install.packages("yaml", repos="https://cloud.r-project.org", dependencies=NA)
+  install.packages("yaml", repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
 }
 
 # Identify the platform

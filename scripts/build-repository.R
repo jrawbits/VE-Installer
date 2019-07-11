@@ -19,7 +19,7 @@ if ( ! checkVEEnvironment() ) {
 
 # Load required libraries
 if ( ! suppressWarnings(require(miniCRAN)) ) {
-  install.packages("miniCRAN", repos=CRAN.mirror, dependencies=NA)
+  install.packages("miniCRAN", repos=CRAN.mirror, dependencies=NA, type=.Platform$pkgType)
 }
 
 require(tools)

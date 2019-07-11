@@ -23,10 +23,10 @@ if ( ! checkVEEnvironment() ) {
 # Build tool dependencies
 require(tools)
 if ( ! suppressWarnings(require(devtools)) ) {
-  install.packages("devtools", repos=CRAN.mirror)
+  install.packages("devtools", repos=CRAN.mirror, type=.Platform$pkgType )
 }
 if ( ! suppressWarnings(require(roxygen2)) ) {
-  install.packages("roxygen2", repos=CRAN.mirror)
+  install.packages("roxygen2", repos=CRAN.mirror, type=.Platform$pkgType )
 }
 
 # Reach for ve.lib first when seeking packages used by the ones we're
