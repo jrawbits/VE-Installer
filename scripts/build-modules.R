@@ -28,6 +28,9 @@ if ( ! suppressWarnings(require(devtools)) ) {
 if ( ! suppressWarnings(require(roxygen2)) ) {
   install.packages("roxygen2", repos=CRAN.mirror, type=.Platform$pkgType )
 }
+if ( ! suppressWarnings(require(rcmdcheck)) ) {
+  install.packages("rcmdcheck", repos=CRAN.mirror, type=.Platform$pkgType )
+}
 
 # Reach for ve.lib first when seeking packages used by the ones we're
 # building
