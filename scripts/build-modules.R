@@ -72,9 +72,8 @@ debug <- as.integer(Sys.getenv("VE_DEBUG_LEVEL",0)) # 0: no debug, 1: lightweigh
 if ( is.na(debug) ) debug <- 0 # in case VE_INST_DEBUG
 
 # Locate modules to build in source repository (always build from source package)
-built.path.source <- contrib.url(ve.repository,type="source") # VE source packages
 source.modules <- unlist(sapply(package.names,
-                  FUN=function(x) file.path(built.path.source,modulePath(x,built.path.source))))
+                  FUN=function(x) file.path(built.path.src,modulePath(x,built.path.src))))
 if ( debug>1 ) {
   print(source.modules)
   cat("Source modules identified:\n")
@@ -114,7 +113,7 @@ for ( module in seq_along(package.names) ) {
 
   # Step one: picky message to see if we're updating or creating the module fressh
   need.update <- newerThan( package.paths[module], src.module, quiet=(debug<2) )
-  if ( ! (me <- moduleExists(package.names[module], built.path.source)) || need.update ) {
+  if ( ! (me <- moduleExists(package.names[module], built.path.src)) || need.update ) {
     if ( me ) { # module exists
       cat("Updating package",package.names[module],"from",package.paths[module],"(Exists: ",me,")\n")
     } else {
@@ -163,7 +162,9 @@ for ( module in seq_along(package.names) ) {
     } else {
       cat("Copying module source",package.paths[module],"to build/test environment...\n")
     }
-    invisible(file.copy(from=package.paths[module],to=ve.test,recursive=TRUE, copy.date=TRUE))
+    if ( dir.exists(build.dir) ) unlink(build.dir,recursive=TRUE) # Get rid of the build directory (in case anything was removed)
+    pkg.files <- file.path(package.paths[module],dir(package.paths[module],recursive=TRUE,all.files=FALSE)) # not hidden files
+    invisible(file.copy(from=pkg.files,to=build.dir,recursive=TRUE, copy.date=TRUE))
     if ( ! dir.exists(build.dir) ) {
       stop("Failed to create build/test environment:",build.dir)
     }
@@ -197,6 +198,7 @@ for ( module in seq_along(package.names) ) {
 
   # If not built, rebuild the source module from build.dir
   if ( ! package.built ) {
+    cat("building",package.names[module],"from",build.dir,"as source\n")
     src.module <- devtools::build(build.dir, path=built.path.src)
     num.src <- num.src + 1
   }
@@ -236,9 +238,10 @@ for ( module in seq_along(package.names) ) {
 
 # Update the repository PACKAGES files (source and binary) if we rebuilt any
 # of the packages.
+warnings()
 if ( num.src > 0 ) {
   cat("Writing source PACKAGES file\n")
-  write_PACKAGES(built.path.source, type="source")
+  write_PACKAGES(built.path.src, type="source")
 } else {
   cat("No source packages needed to be built\n")
 }
