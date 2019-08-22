@@ -87,8 +87,8 @@ if ( ! dir.exists(ve.lib) ) {
 # Function starts the VEGUI
 vegui <- function() {
   library("shiny")
-  full_path <- file.path(ve.root,"VEGUI")
-  owd <- setwd(full_path) 
+  full.path <- file.path(ve.root,"VEGUI")
+  owd <- setwd(full.path) 
   runApp('../VEGUI')
   setwd(owd)
 }
@@ -99,25 +99,27 @@ vegui <- function() {
 verpat <- function(scenarios=FALSE,baseyear=FALSE) {
   if ( ! scenarios ) {
     if ( ! baseyear ) {
-      full_path <- file.path(ve.root,"models/VERPAT")
+      full.path <- file.path(ve.root,"models/VERPAT")
     } else {
-      full_path <- file.path(ve.root,"models/BaseYearVERPAT")
+      full.path <- file.path(ve.root,"models/BaseYearVERPAT")
     }
   } else {
-    full_path <- file.path(ve.root,"models/VERPAT_Scenarios")
+    full.path <- file.path(ve.root,"models/VERPAT_Scenarios")
   }
-  owd <- setwd(full_path)
+  owd <- setwd(full.path)
   source("run_model.R")
   setwd(owd)
 }
 
 verspm <- function(scenarios=FALSE) {
   if ( ! scenarios ) {
-    full_path <- file.path(ve.root,"models/VERSPM/Test1")
+    full.path <- file.path(ve.root,"models/VERSPM")
+    test.dir <- file.path(full.path,"Test1") # Older structure for VERSPM
+    if ( dir.exists(test.dir) ) full.path <- test.dir
   } else {
-    full_path <- file.path(ve.root,"models/VERSPM_Scenarios")
+    full.path <- file.path(ve.root,"models/VERSPM_Scenarios")
   }
-  owd <- setwd(full_path)
+  owd <- setwd(full.path)
   source("run_model.R")
   setwd(owd)
 }
