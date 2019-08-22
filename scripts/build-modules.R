@@ -162,9 +162,11 @@ for ( module in seq_along(package.names) ) {
     } else {
       cat("Copying module source",package.paths[module],"to build/test environment...\n")
     }
-    if ( dir.exists(build.dir) ) unlink(build.dir,recursive=TRUE) # Get rid of the build directory (in case anything was removed)
-    pkg.files <- file.path(package.paths[module],dir(package.paths[module],recursive=TRUE,all.files=FALSE)) # not hidden files
-    invisible(file.copy(from=pkg.files,to=build.dir,recursive=TRUE, copy.date=TRUE))
+    if ( dir.exists(build.dir) || file.exists(build.dir) ) unlink(build.dir,recursive=TRUE) # Get rid of the build directory (in case anything was removed)
+    pkg.files <- dir(package.paths[module],recursive=TRUE,all.files=FALSE) # not hidden files, relative to package.paths[module]
+    pkg.dirs <- dirname(pkg.files)
+    lapply( grep("^\\.$",invert=TRUE,value=TRUE,unique(file.path(build.dir,pkg.dirs))), FUN=function(x) { dir.create(x, showWarnings=FALSE, recursive=TRUE ) } )
+    invisible(file.copy(from=file.path(package.paths[module],pkg.files),to=file.path(build.dir,pkg.files),overwrite=TRUE, recursive=FALSE))
     if ( ! dir.exists(build.dir) ) {
       stop("Failed to create build/test environment:",build.dir)
     }
