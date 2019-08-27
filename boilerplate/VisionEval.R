@@ -124,7 +124,10 @@ verspm <- function(scenarios=FALSE) {
   setwd(owd)
 }
 
-if ( file.exists("tools/exporter.R") ) import::here(ve.export,"tools/exporter.R") # Tool to dump model outputs
+if ( file.exists("tools/exporter.R") ) {
+  if ( ! ve.lib %in% .libPaths() ) .libPaths(ve.lib)
+  import::here(ve.export,.from="tools/exporter.R") # Tool to dump model outputs
+}
 
 # Write objects to RunVisionEval.RData configuration file
 
