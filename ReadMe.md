@@ -12,16 +12,24 @@ computer that supports R.
 
 ## Overview
 
-To use VE-Installer, just clone it, setup the configuration file, install a development
-environment (Linux R-base-dev, Windows R plus RTools), then build suitable `make` targets,
-such as the runtime environment and an installer.  Full instructions and reference
-materials are included below and in various referenced files.
+To use VE-Installer, do these steps:
+
+- clone the VE-Installer
+- setup the configuration file to point to your clone of the VisionEval repository
+- install a development environment (Linux R-base-dev, Windows R plus RTools), then
+- build suitable `make` targets, such as the runtime environment and an installer.
+
+Full instructions and reference materials are included below and in various referenced files.
 
 You can use VE-Installer with any version of VisionEval (with appropriate changes to
 configuration files describing that version). For older versions, you will need to
 construct a suitable `VE-components.yml` file. Newer versions already have a suitable
 `VE-components.yml`.  The process for setting up the configuration is described in detail in the most recent updates of the [VisionEval-dev repository][VE-dev], and in the `config/ReadMe.md` here in
 VE-Installer.
+
+VE-Installer will work "out of the box" if you clone the current VisionEval-dev development
+branch so it is in a "sibling" directory of VE-Installer (i.e. they both have the same parent
+directory).
 
 [VE-dev]: https://github.com/visioneval/VisionEval-dev "VisionEval Development"
 
@@ -66,7 +74,8 @@ configuration file to point at the VisionEval source tree you would like to buil
     * Make sure RTools is at the front of the PATH
     * Set up `bash` so you can easily get to the VE-Installer/build folder
     * Set up any SSH keys or other credentials you may need for Github access
-* Edit the VE-Installer/config/VE-config.yml file so it points at your VisionEval-dev
+* Edit the VE-Installer/config/VE-config.yml file so it points at your copy of VisionEval-dev
+    * This step is optional if you have cloned the VisionEval-dev repository so it is in `../VisionEval-dev`   
     * ve.root : full path in which to look for VisionEval itself (defaults to
       "../VisionEval.dev" (".." relative to home of VE-Installer)
     * ve.output : Path in which to create gigabytes of output files (in subdirectories
@@ -179,9 +188,12 @@ test runs and committed unnecessarily to the repository.  Using the `-b` option 
 `master` with your chosen branch such as `development`) selects a specific branch, which
 may often be necessary if the default is some obsolete version languishing in `master` or
 if the repository offers a documentation tree as the default branch (as does
-VisionEval-dev).  Naming the folder in which to put the clone (`My-VisionEval` in the
+VisionEval-dev).
+
+Naming the folder in which to put the clone (`My-VisionEval` in the
 example above) makes it simple to clone different branches (or VisionEval repositories) to
-different places.
+different places. But if you do rename the location, you will have to adjust the `ve.root`
+setting in `config/VE-config.yml` accordingly.
 
 Note that cloning with `--depth=1` only gets one branch, so you can't change branches
 within a repository clone created that way. Look at `git clone` documentation on --depth
@@ -349,7 +361,7 @@ logs | Log files and tracking files constructed during the build.
 
 The "runtime" directory in your install output directory is a ready-to-run installation of VisionEval.  Just change to the runtime directory and run the `VisionEval.bat` (or `VisionEval.sh`) start scripts.  Do that every time you want to start VisionEval.  Make a shortcut if you prefer.
 
-The startup is very fast on Windows, but on other systems where you do a "source" installation, it can take a long time (though typically under an hour) to build a native `ve-lib` the first time you run it. Startup will subsequently as fast (or faster) than on Windows. 
+The startup is very fast on Windows, but on other systems where you do a "source" installation, it can take a long time (though typically under an hour) to build a native `ve-lib` the first time you run it. Startup will subsequently be as fast (or faster) than on Windows. 
 
 The self-contained VisionEval installation that results from this builder (and is included in the installers) includes `VisionEval.Rproj` which a runtime user can double-click to interact with the end-user VisionEval environment using [RStudio][getRstudio].  You should run the batch file (or shell script) one time to set everything up before going to work in RStudio. Once the basic installation is complete, just open the `.Rproj` file.
 
@@ -365,3 +377,27 @@ build the Docker images for VisionEval, and also what they provide.  You can use
 bash-scripted command line docker instructions (typically a Linux system, rather
 than Windows, though there's no reason the latter shouldn't work as long as the
 command line tools are available).
+
+# Navigating the `VisionEval-dev` Repository Organization
+
+The [repository](https://github.com/visioneval/VisionEval-dev) is organized into two directories:
+- The **sources** directory contains the following directories:
+  - [visioneval framework](https://github.com/visioneval/VisionEval-dev/tree/master/sources/framework/visioneval) package
+  - [VE modules](https://github.com/visioneval/VisionEval-dev/tree/master/sources/modules) such as VESimHouseholds and VESyntheticFirms
+  - VE models such as [VERPAT](https://github.com/visioneval/VisionEval-dev/tree/master/sources/models/VERPAT), [VERSPM](https://github.com/visioneval/VisionEval-dev/tree/master/sources/models/VERSPM), and [VE-State](https://github.com/visioneval/VisionEval-dev/tree/master/sources/models/VE-State).
+  - [VEGUI](https://github.com/visioneval/VisionEval-dev/tree/master/sources/VEGUI) graphical user interface for running and viewing tabular results
+  - [VEScenarioViewer](https://github.com/visioneval/VisionEval-dev/tree/master/sources/VEScenarioViewer) interactive multiple-run scenario viewer / visualizer for viewing results
+- The **api** directory contains documentation of the model system. The [model system design](https://github.com/visioneval/VisionEval-dev/blob/master/api/model_system_design.md) document is the most complete at the present time. VisionEval framework functions are documented in a [network visualization](https://gregorbj.github.io/VisionEval/website/visioneval_functions.html) of the functions and their call relationships.
+
+
+## Develop Branch
+
+The current release version of VisionEval is on the **master** branch.  The current development version is on
+the **development** branch.  When working on develop (or a branch other than master), make sure to install the correct branch version of the packages and to use the branch example data.  To download, install, and test the develop branch resources, do the following:
+  1. Git clone (i.e. copy) the develop branch to your computer. 
+  ```
+  git clone --branch development --depth 1 git@github.com:visioneval/VisionEval-dev.git 
+  ```
+  2. Run the same R commands above
+
+A zipped version of the development branch is available [here](https://github.com/visioneval/VisionEval-dev/archive/development.zip).
