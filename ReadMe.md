@@ -367,6 +367,27 @@ The self-contained VisionEval installation that results from this builder (and i
 
 [getRstudio]: https://www.rstudio.com/products/rstudio/download/ "Download RStudio"
 
+# Hacking VisionEval
+
+If `VE-Installer` feels too hard and all you want to do is make some tweaks to existing packages (such as rebuilding some of them using local data rather than what comes in the installer), it is possible to develop package updates simply by using [the current VisionEvalInstaller][getVisionEval] and cloning [the VisionEval master branch][VEmasterbranch] from the public repository.
+
+Do these steps to get set up:
+
+1. Install VisionEval [as usual][getVisionEval]
+2. Clone the [VisionEval master branch][VEmasterbranch]: 
+```
+git clone --depth=1 https://github.com/VisionEval/VisionEval.git
+```
+3. Copy `.Renviron` from your VisionEval installation directory to the directory of the package you want to hack in the cloned VisionEval master branch.
+4. Power up Rstudio in the package folder (e.g. by double-clicking the .Rproj file you'll find in each package directory)
+5. Check the Rstudio configuration to ensure that it will install your rebuilt package back into the "ve-lib" folder of your VisionEval installation.
+
+_**Important:**_ Because you are hacking the VisionEval release version, any changes you make this way are **not** acceptable to contribute back to VisionEval (and you will also need to redo them if you upgrade to a new VisionEval release).  To offer your changes back to the VisionEval project, they need to be based on the [VisionEval-dev repository development branch][VEdev]. The only supported way to set up a runtime environment from the development branch is by using VE-Installer (this tool) as described above.
+
+[getVisionEval]: https://visioneval.org/Download.html
+[VEmasterbranch]: <https://github.com/VisionEval/VisionEval>
+[VEdev]: <https://github.com/VisionEval/VisionEval-Dev/tree/development>
+
 # Docker Images
 
 **Warning: Docker build currently doesn't generate working images!**
