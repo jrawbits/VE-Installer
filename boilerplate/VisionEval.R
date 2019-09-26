@@ -70,6 +70,10 @@ if ( ! dir.exists(ve.lib) ) {
   }
 }
 
+# Create .Renviron to support interactive package development
+
+write(paste0("R_LIBS_USER=",ve.lib),file=file.path(ve.root,".Renviron"))
+
 # Construct "RunVisionEval.Rdata" from the following objects
 # Something to "double-click" in windows for a rapid happy start in RGui...
 
