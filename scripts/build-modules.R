@@ -111,7 +111,7 @@ pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
 for ( module in seq_along(package.names) ) {
   src.module <- source.modules[package.names[module]]
 
-  # Step one: picky message to see if we're updating or creating the module fressh
+  # Step one: picky message to see if we're updating or creating the module fresh
   need.update <- newerThan( package.paths[module], src.module, quiet=(debug<2) )
   if ( ! (me <- moduleExists(package.names[module], built.path.src)) || need.update ) {
     if ( me ) { # module exists
@@ -143,7 +143,7 @@ for ( module in seq_along(package.names) ) {
   } else {
     # If Source build, the package is "built" if:
     #   a. package source is not newer than ve.test copy of source
-    package.built <- dir.exists(build.dir) && ! newerThan( package.paths[module], build.dir )
+    package.built <- !is.na(src.module) && dir.exists(build.dir) && ! newerThan( package.paths[module], build.dir )
   }
   if ( ! package.built ) cat(package.names[module],"is NOT built\n")
 
