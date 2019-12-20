@@ -145,7 +145,7 @@ installers: installer-bin installer-src
 
 installer-bin: $(VE_LOGS)/installer-bin.built
 
-$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) runtime
+$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) all
 	bash scripts/build-installers.sh BINARY
 	touch $(VE_LOGS)/installer-bin.built
 

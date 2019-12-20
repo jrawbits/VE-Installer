@@ -94,7 +94,9 @@ if ( nrow(pkgs.external) > 0 ) {
   for ( pkg in seq_along(pkg.paths) ) {
 
     # Build or locate the source package
-    if ( ! moduleExists(pkg.names[pkg],built.path.src) ) {
+    if ( ! moduleExists(pkg.names[pkg],built.path.src) ||
+         newerThan( pkg.paths[pkg],
+                    file.path(built.path.src,modulePath(pkg.names[pkg],built.path.src)) ) ) {
       src.pkg <- devtools::build(pkg.paths[pkg], path=built.path.src,vignettes=FALSE,manual=FALSE)
       num.src <- num.src + 1
     } else {
@@ -121,10 +123,13 @@ if ( nrow(pkgs.external) > 0 ) {
       }
     } # No binary if source build
     if ( ! package.installed ) {
+      if ( length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
+        built.package <- grep("zip$",built.package,value=TRUE)
+        }
       cat("Installing ")
       if ( build.type == "win.binary" ) { # Windows: install from binary
         cat(built.package,"\n")
-        install.packages(built.package, repos=NULL, lib=ve.lib)
+        install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type)
       } else { # Not Windows: install from source package
         cat(src.pkg,"\n")
         install.packages(src.pkg, repos=NULL, lib=ve.lib, type="source")

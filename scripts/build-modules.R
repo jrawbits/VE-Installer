@@ -177,17 +177,19 @@ for ( module in seq_along(package.names) ) {
 
   # Step 4: Check the module in order to rebuild the /data directory in build.dir
   if ( ! package.built ) {
-    cat("Checking and pre-processing ",package.names[module],"\n",sep="")
+    cat("Checking and pre-processing ",package.names[module]," in ",build.dir,"\n",sep="")
     # Run the module tests (prior to building anything)
-    check.results <- devtools::check(build.dir,check_dir=build.dir,error_on="error")
-    print(check.results)
-    # devtools::check leaves the package loaded after its test installation to a temporary library
-    # Therefore we need to explicitly detach it so we can install it properly later on
-    detach(paste("package:",package.names[module],sep=""),character.only=TRUE,unload=TRUE)
+# Commenting out the check process as it fails with R 3.6.2 (12/20/2019)
+#     check.results <- devtools::check(build.dir,check_dir=build.dir,error_on="error")
+#     cat("Check results\n")
+#     print(check.results)
+#     # devtools::check leaves the package loaded after its test installation to a temporary library
+#     # Therefore we need to explicitly detach it so we can install it properly later on
+#     detach(paste("package:",package.names[module],sep=""),character.only=TRUE,unload=TRUE)
 
     # Then get rid of the temporary (and possibly obsolete) source package that is left behind
     tmp.build <- modulePath(package.names[module],build.dir)
-    if ( file.exists(tmp.build) ) unlink(tmp.build)
+    if ( length(tmp.build)>0 && file.exists(tmp.build) ) unlink(tmp.build)
 
     # Run the tests on build.dir if requested
     if ( ve.runtests ) {
@@ -216,7 +218,12 @@ for ( module in seq_along(package.names) ) {
       # requires an unpacked source directory, which we have in build.dir)
       cat("building",package.names[module],"from",build.dir,"as",build.type,"\n")
       cat("building into",built.path.binary,"\n")
+
       built.package <- devtools::build(build.dir,path=built.path.binary,binary=TRUE)
+      if ( length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
+        built.package <- grep("zip$",built.package,value=TRUE)
+      }
+
       num.bin <- num.bin + 1
     } else {
       cat("Existing binary package:",package.names[module],ifelse(package.installed,"(Already Installed)",""),"\n")
