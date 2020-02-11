@@ -9,6 +9,11 @@ IF EXIST r-paths.bat CALL r-paths.bat
 
 IF NOT DEFINED RSCRIPT (
 	echo Finding R %R_VERSION%
+	if NOT [%R_HOME%] == [] (
+		rem Manual/Portable R installation: set R_HOME to root of R installation
+		echo Using R %R_HOME%
+		goto Found
+	)
 	rem echo Finding Rscript...
 	set ROOT_KEY=\Software\R-core\R\%R_VERSION%
 	set MACHINE_KEY="HKLM!ROOT_KEY!"
@@ -27,6 +32,8 @@ IF NOT DEFINED RSCRIPT (
 		rem echo Not in HKCU either...
 		echo R Version %R_VERSION% not found - Opening download page
 		echo Install R and then run VisionEval.bat again
+		echo Or set R_HOME in environment to root of R installation
+		echo if it is not in the registry.
 		start "" https://cran.r-project.org/bin/windows/base/old/%R_VERSION%
 		EXIT /B 1
 	)
