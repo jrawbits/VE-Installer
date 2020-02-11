@@ -10,13 +10,9 @@ set MACHINE_KEY="HKLM%ROOT_KEY%"
 set USER_KEY="HKCU%ROOT_KEY%"
 set VALUE_NAME=InstallPath
 if NOT [!R_BASE_USER!] == [] (
-	echo R Version from filesystem via R_BASE_USER
+	echo R Version from filesystem via R_BASE_USER 1>&2
 	set R_HOME=!R_BASE_USER!\%R_VERSION%
-	echo R_HOME = !R_HOME!
-	set RSCRIPT=!R_HOME!\bin\Rscript.exe
-	echo R_SCRIPT = !RSCRIPT!
-	"!RSCRIPT!" --version 1>&2
-	EXIT /B 0
+	echo R_HOME = !R_HOME! 1>&2
 )
 for /f "usebackq skip=2 tokens=1-2*" %%i in (`reg query %MACHINE_KEY% /v %VALUE_NAME% 2^>nul`) do set R_HOME=%%k
 if [!R_HOME!] == [] (
