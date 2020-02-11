@@ -9,9 +9,18 @@ set ROOT_KEY=\Software\R-core\R\%R_VERSION%
 set MACHINE_KEY="HKLM%ROOT_KEY%"
 set USER_KEY="HKCU%ROOT_KEY%"
 set VALUE_NAME=InstallPath
+if NOT [!R_BASE_USER!] == [] (
+	echo R Version from filesystem via R_BASE_USER
+	set R_HOME=!R_BASE_USER!\%R_VERSION%
+	echo R_HOME = !R_HOME!
+	set RSCRIPT=!R_HOME!\bin\Rscript.exe
+	echo R_SCRIPT = !RSCRIPT!
+	"!RSCRIPT!" --version 1>&2
+	EXIT /B 0
+)
 for /f "usebackq skip=2 tokens=1-2*" %%i in (`reg query %MACHINE_KEY% /v %VALUE_NAME% 2^>nul`) do set R_HOME=%%k
-if ["%R_HOME%"] == [""] (
-rem	echo R %R_VERSION% not found in machine; searching %USER_KEY%
+if [!R_HOME!] == [] (
+	echo R %R_VERSION% not found in machine; searching %USER_KEY%
 	for /f "usebackq skip=2 tokens=1-2*" %%x in (`reg query %USER_KEY% /v %VALUE_NAME% 2^>nul`) do set R_HOME=%%z
 )
 if [!R_HOME!] == [] (
