@@ -14,6 +14,7 @@
 3.5.3:
     BioC:      https://www.bioconductor.org/packages/3.8/bioc
     CRAN:      https://cran.microsoft.com/snapshot/2019-04-26
+# As of December 2019, VEReports will not build with R<3.6.0
 3.6.0:
     BioC:      https://www.bioconductor.org/packages/3.9/bioc
     CRAN:      https://cran.microsoft.com/snapshot/2019-07-05
