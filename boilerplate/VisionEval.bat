@@ -5,7 +5,10 @@ setlocal EnableDelayedExpansion
 
 REM Use the required version to find Rscript
 SET /P R_VERSION=<r.version
-IF EXIST r-paths.bat CALL r-paths.bat
+IF EXIST r-paths.bat (
+	CALL r-paths.bat
+	goto Start
+)
 
 IF NOT DEFINED RSCRIPT (
 	echo Finding R %R_VERSION%
@@ -52,6 +55,8 @@ rem echo Found R_HOME %R_HOME%
 rem echo Found R_VERSION %R_VERSION%
 rem echo And in the file:
 rem type r-version.bat
+
+:Start
 %RSCRIPT% VisionEval.R
 IF %ERRORLEVEL% EQU 0 (
         START "VisionEval" %RGUI% VisionEval.RData
