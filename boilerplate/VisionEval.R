@@ -14,12 +14,13 @@ if ( this.R != that.R ) {
 } else {
   cat("Loading VisionEval for R version",this.R,"\n")
 }
+rm(this.R,that.R)
 
 # Put the current directory into ve.root
 if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
   ve.root <- getwd()
 } else {
-  ve.root <- normalizePath(ve.root)
+  ve.root <- normalizePath(ve.root,winslash="/")
 }
 
 # Put the library directory into ve.lib
@@ -69,6 +70,7 @@ if ( ! dir.exists(ve.lib) ) {
     )
   }
 }
+rm(ve.lib.local, ve.lib.name)
 
 # Create .Renviron to support interactive package development
 
@@ -88,50 +90,21 @@ write(paste0("R_LIBS_USER=",ve.lib),file=file.path(ve.root,".Renviron"))
   install.success
 }
 
-# Function starts the VEGUI
-vegui <- function() {
-  library("shiny")
-  full.path <- file.path(ve.root,"VEGUI")
-  owd <- setwd(full.path) 
-  runApp('../VEGUI')
-  setwd(owd)
-}
-
-# The following two functions run the command line model versions per the
-# Getting Started document.  Optional "scenarios" argument, if TRUE, will
-# run the scenarios version of the test models.
-verpat <- function(scenarios=FALSE,baseyear=FALSE) {
-  if ( ! scenarios ) {
-    if ( ! baseyear ) {
-      full.path <- file.path(ve.root,"models/VERPAT")
-    } else {
-      full.path <- file.path(ve.root,"models/BaseYearVERPAT")
-    }
-  } else {
-    full.path <- file.path(ve.root,"models/VERPAT_Scenarios")
+# Load tools (helper functions) from their subdirectory
+ve.tools <- file.path(ve.root,"tools",fsep="/")
+tool.files <- file.path(ve.tools,dir(ve.tools,pattern="\\.R$"),fsep="/")
+tools <- character(0)
+if ( length(tool.files)>0 ) {
+  for ( tf in tool.files ) {
+    if ( ! ve.lib %in% .libPaths() ) .libPaths(ve.lib)
+    # Add error checking for tool.contents not present
+    eval(parse(text=paste0("import::here(tool.contents,.from='",tf,"')")))
+    tools <- c(tools,tool.contents)
+    eval(parse(text=paste0("import::here(",paste(tool.contents,collapse=","),",.from='",tf,"')")))
+    rm(tool.contents,tf)
   }
-  owd <- setwd(full.path)
-  source("run_model.R")
-  setwd(owd)
 }
-
-verspm <- function(scenarios=FALSE) {
-  if ( ! scenarios ) {
-    full.path <- file.path(ve.root,"models/VERSPM")
-    test.dir <- file.path(full.path,"Test1") # Older structure for VERSPM
-    if ( dir.exists(test.dir) ) full.path <- test.dir
-  } else {
-    full.path <- file.path(ve.root,"models/VERSPM_Scenarios")
-  }
-  owd <- setwd(full.path)
-  source("run_model.R")
-  setwd(owd)
-}
-
-if ( file.exists("tools/exporter.R") ) {
-  if ( ! ve.lib %in% .libPaths() ) .libPaths(ve.lib)
-  import::here(ve.export,.from="tools/exporter.R") # Tool to dump model outputs
-}
+rm(tool.files,ve.tools)
 
 # Write objects to RunVisionEval.RData configuration file
 
@@ -141,10 +114,9 @@ if ( install.success ) {
     ,ve.root
     ,ve.lib
     ,.First
-    ,vegui
-    ,verpat
-    ,verspm
+    ,list=tools
   )
+  rm(tools)
 } else {
   stop("Installation failed - check error and warning messages.")
 }
