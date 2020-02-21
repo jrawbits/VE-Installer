@@ -106,6 +106,17 @@ ve.runtests <- switch(
   )
 cat("ve.runtests is",ve.runtests,"\n")
 
+# Create the .Renviron file in ve.output so dev-lib is included
+# That way we can have things like rmarkdown that are not needed by the runtime
+# (see VE-installer .Rprofile for construction of dev-lib location)
+r.environ <- file.path(ve.output,this.R,".Renviron")
+dev.lib <- normalizePath(dev.lib,winslash="/")
+ve.lib  <- normalizePath(ve.lib,winslash="/")
+cat("Creating .Renviron at",r.environ,"\n")
+r.libs.user <- paste0("R_LIBS_USER=",paste(ve.lib,dev.lib,sep=";"))
+write(r.libs.user,file=r.environ)
+rm( r.environ,r.libs.user )
+
 # Convey key file locations to the 'make' environment
 make.target <- Sys.getenv("VE_MAKEVARS",unset=file.path(ve.logs,"ve-output.make"))
 make.variables <- c(

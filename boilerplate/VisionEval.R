@@ -25,6 +25,7 @@ if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
 
 # Put the library directory into ve.lib
 # Note that ve.lib is already present and fully provisioned if we've unzipped the offline installer
+
 ve.lib.name <- "ve-lib"
 ve.lib <- file.path(ve.root,ve.lib.name)
 
@@ -55,7 +56,7 @@ if ( ! dir.exists(ve.lib) ) {
     # Installation list is everything in the repository
     # Consequently: test and abort if visioneval isn't in it
     if ( ! "visioneval" %in% VE.pkgs[,Package] ) {
-      message(paste("VisionEval not present in",ve.repos))
+      message(paste("VisionEval not present in",ve.contrib.url))
       message("VisionEval packages are not available")
       stop("Installation failed - check error and warning messages.")
     }
@@ -65,7 +66,7 @@ if ( ! dir.exists(ve.lib) ) {
     install.packages(
       VE.pkgs,
       lib=ve.lib,
-      repos=ve.repos,
+      contriburl=ve.contrib.url,
       quiet=TRUE
     )
   }
@@ -73,14 +74,30 @@ if ( ! dir.exists(ve.lib) ) {
 rm(ve.lib.local, ve.lib.name)
 
 # Create .Renviron to support interactive package development
-
-write(paste0("R_LIBS_USER=",ve.lib),file=file.path(ve.root,".Renviron"))
+# But don't overwrite if it's already there - the user may have
+# changed it. Use the VE-installer created development version
+# if that's available (which includes dev-lib)
+r.environ <- file.path(ve.root,".Renviron")
+if ( ! file.exists( r.environ ) ) {
+  r.environ.dev <- normalizePath(file.path(ve.root,"../.Renviron"),winslash="/",mustWork=FALSE)
+  if ( file.exists(r.environ.dev) ) {
+    file.copy( r.environ.dev, "./.Renviron" )
+  } else {
+    write(paste0("R_LIBS_USER=",ve.lib),file=r.environ)
+  }
+  rm( r.environ.dev )
+}
+rm( r.environ )
 
 # Construct "RunVisionEval.Rdata" from the following objects
 # Something to "double-click" in windows for a rapid happy start in RGui...
 
 .First <- function() {
-  .libPaths(ve.lib)
+  if ( ! ve.lib %in% .libPaths() ) {
+    .libPaths(c(ve.lib,.libPaths()))
+    # cat(".libPaths() inside .First\n")
+    # print(.libPaths())
+  }
   if ( install.success <- require(visioneval) ) {
     setwd(ve.root)
     cat("Welcome to VisionEval!\n")
@@ -96,7 +113,7 @@ tool.files <- file.path(ve.tools,dir(ve.tools,pattern="\\.R$"),fsep="/")
 tools <- character(0)
 if ( length(tool.files)>0 ) {
   for ( tf in tool.files ) {
-    if ( ! ve.lib %in% .libPaths() ) .libPaths(ve.lib)
+    if ( ! ve.lib %in% .libPaths() ) .libPaths(c(ve.lib,.libPaths()))
     # Add error checking for tool.contents not present
     eval(parse(text=paste0("import::here(tool.contents,.from='",tf,"')")))
     tools <- c(tools,tool.contents)
