@@ -2,10 +2,10 @@
 
 If you are interested in developing or debugging [VisionEval](https://visioneval.org "VisionEval"), you can easily get started in one of two ways:
 
-  1. Clone the github development branch from https://github.com/VisionEval/VisionEval-dev and follow the build instructions in the ReadMe.md file for VE-Installer.
+1. Clone the github development branch from https://github.com/VisionEval/VisionEval-dev and follow the build instructions in the ReadMe.md file for VE-Installer.
     * You need to use this method if you want to work on the VisionEval development branch
     * Do this if you are making changes you think you might submit back to the VisionEval project).
-  2. Install the binary installer (zip file) from [the VisionEval Download Page](https://visioneval.org/category/download.html "VisionEval Download"), then clone the git repository for the "master" branch (either from [https://github.com/VisionEval/VisionEval](https://github.com/VisionEval/VisionEval) or from [https://github.com/VisionEval/VisionEval-dev](https://github.com/VisionEval/VisionEval-dev)).
+2. Install the binary installer (zip file) from [the VisionEval Download Page](https://visioneval.org/category/download.html "VisionEval Download"), then clone the git repository for the "master" branch (either from [https://github.com/VisionEval/VisionEval](https://github.com/VisionEval/VisionEval) or from [https://github.com/VisionEval/VisionEval-dev](https://github.com/VisionEval/VisionEval-dev)).
     * Use this method to debug or tinker with one of the models or modules
     
 You will find working with [RStudio](https://www.rstudio.com/products/rstudio/download/ "Download RStudio") to be very convenient.
@@ -24,11 +24,11 @@ When you are working on a package using either approach, you probably will find 
 
 1. Verify that `.Renviron` has been copied to the directory containing the package's `.Rproj` file
 1. Start RStudio in the root directory of the package (e.g. `sources/modules/VELandUse`) by double-clicking the `.Rproj` file
-  * If Rstudio is already running, just close the current project (if any) and open a new project, selecting the package's .Rproj file
+    * If Rstudio is already running, just close the current project (if any) and open a new project, selecting the package's .Rproj file
 1. Install RTools (RStudio will make you do this when you first try a package build)
 2. In the RStudio 'Build' menu, go to the Build menu and choose 'Package' as the type of build
 3. When you then do "install and restart", the built package will be placed into the VisionEval library (so if you run VisionEval from its runtime location, your new version will have replaced the original).
-4. After you have installed the changes, you also use the RStudio debug features to set breakpoints, step through code, and inspect temporary fariables.
+4. After you have installed the changes, you also use the RStudio debug features to set breakpoints, step through code, and inspect temporary variables.
 
 If you are working in the full installation environment (i.e. installed using VE-Installer and `make`, rather than from the distributed `.zip` installer), don't forget to `make clean` and rebuild (`make`) VisionEval after your changes are stable (and before, for example, you go to work on a different module package).  Also don't forget to commit your changes to your Github repository clone or fork.
     
