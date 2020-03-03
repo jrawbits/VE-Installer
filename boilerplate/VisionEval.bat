@@ -58,7 +58,6 @@ rem type r-version.bat
 
 :Start
 %RSCRIPT% VisionEval.R
-pause
 IF %ERRORLEVEL% EQU 0 (
         START "VisionEval" %RGUI% VisionEval.RData
 ) ELSE (
