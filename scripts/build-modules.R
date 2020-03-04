@@ -31,6 +31,9 @@ if ( ! suppressWarnings(require(roxygen2)) ) {
 if ( ! suppressWarnings(require(rcmdcheck)) ) {
   install.packages("rcmdcheck", repos=CRAN.mirror, type=.Platform$pkgType )
 }
+if ( ! suppressWarnings(require(rmarkdown)) ) {
+  install.packages("rmarkdown", repos=CRAN.mirror, type=.Platform$pkgType )
+}
 
 # Reach for ve.lib first when seeking packages used by the ones we're
 # building
@@ -38,7 +41,7 @@ if ( ! suppressWarnings(require(rcmdcheck)) ) {
 
 # Where to put the built packages (may need to create the contrib.url)
 build.type <- .Platform$pkgType
-if ( build.type != "win.binary" ) build.type <- "source" # Skip mac build for now...
+if ( build.type != "win.binary" ) build.type <- "source" # Skip mac binary build for now...
 # To enable mac build, we also need to fix build-repository.R and install-velib.R
 # in order to grab pre-built mac binaries if we can...
 
@@ -58,7 +61,7 @@ ve.packages <- pkgs.db[pkgs.module,]
 
 package.names <- ve.packages$Package
 package.paths <- file.path(ve.packages[,"Root"], ve.packages[,"Path"], package.names)
-# Want to assert that all of these have the same length!
+# Want to assert that all of these eventually have the same length!
 # cat("Number of names:",length(package.names),"\n")
 # cat("Number of paths:",length(package.paths),"\n")
 # cat("Number of test paths:",length(package.testdir),"\n")
@@ -111,7 +114,7 @@ pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
 for ( module in seq_along(package.names) ) {
   src.module <- source.modules[package.names[module]]
 
-  # Step one: picky message to see if we're updating or creating the module fresh
+  # Step 1: picky message to see if we're updating or creating the module fresh
   need.update <- newerThan( package.paths[module], src.module, quiet=(debug<2) )
   if ( ! (me <- moduleExists(package.names[module], built.path.src)) || need.update ) {
     if ( me ) { # module exists
@@ -121,24 +124,27 @@ for ( module in seq_along(package.names) ) {
     }
   }
 
-  # Step two: Determine package status (built, installed)
+  # Step 2: Determine package status (built, installed)
   build.dir <- file.path(ve.test,package.names[module])
+  check.dir <- file.path(build.dir,paste0(package.names[module],".Rcheck"))
   if ( debug ) cat( build.dir,"exists:",dir.exists(build.dir),"\n")
   if ( build.type != 'source' ) {
     # On Windows, the package is built if:
     #   a. Binary package is present, and
     #   b. package source is not newer than ve.test copy of source
-    #   c. Binary package is newer than source package
-    nt <- de <- me <- as.logical(NA)
+    #   c. check.dir exists (previous built test will verify age of check.dir)
+    #   d. Binary package is newer than source package
+    nt <- de <- ck <- me <- as.logical(NA)
     package.built <- (me <- moduleExists(package.names[module], built.path.binary)) &&
                      (de <- ( dir.exists(build.dir) && ! newerThan(package.paths[module],build.dir,quiet=(!debug)) )) &&
+                     (ck <- ( dir.exists(check.dir) ) ) &&
                      (nt <- ! newerThan( quiet=(debug<2),
                               src.module,
                               file.path(built.path.binary,
                                         modulePath(package.names[module],built.path.binary))) )
     if ( debug && ! package.built ) {
       cat("Status of unbuilt",package.names[module],"\n")
-      cat("Module",me," ","Dir",de," ","Newer",nt," ","Inst",(package.names[module] %in% pkgs.installed),"\n")
+      cat("Module",me," ","Dir",de," ","Chk",ck," ","Newer",nt," ","Inst",(package.names[module] %in% pkgs.installed),"\n")
     }
   } else {
     # If Source build, the package is "built" if:
@@ -151,9 +157,9 @@ for ( module in seq_along(package.names) ) {
   package.installed <- package.built && package.names[module] %in% pkgs.installed
   if ( ! package.installed ) cat(package.names[module],"is NOT installed\n")
 
-  # Step 3: If package is not built, copy package source to ve.test
-  # On Windows: ve.test copy is used to build binary package and to run tests
-  # For Source build: ve.test copy is always created but only used if running tests
+  # Step 3: If package is not built, (re-)copy package source to ve.test
+  # On Windows: ve.test copy is used to build source and binary packages and to run tests
+  # For Source build: ve.test copy is used to build source package
   if ( ! package.built ) {
     if ( debug>1 ) {
       # Dump list of package source files if debugging
@@ -179,15 +185,17 @@ for ( module in seq_along(package.names) ) {
   if ( ! package.built ) {
     cat("Checking and pre-processing ",package.names[module]," in ",build.dir,"\n",sep="")
     # Run the module tests (prior to building anything)
-# Commenting out the check process as it fails with R 3.6.2 (12/20/2019)
-#     check.results <- devtools::check(build.dir,check_dir=build.dir,error_on="error")
-#     cat("Check results\n")
-#     print(check.results)
-#     # devtools::check leaves the package loaded after its test installation to a temporary library
-#     # Therefore we need to explicitly detach it so we can install it properly later on
-#     detach(paste("package:",package.names[module],sep=""),character.only=TRUE,unload=TRUE)
+    # Note that "check.dir" here is created within "check_dir=build.dir"
+    check.results <- devtools::check(build.dir,check_dir=build.dir,error_on="error")
+    cat("Check results\n")
+    print(check.results)
+    # devtools::check leaves the package loaded after its test installation to a temporary library
+    # Therefore we need to explicitly detach it so we can install it properly later on
+    detach(paste("package:",package.names[module],sep=""),character.only=TRUE,unload=TRUE)
 
     # Then get rid of the temporary (and possibly obsolete) source package that is left behind
+    # Must build again rather than use that built package, because the results of devtools::check
+    #   updates (but does not include) any files in /data
     tmp.build <- modulePath(package.names[module],build.dir)
     if ( length(tmp.build)>0 && file.exists(tmp.build) ) unlink(tmp.build)
 
@@ -200,7 +208,8 @@ for ( module in seq_along(package.names) ) {
     }
   }
 
-  # If not built, rebuild the source module from build.dir
+  # If not built, rebuild the source module from build.dir (this time, with updated /data)
+  # and place the result in built.path.src (the VE package repository we're building)
   if ( ! package.built ) {
     cat("building",package.names[module],"from",build.dir,"as source\n")
     src.module <- devtools::build(build.dir, path=built.path.src)
@@ -223,7 +232,6 @@ for ( module in seq_along(package.names) ) {
       if ( length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
         built.package <- grep("zip$",built.package,value=TRUE)
       }
-
       num.bin <- num.bin + 1
     } else {
       cat("Existing binary package:",package.names[module],ifelse(package.installed,"(Already Installed)",""),"\n")
