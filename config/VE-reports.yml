@@ -1,0 +1,35 @@
+Title: VisionEval VE-State+VE-Reports
+Date: 2020-02-20
+Description: A minimal VE-config.yml
+RunTests: FALSE
+Roots: # Require ve.root and ve.output at a minimum
+    ve.root: ../VisionEval-dev # Eventually, just ".." if a submodule
+    ve.output: ../VE-Reports
+Locations: # "Root" elements are variables defined in "Roots" section
+    ve.dependencies:  # Required
+        root: ve.output
+        path: pkg-dependencies
+        description: repo for downloaded and built external dependencies
+    ve.repository:    # Required
+        root: ve.output
+        path: pkg-repository
+        description: src/binary repo built from VE packages
+    ve.runtime:       # Required
+        root: ve.output
+        path: runtime
+        description: local runtime environment + base for installers
+    ve.pkgs:          # Required
+        root: ve.output
+        path: docker/ve-pkg
+        description: copy src tree here from ve.dependencies + ve.repository for installer/docker
+    ve.lib:           # Required
+        root: ve.output
+        path: ve-lib
+        description: install bin tree here from ve.repository
+    ve.test:          # Required, if tests are to be run
+        root: ve.output
+        path: tests
+        description: run tests here if requested during build
+    ve.external:      # Required if there are any Github packages
+        root: ve.output
+        path: external
