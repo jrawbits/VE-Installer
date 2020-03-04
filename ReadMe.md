@@ -5,27 +5,27 @@ and that facilitates development and testing of VisionEval.
 
 This installer addresses two VisionEval use cases:
 
-1. Enable developers to run and test VisionEval in an environment comparable to what
-end users would have.
-1. Enable end users to install a runnable VisionEval with little effort on any
+1. Enable developers to develop, test and run VisionEval from the Github source repository
+1. Create installable `.zip` files containing a runnable VisionEval that can be placed with little effort on any
 computer that supports R.
 
 ## Overview
 
 To use VE-Installer, do these steps:
 
-- clone the VE-Installer
-- setup the configuration file to point to your clone of the VisionEval repository
-- install a development environment (Linux R-base-dev, Windows R plus RTools), then
-- build suitable `make` targets, such as the runtime environment and an installer.
+- Clone the [VE-Installer](https://github.com/VisionEval/VE-Installer)
+- Setup the configuration file to point to your clone of the VisionEval repository
+- Install a development environment (Linux R-base-dev, or Windows R plus RTools), then
+- build suitable `make` targets, such as the runtime environment or an installer.
 
 Full instructions and reference materials are included below and in various referenced files.
 
 You can use VE-Installer with any version of VisionEval (with appropriate changes to
 configuration files describing that version). For older versions, you will need to
 construct a suitable `VE-components.yml` file. Newer versions already have a suitable
-`VE-components.yml`.  The process for setting up the configuration is described in detail in the most recent updates of the [VisionEval-dev repository][VE-dev], and in the `config/ReadMe.md` here in
-VE-Installer.
+`VE-components.yml`.  The process for setting up the configuration is described in
+detail in the `build` directory of any code branch in the [VisionEval-dev repository][VE-dev],
+and in the `config/ReadMe.md` here in VE-Installer.
 
 VE-Installer will work "out of the box" if you clone the current VisionEval-dev development
 branch so it is in a "sibling" directory of VE-Installer (i.e. they both have the same parent
@@ -35,7 +35,8 @@ directory).
 
 Full instructions for installing and using `VE-Installer` are presented below. The
 configuration file which describes what to build is described in its own ReadMe.md file in
-the `config` subdirectory (along with a primer on the required `VE-components.yml` file).
+the `config` subdirectory (along with a primer on the required `VE-components.yml` file,
+which typically exists in the `build` directory of the VisionEval source tree).
 
 [VE-dev]: https://github.com/visioneval/VisionEval-dev "VisionEval Development"
 [VEInstaller]: https://github.com/visioneval/VE-Installer "VisionEval Installer"
@@ -45,18 +46,23 @@ the `config` subdirectory (along with a primer on the required `VE-components.ym
 The following back-end outputs are available:
 
 * Self-contained VisionEval "**runtime**" installation that will run locally on your development machine
-* (optional) Windows "**offline**" installer (or the equivalent for your development system architecture)
-* (optional) Multi-Platform "**offline**" installer that will build VisionEval from source packages
+* (optional) Windows "**offline**" installer (or the equivalent for your development system architecture) - a `.zip` file
+* (optional) Multi-Platform "**offline**" installer that will build VisionEval from source packages - also a `.zip` file
 * [Under Construction] **Docker images** for any system running Docker
 
 # Getting Started
 
-To use the VE-Installer, just clone it, install a development environment, setup the
-configuration file to point at the VisionEval source tree you would like to build from, and run suitable `make` targets to build (for example) a runtime environment and an installer.  Full instructions and references materials are included below and in various referenced files.
+To use the VE-Installer, just clone it, install a development
+environment, setup the configuration file to point at the VisionEval
+source tree you would like to build from, and run suitable `make`
+targets to build (for example) a runtime environment and an installer.
+Full instructions and references materials are included below and in
+various referenced files.
 
 * Install [RTools][getRTools]
     * You need an implementation of GNU Make and Info-Zip (available in RTools
       as `make.exe` and `zip.exe` respectively)
+    * The `tar.exe` from RTools sometimes does not play nicely with Git for Windows Bash; if you get errors suggesting that the `tar` program isn't working, you can `export TAR=internal` in your `.bashrc` file.
     * Put RTools at the beginning of your PATH, either by setting user environment
       variables or by adjusting PATH in your `.bashrc` file (once you have installed Git for Windows, see next item).
 * Install [Git for Windows][Git4W]
@@ -65,8 +71,8 @@ configuration file to point at the VisionEval source tree you would like to buil
     * Recommendations for setting up Git for Windows are found below
 * Clone [VE-Installer][VEInstaller] and [VisionEval-dev][VE-dev]
     * You should check out either the "master" or the "development" branch of VisionEval-dev
-      * "master" is always the same as the released VisionEval repository  master
-      * "development" contains the current accepted changes to the latest release
+      * "master" is always the same as the released VisionEval repository master and is the version used to create the `.zip` installers available from the [Download Page](https://visioneval.org/category/download.html)
+      * "development" contains the current accepted changes for the next release
     * Configuration will be simplest if VE-Installer and VisionEval-dev are
       subdirectories of the same parent directory
       * "simplest" in this case means you might not even need to change VE-Config.yml (see below)
@@ -74,7 +80,8 @@ configuration file to point at the VisionEval source tree you would like to buil
     * Make sure RTools is at the front of the PATH
     * Set up `bash` so you can easily get to the VE-Installer/build folder
     * Set up any SSH keys or other credentials you may need for Github access
-* Edit the VE-Installer/config/VE-config.yml file so it points at your copy of VisionEval-dev
+    * Set up the TAR variable in your `.bashrc` if needed
+* Edit the `VE-Installer/config/VE-config.yml` file so it points at your copy of VisionEval-dev
     * This step is optional if you have cloned the VisionEval-dev repository so it is in `../VisionEval-dev`   
     * ve.root : full path in which to look for VisionEval itself (defaults to
       "../VisionEval.dev" (".." relative to home of VE-Installer)
@@ -88,26 +95,26 @@ configuration file to point at the VisionEval source tree you would like to buil
     * Change to the VE-Installer root folder
         * cd /path/to/VE-Installer
     * Run these commands from the Bash command prompt
-        * Build the runtime: `bash build-VE.sh 3.5.2` (defaults to 3.6.1)
-        * Build an installer: `bash build-VE-sh 3.5.3 installer
+        * Build the runtime: `bash build-VE.sh 3.6.1` (defaults to 3.6.1)
+        * Build an installer: `bash build-VE-sh 3.6.1 installer`
     * If you have the VE-Installer native version of R installed (currently 3.6.1),
       you can just run `bash build-VE.sh`, or even just `make` to assemble a
       runtime.
-* Once complete, you can run VisionEval.bat in ve.output/3.x.x/runtime in order to start R
+* Once complete, you can run VisionEval.bat in `ve.output/3.x.x/runtime` in order to start R
   and load VisionEval.
     * ve.output is whatever you set it to in VE-Config.yml (see above)
     * If you built an installer, you'll find it in a zip file in the root
-      of the build (ve.output/3.6.1).
-* To launch VisionEval, just double-click VisionEval.bat (on Windows)
+      of the build (e.g. `ve.output/3.6.1`).
+* To launch VisionEval, just double-click `VisionEval.bat` (on Windows)
     * Or enter `bash visionval.sh` on Linux
 
-Additional make targets snd setup (e.g. committing VisionEval changes to Github) are
+Additional make targets and setup (e.g. committing VisionEval changes to Github) are
 discussed below.
 
 # Development Environment Pre-Requisites
 
 Prerequisites to build a VisionEval runtime environment or installer include a suitable
-version of R (R >= 3.4.4), and a suitable development environment.
+version of R (R >= 3.6.0), and a suitable development environment.
 
 On Windows, you will need to install the [RTools][getRTools] suite, as well as [Git for
 Windows][Git4W] so you can use `bash` scripts. On Linux, installing the R development
@@ -215,7 +222,7 @@ VisionEval.  A simple bash script is also provided to run a "one line" build wit
 having to mess with options.  The script is useful if you want to build multiple runtimes
 for different R versions.  You can also use the script to build any of the targets
 listed below, but you do need to name the R version explicitly (e.g `bash build-VE.sh
-3.5.3 repository` - whereas `bash build-VE.sh` will do the same thing as `make` (i.e. make
+3.6.1 repository` - whereas `bash build-VE.sh` will do the same thing as `make` (i.e. make
 everything) using the version of R that VE-Installer currently prefers (not necessarily
 one you have installed!).
 
@@ -318,10 +325,11 @@ The same thing happens with modules. So if you're working (for example) on VESce
 
 The result is an easy workflow:
 
-1. Edit something in your VisionEval clone
-2. Run `make build-clean` to force an update status on all VisionEval files
-3. Run `make` from a bash window with VE-Installer as working directory
-4. Lather, rinse, repeat until you've got it to build without errors
+1. Edit something in your VisionEval git clone directory
+2. Run `make build-clean` from a bash window to force an update status on all VisionEval files
+3. Run `make` from a bash window
+4. Edit any file that shows up with errors
+5. Lather, rinse, repeat until you've got it to build without errors
     * Extra credit: run `make lib-clean; make VE_RUNTESTS=TRUE`
 5. Run `VisionEval.bat` from your runtime output folder and try out
   the modules and models
