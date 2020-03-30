@@ -1,10 +1,10 @@
-Title: VisionEval
-Date: 2019-04-26
+Title: VisionEval VE-State+VE-Reports
+Date: 2020-02-20
 Description: A minimal VE-config.yml
 RunTests: FALSE
 Roots: # Require ve.root and ve.output at a minimum
-    ve.root: ../VisionEval-dev # Eventually, just ".." if a submodule
-    ve.output: ../VE-Built
+    ve.root: ../VisionEval-MultiModalModule # Eventually, just ".." if a submodule
+    ve.output: ../VE-Built-MM
 Locations: # "Root" elements are variables defined in "Roots" section
     ve.dependencies:  # Required
         root: ve.output

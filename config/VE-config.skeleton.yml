@@ -3,8 +3,8 @@ Date: 2019-04-25
 RunTests: FALSE # if TRUE, default module build behavior will be to run the (very time-consuming) tests
 # Override RunTests during "make" by adding VE_RUNTESTS=True when building the 'configure' target
 Roots: # TODO: Edit ve.root and ve.output to identify directories on the local machine
-    ve.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev # Required
-    ve.output: e:/VE-built/VE-1.02  # Required
+    ve.root: ../VisionEval-Dev # Required
+    ve.output: ../VE-built     # Required
     # ve.cache: e:/VE-built/VE-Cache  # Optional
     # However ve.cache is "special" in that, if defined, anything stored there will require
     #    extra effort to remove between builds
