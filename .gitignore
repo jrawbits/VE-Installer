@@ -12,3 +12,4 @@ www/*.zip
 logs/
 dev-lib/
 ve-output.*.make
+*.asv#
