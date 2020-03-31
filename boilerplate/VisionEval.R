@@ -35,9 +35,8 @@ if ( ! dir.exists(ve.lib) ) {
   if ( dir.exists(ve.lib.local) ) {
     ve.lib <- ve.lib.local # Use the build environment installed library
   } else {
+    # See if ve-lib is set through .libPaths (and thus in .Renviron)
     ve.lib <- .libPaths()[grep(ve.lib.name,.libPaths(),fixed=TRUE)]
-    cat(".libPaths():",paste(.libPaths(),collapse="; "),"\n")
-    cat("ve.lib:",class(ve.lib),paste(ve.lib,collapse="; "),"\n")
     if ( length(ve.lib)==1 ) {
       message("Using ve-lib from .libPaths()/Environment:",ve.lib)
     } else {
@@ -76,7 +75,7 @@ if ( ! dir.exists(ve.lib) ) {
         quiet=TRUE
       )
     }
-  |
+  }
 }
 rm(ve.lib.local, ve.lib.name)
 
