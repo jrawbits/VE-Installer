@@ -3,8 +3,10 @@ Date: 2019-04-26
 Description: A minimal VE-config.yml
 RunTests: FALSE
 Roots: # Require ve.root and ve.output at a minimum
-    ve.root: ../VisionEval-dev # Eventually, just ".." if a submodule
-    ve.output: ../VE-Built
+    ve.root:
+        path: ../VisionEval
+        branch: development
+    ve.output: ../VE-Built-Development
 Locations: # "Root" elements are variables defined in "Roots" section
     ve.dependencies:  # Required
         root: ve.output
