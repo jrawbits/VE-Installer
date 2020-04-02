@@ -4,13 +4,20 @@ RunTests: FALSE # if TRUE, default module build behavior will be to run the (ver
 # Override RunTests during "make" by adding VE_RUNTESTS=True when building the 'configure' target
 Roots: # TODO: Edit ve.root and ve.output to identify directories on the local machine
     ve.root: ../VisionEval-Dev # Required
+    # Most of the sample configurations use an alternate syntax to force a build from a particular
+    # git branch. You can use that feature (to stopy you from building the wrong branch) by
+    # specifying root like this (the "branch" parameter should be YOUR LOCAL BRANCH NAME - the one
+    # that shows up in the first line when you do "git status").
+    # ve.root:
+    #     path: ../VisionEval-Dev
+    #     branch: my_branch
     ve.output: ../VE-built     # Required
     # ve.cache: e:/VE-built/VE-Cache  # Optional
     # However ve.cache is "special" in that, if defined, anything stored there will require
     #    extra effort to remove between builds
     # Additional roots may be defined (with unique names); here is an illustrative alias:
     # Typically additional roots will be used in the optional Components section below
-    #   ve.alt.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev # Optional
+    #   ve.alt.root: c:/Users/jeremy.raw/Git-Repos/VisionEval-Dev-MM # Optional
     # ve.install is implicitly available - relative to the running installer
 # Components:  # Entire section is optional
     # Default if this section is missing is to load all components from ve.root/build/VE-components.yml
