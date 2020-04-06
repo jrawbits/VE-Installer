@@ -4,7 +4,7 @@ setlocal EnableExtensions
 setlocal EnableDelayedExpansion
 
 set R_VERSION=%1
-if [%R_VERSION%] == [] set R_VERSION=3.5.1
+if [%R_VERSION%] == [] set R_VERSION=3.6.1
 set ROOT_KEY=\Software\R-core\R\%R_VERSION%
 set MACHINE_KEY="HKLM%ROOT_KEY%"
 set USER_KEY="HKCU%ROOT_KEY%"
@@ -23,7 +23,7 @@ if [!R_HOME!] == [] (
 	for /f "usebackq skip=2 tokens=1-2*" %%i in (`reg query %MACHINE_KEY% /v %VALUE_NAME% 2^>nul`) do set R_HOME=%%k
 )
 if [!R_HOME!] == [] (
-	echo R %R_VERSION% not found in machine; searching %USER_KEY%
+	echo R %R_VERSION% not found in machine; searching %USER_KEY% 1>&2
 	for /f "usebackq skip=2 tokens=1-2*" %%x in (`reg query %USER_KEY% /v %VALUE_NAME% 2^>nul`) do set R_HOME=%%z
 )
 if [!R_HOME!] == [] (
