@@ -4,7 +4,7 @@ Description: A minimal VE-config.yml
 RunTests: FALSE
 Roots: # Require ve.root and ve.output at a minimum
     ve.root:
-        path: ../VisionEval-dev
+        path: ../VisionEval-dev-VEReports
         branch: gregorbj-development
     ve.output: ../VE-Built-Reports
 Locations: # "Root" elements are variables defined in "Roots" section

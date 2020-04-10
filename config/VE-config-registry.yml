@@ -4,7 +4,7 @@ Description: Config for release versions
 RunTests: FALSE
 Roots: # Require ve.root and ve.output at a minimum
     ve.root:
-        path: ../VisionEval-dev
+        path: ../VisionEval-dev-registry
         branch: registry
     ve.output: ../VE-Built-Registry
 Locations: # "Root" elements are variables defined in "Roots" section
