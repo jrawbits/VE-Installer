@@ -103,12 +103,59 @@ if (ve.runtests) {
 # Build binary packages on systems with supported .Platform$pkgType
 # (whatever R supports, currently "win.binary" and "mac.binary.el-capitan")
 
-# WARNING: The binary build will not rebuild packages once they have been built.
-# To force a rebuild, delete the binary from ve-lib
-
 num.src <- 0
 num.bin <- 0
-pkgs.installed <- installed.packages(lib.loc=ve.lib)[,"Package"]
+pkgs.info <- installed.packages(lib.loc=ve.lib)[,c("Package","Version")]
+pkgs.installed <- pkgs.info[,"Package"]
+pkgs.version <- pkgs.info[,"Version"]
+
+# Version verification functions
+
+samePkgVersion <- function( pkg.path, version ) {
+  # Compare version from package path to a target version (already built)
+  #
+  # Args:
+  #   pkg.path: path to root of a package containing DESCRIPTION
+  #   version: a Version string from some other package
+  #
+  # Returns:
+  #   TRUE if the versions are the same, else FALSE
+
+  # The "all" will handle pathological cases where version is a vector longer than 1
+  result <- all(getPathVersion(pkg.path) == version)
+  if (debug) {
+    cat("samePkgVersion checks",pkg.path,"against",version,":",result,"\n")
+  }
+  return( result )
+}
+
+getPathVersion <- function( path ) {
+  # Extract version string from DESCRIPTION on path
+  #
+  # Args:
+  #   path: path to root of a package containing DESCRIPTION
+  #         error if no DESCRIPTION on that path
+  #
+  # Returns:
+  #   Version string from DESCRIPTION file
+  desc.path <- file.path(path,"DESCRIPTION")
+  if ( ! file.exists(desc.path) ) stop("getPathVersion: Did not find package at",desc.path)
+  return ( read.dcf(file=desc.path)[1,"Version"] )
+}
+
+getPackageVersion <- function( package ) {
+  # Extract version string from a built source module (using version encoded in its name)
+  #
+  # Args:
+  #   package: path to a source or binary package (with version encoded)
+  #
+  # Returns:
+  #   Version string from package file name
+
+  # Eliminate package compression formats
+  version <- sapply(strsplit(substr(package,1,regexpr(".(\\.tar\\.gz|\\.zip)",package)),"_"),FUN=function(x)x[2],simplify=TRUE)
+  return( version )
+}
 
 # Build missing or out-of-date source modules
 for ( module in seq_along(package.names) ) {
@@ -134,27 +181,37 @@ for ( module in seq_along(package.names) ) {
     #   b. package source is not newer than ve.test copy of source
     #   c. check.dir exists (previous built test will verify age of check.dir)
     #   d. Binary package is newer than source package
-    nt <- de <- ck <- me <- as.logical(NA)
+    me <- de <- ck <- nt <- vr <- as.logical(NA)
     package.built <- (me <- moduleExists(package.names[module], built.path.binary)) &&
-                     (de <- ( dir.exists(build.dir) && ! newerThan(package.paths[module],build.dir,quiet=(!debug)) )) &&
-                     (ck <- ( dir.exists(check.dir) ) ) &&
+                     (de <- ( dir.exists(build.dir) && ! newerThan(package.paths[module],build.dir,quiet=(!debug))) ) &&
+                     (ck <- dir.exists(check.dir) ) &&
                      (nt <- ! newerThan( quiet=(debug<2),
                               src.module,
                               file.path(built.path.binary,
-                                        modulePath(package.names[module],built.path.binary))) )
+                                        modulePath(package.names[module],built.path.binary))) ) &&
+                     (vr <- samePkgVersion(package.paths[module],getPathVersion(build.dir)) )
     if ( debug && ! package.built ) {
       cat("Status of unbuilt",package.names[module],"\n")
-      cat("Module",me," ","Dir",de," ","Chk",ck," ","Newer",nt," ","Inst",(package.names[module] %in% pkgs.installed),"\n")
+      cat("Module",me," ","Dir",de," ","Chk",ck," ","Newer",nt," ","Inst",(package.names[module] %in% pkgs.installed),"Ver",vr,"\n")
     }
   } else {
     # If Source build, the package is "built" if:
     #   a. package source is not newer than ve.test copy of source
-    package.built <- !is.na(src.module) && dir.exists(build.dir) && ! newerThan( package.paths[module], build.dir )
+    package.built <- (
+      ! is.na(src.module) &&
+        dir.exists(build.dir) &&
+      ! newerThan( package.paths[module], build.dir ) &&
+        samePkgVersion(package.paths[module],getPackageVersion(src.module))
+      )
   }
   if ( ! package.built ) cat(package.names[module],"is NOT built\n")
 
   # Package is installed if it is built and is an available installed package
-  package.installed <- package.built && package.names[module] %in% pkgs.installed
+  package.installed <- (
+    package.built &&
+    ! is.na( pkgs.installed[package.names[module]] ) &&
+    samePkgVersion(package.paths[module],pkgs.version[package.names[module]])
+  )
   if ( ! package.installed ) cat(package.names[module],"is NOT installed\n")
 
   # Step 3: If package is not built, (re-)copy package source to ve.test
@@ -168,7 +225,7 @@ for ( module in seq_along(package.names) ) {
     } else {
       cat("Copying module source",package.paths[module],"to build/test environment...\n")
     }
-    if ( dir.exists(build.dir) || file.exists(build.dir) ) unlink(build.dir,recursive=TRUE) # Get rid of the build directory (in case anything was removed)
+    if ( dir.exists(build.dir) || file.exists(build.dir) ) unlink(build.dir,recursive=TRUE) # Get rid of the build directory and start fresh
     pkg.files <- dir(package.paths[module],recursive=TRUE,all.files=FALSE) # not hidden files, relative to package.paths[module]
     pkg.dirs <- dirname(pkg.files)
     lapply( grep("^\\.$",invert=TRUE,value=TRUE,unique(file.path(build.dir,pkg.dirs))), FUN=function(x) { dir.create(x, showWarnings=FALSE, recursive=TRUE ) } )
@@ -211,7 +268,9 @@ for ( module in seq_along(package.names) ) {
   # If not built, rebuild the source module from build.dir (this time, with updated /data)
   # and place the result in built.path.src (the VE package repository we're building)
   if ( ! package.built ) {
-    cat("building",package.names[module],"from",build.dir,"as source\n")
+    obsolete <- dir(built.path.src,pattern=paste0(package.names[module],"*_"))
+    cat("obsolete:",obsolete,"\n")
+    unlink( file.path(built.path.src,obsolete) )
     src.module <- devtools::build(build.dir, path=built.path.src)
     num.src <- num.src + 1
   }
@@ -228,6 +287,9 @@ for ( module in seq_along(package.names) ) {
       cat("building",package.names[module],"from",build.dir,"as",build.type,"\n")
       cat("building into",built.path.binary,"\n")
 
+      obsolete <- dir(built.path.binary,pattern=paste0(package.names[module],"*_"))
+      cat("obsolete:",obsolete,"\n")
+      unlink( file.path(built.path.binary,obsolete) )
       built.package <- devtools::build(build.dir,path=built.path.binary,binary=TRUE)
       if ( length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
         built.package <- grep("zip$",built.package,value=TRUE)
@@ -240,12 +302,17 @@ for ( module in seq_along(package.names) ) {
     if ( ! package.installed ) {
       # On Windows, install from the binary package
       cat("Installing built package:",built.package,"\n")
+      if ( package.names[module] %in% pkgs.installed ) {
+        cat("Removing obsolete package version:",pkgs.version[package.names[module]],"\n")
+        remove.packages(package.names[module])
+      }
       install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type) # so they will be available for later modules
     }
   } else { # build.type == "source"
     # For source build, just do installation from source package (no binary package created)
     if ( ! package.installed ) {
       cat("Installing source package:",src.module,"\n")
+      if ( package.names[module] %in% pkgs.installed ) remove.package(package.names[module])
       install.packages(src.module, repos=NULL, lib=ve.lib, type="source")
     } else {
       cat("Existing source package",package.names[module],"(Already Installed)\n")
