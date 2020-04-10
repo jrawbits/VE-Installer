@@ -21,7 +21,8 @@ endif
 
 export VE_R_VERSION VE_CONFIG VE_RUNTESTS RSCRIPT
 
-VE_LOGS?=logs/$(VE_R_VERSION)
+VE_BRANCH=$(shell basename $(VE_CONFIG) | cut -d'.' -f 1 | cut -d'-' -f 2-3)
+VE_LOGS?=logs/VE-$(VE_R_VERSION)-$(VE_BRANCH)
 VE_RUNTIME_CONFIG:=$(VE_LOGS)/dependencies.RData
 VE_MAKEVARS:=$(VE_LOGS)/ve-output.make
 export VE_LOGS VE_RUNTIME_CONFIG VE_MAKEVARS
@@ -46,6 +47,7 @@ show-defaults: $(VE_MAKEVARS)
 	: WINDOWS      $(WINDOWS)       # Running on Windows?
 	: VE_R_VERSION $(VE_R_VERSION)  # R Version for build
 	: RSCRIPT      $(RSCRIPT)       # Rscript (should match R Version)
+	: VE_LOGS      $(VE_LOGS)       # Location of log files
 	: VE_CONFIG    $(VE_CONFIG)     # Location of VE-Config.yml
 	: VE_MAKEVARS  $(VE_MAKEVARS)   # Make's version of VE-Config.yml
 	: VE_OUTPUT    $(VE_OUTPUT)     # Root of build output
@@ -53,6 +55,7 @@ show-defaults: $(VE_MAKEVARS)
 	: VE_REPOS     $(VE_REPOS)      # Location of build VE packages (repo)
 	: VE_LIB       $(VE_LIB)        # Location of installed packages
 	: VE_RUNTIME   $(VE_RUNTIME)    # Location of local runtime
+	: VE_TEST      $(VE_TEST)       # Location of test folder
 	: VE_PKGS      $(VE_PKGS)       # Location of runtime packages (for installer/docker)
 
 # Should have the "clean" target depend on $(VE_MAKEVARS) if it uses
@@ -127,6 +130,7 @@ $(VE_LOGS)/velib.built: $(VE_LOGS)/repository.built scripts/build-velib.R
 # (File time stamps are checked in the R scripts)
 modules: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built
 	$(RSCRIPT) scripts/build-modules.R
+	touch $(VE_LOGS)/modules.built
 
 # This rule will (re-)copy out of date scripts and models to the runtime
 # We'll almost always "build" the runtime,
@@ -135,6 +139,11 @@ modules: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built
 runtime: 
 	$(RSCRIPT) scripts/build-runtime.R
 	touch $(VE_LOGS)/runtime.built
+
+module-list: $(VE_TEST)/VENameRegistry.json #  $(VE_TEST)/module_status.csv
+
+$(VE_TEST)/VENameRegistry.json $(VE_TEST)/module_status.csv: scripts/build-inventory.R $(VE_LOGS)/modules.built
+	$(RSCRIPT) scripts/build-inventory.R
 
 # The next rules build the installer .zip files
 # 'bin' is the binary installer for the local architecture (e.g. Windows)
