@@ -9,18 +9,18 @@ default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],
 ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
 if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
   stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
-       "\nRun state-dependencies.R to set up build environment")
+       "\nRun build-config.R to set up build environment")
 }
 load(ve.runtime.config)
 if ( ! checkVEEnvironment() ) {
-  stop("Run state-dependencies.R to set up build environment")
+  stop("Run build-config.R to set up build environment")
 }
 
 # Relay dependency list
 
 load(ve.all.dependencies) # use all.dependencies
 if ( ! exists("all.dependencies") ) {
-  stop("Run state-dependencies.R to set up build environment")
+  stop("Run build-config.R to set up build environment")
 }
 
 # Load required Library

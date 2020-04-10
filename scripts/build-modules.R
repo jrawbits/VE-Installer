@@ -5,7 +5,7 @@
 # Build and optionally test the VE packages
 
 # Very important to set up VE-config.yml and VE-components.yml correctly (see
-# state-dependencies.R, and the example configurations in VE-Installer and in
+# build-config.R, and the example configurations in VE-Installer and in
 # VisionEval-dev).
 
 # Load runtime configuration
@@ -13,11 +13,11 @@ default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],
 ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
 if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
   stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
-       "\nRun state-dependencies.R to set up build environment")
+       "\nRun build-config.R to set up build environment")
 }
 load(ve.runtime.config)
 if ( ! checkVEEnvironment() ) {
-  stop("Run state-dependencies.R to set up build environment")
+  stop("Run build-config.R to set up build environment")
 }
 
 # Build tool dependencies

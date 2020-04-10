@@ -10,11 +10,11 @@ default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],
 ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
 if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
   stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
-       "\nRun state-dependencies.R to set up build environment")
+       "\nRun build-config.R to set up build environment")
 }
 load(ve.runtime.config)
 if ( ! checkVEEnvironment() ) {
-  stop("Run state-dependencies.R to set up build environment")
+  stop("Run build-config.R to set up build environment")
 }
 
 # uncomment the following line on Windows if you just want the pre-compiled
@@ -39,7 +39,7 @@ require(tools)
 bioc <- BioC.mirror
 
 if ( ! exists("pkgs.CRAN") || ! exists("pkgs.BioC") || ! exists("pkgs.db") ) {
-  stop("Please run state-dependencies.R to build dependency lists")
+  stop("Please run build-config.R to build dependency lists")
 }
 
 # Base R packages (so we can ignore those as dependencies)
