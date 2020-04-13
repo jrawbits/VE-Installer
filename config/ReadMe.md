@@ -9,7 +9,7 @@ This ReadMe.md file documents the structure of the configuration files.
 The configuration files are YAML, consisting of Key: Value pairs.
 
 The top-level keys can be anything (The samples contain 'Name', 'Date' and 'Description' for
-example), but only the following will be examined:
+example), but only the following will be examined during the build:
 
 RunTests
 Roots
@@ -22,7 +22,7 @@ The structure of these
 
 The "RunTests" key holds a single value, conventionally either TRUE or FALSE.
 
-If TRUE, the build will run `R CMD check` as well as any tests configured for the VE Modeles.
+If TRUE, the build will run any tests configured for the VE Modules.
 Any other value is considered FALSE. By default, the Makefile will consult the value set
 here in this configuration .yml file. The value set here can be overridden when running `make`
 either by setting an environment variable (VE_RUNTESTS) to TRUE or FALSE, or by setting it on the
@@ -30,14 +30,29 @@ make command line as `make VE_RUNTESTS=TRUE`.
 
 ## Roots ##
 
-In the "Roots" key, each elements is a tag:directory pair, where the tag is a symbolic name used
+In the "Roots" key, each elements is a tag:value pair, where the tag is a symbolic name used
 later to define sources and targets for the various VisionEval elements that are processed during
-the build.  The directory value is an absolute path on the machine that will run the build (in
-whatever local syntax is appropriate, Windows or Linux or Macintosh).
+the build.  The value has one of two formats:
+
+1. (simple) an absolute path on the machine that will run the build (in whatever local syntax is
+appropriate: Windows or Linux or Macintosh).
+1. (compound) a pair of key-value pairs indicated the path (same format as "simple") and the branch
+(presuming that the root is a git repository)
+
+The compound format only makes sense for "input" roots (places from which the VisionEval source is
+composed). If the branch is specified, the path will be checked during the build to make sure that
+it is part of a git repository, and that the currently checked out (local) branch has the indicated
+name.  Note that it is the _local_ branch that is comared, not the remote, since the build process
+is always relative to the user's build environment.
+
+If you are developing from multiple branches, it is recommended that you use `git worktree` to check
+out alternate branches (otherwise, you'll end up rebuilding a bunch of stuff every time you check
+out a different branch) and create (as in the included examples) configurations broken out by
+branch. The Makefile illustrates how the config files might conventionally be named.
 
 In general, to use a configuration file on a different machine or with a different VisionEval
-source tree, it is enough just to change the directory part of each root pair to point to
-the correct directory.
+source tree, it is enough just to change the directory part of each root path to point to
+the correct directory (and make sure the branch name is correct if you're using it).
 
 While no root tags are formally required, it is conventional at a minimum to set ve.root to the
 folder containing the source code for VisionEval, and ve.output to the folder that will contain the
@@ -51,11 +66,11 @@ below).
 A special root, ve.installer, is always available and is set internally during the build process
 to the VE-Installer directory itself.
 
-Alternate roots can be used in the "Components" section to specify different versions of VisionEval
-to merge into a single build, and in the "Locations" section to identify where to put the output.
-One application of an alternate output location might be to put certain build artifacts (like the
-dependency repository) in a different location so they will survive "cleanup" (and thus effectively
-be cached).
+Alternate roots can be used in the "Components" section (below) to specify different versions of
+VisionEval to merge into a single build, and in the "Locations" section to identify where to put the
+output. One application of an alternate output location might be to put certain build artifacts
+(like the dependency repository) in a different location so they will survive "cleanup" (and thus
+effectively be cached).
 
 ## Locations ##
 
@@ -63,12 +78,13 @@ The Locations key contains elements that are name:specification pairs identifyin
 for each of the build steps.  The following Locations are recognized, and they should each have a
 definition (ther are no defaults for these).
 
-	- ve.dependencies
-	- ve.repository
-	- ve.runtime
-	- ve.pkgs
-	- ve.lib
-	- ve.test
+    - ve.dependencies
+    - ve.repository
+    - ve.runtime
+    - ve.pkgs
+    - ve.lib
+    - ve.test
+    - ve.external
 
 In addition, an optional Location `ve.components` can specify an alternate location for
 `VE-components.yml` (see below in the "Components" section to learn how that works).
@@ -76,7 +92,7 @@ In addition, an optional Location `ve.components` can specify an alternate locat
 The specification for each Location is a collection of key:value pairs.  At least two key:value pairs
 must be defined:
 
-	- root
+    - root
     - path
 
 Other keys may be defined but they will be ignored.
@@ -88,7 +104,7 @@ The `path` is the directory location for this location relative to the `root`.
 
 ## Components ##
 
-The "Components" section is used to mix and match VisionEval components from alternate root
+The "Components" section is used to mix and match VisionEval components from alternate input root
 locations (e.g. a principal VisionEval version in ve.root, and a second repository possibly called
 ve.alt.root).
 
@@ -127,6 +143,7 @@ Finally, because older versions of VisionEval will not have a VE-Components.yml 
 one yourself and use that instead.  In that case, you do not get to have multiple roots.  Only
 "ve.root" is used.  To set up a local VE-Components.yml file, define ve.components in the
 "Locations" section.  The "root" element will specify the root (typically "ve.installer"), and the
-"path" will list the path relative to root and the filename for "VE-Components.yml".
+"path" will list the path relative to root and the filename for "VE-Components.yml". See
+VE-config.skeleton.yml for an example of that.
 
 

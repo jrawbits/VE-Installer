@@ -255,6 +255,10 @@ Here is an overview of how to use make (command lines to construct various eleme
   installer (twice the size) that would work on Macintosh or Linux using `make installer-src`,
   but that is a slow process that generates a gigantic file so you probably don't
   want to do it.
+* `make module-list`
+  Generates two files into the test folder (where packages are built) by (1) extracting the names of modules available in each package, listing
+  their Inp (input) and Set (output) specifications, and (2) identifying which models use which packages from which modules.
+  To use this, you will need a recent version of the `visioneval` framework package (on development, 4/13/2020).
 * `make docker`
   This target builds a docker image; see the `docker` subdirectory and its `ReadMe.md` for details. While it will build, the scripts used in the images still need to be updated in order to work correctly.
 
@@ -345,7 +349,7 @@ external | Location where Github dependency packages are cloned and built from
 pkg-dependencies | CRAN and BioConductor package repository (source and Windows binary\*) for dependencies
 pkg-repository | Repository of built VisionEval packages (source and Windows binary\*)
 runtime | the VisionEval folder with the installed / installable elements (see below)
-tests | Copies of the VisionEval TestData and package folders used for running tests and saving test output
+tests | Copies of the VisionEval TestData and package folders used for building, running tests and saving test output
 ve-lib | Library of installed packages for the local machine architecture
 ve-pkg | Repository of source packages (VisionEval plus dependencies) used in source installer (optional)
 VE-Runtime-Rx.x.x.zip | Just the runtime folder (for the local architecture and R version x.x.x) zipped up
@@ -355,7 +359,8 @@ VE-installer-Source-Rs.x.x.zip | the offline source installer for end users usin
 Remember that logs from the `R CMD check` tests go into sub-directories of each module's
 copy in the output `tests` folder.
 
-If you run `make installer` on Linux or Mac, you'll get a "unix" source installer suitable for your local architecture. Run `make installer-src` to make the offline source installer.  Run `make installer-clean` to force the installers to be rebuilt.
+If you run `make installer` on Linux or Mac, you'll get a "unix" source installer suitable for your local architecture.
+Run `make installer-src` to make the offline source installer.  Run `make installer-clean` to force the installers to be rebuilt.
 
 Inside the VE-Installer hierarchy, you will find the following new (built) directories (with
 sub-directories for each R version you have used to perform the build):
