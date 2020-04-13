@@ -1,4 +1,4 @@
-# You can override VE_CONFIG, VE_RUNTESTS and VE_R_VERSION on the command line
+# You can override VE_CONFIG, VE_LOGS, VE_RUNTESTS and VE_R_VERSION on the command line
 # Or export them from your environment
 VE_CONFIG?=config/VE-config.yml
 VE_RUNTESTS?=Default
@@ -38,6 +38,7 @@ include $(VE_MAKEVARS)
 .PHONY: configure repository modules binary runtime installers all\
 	clean lib-clean module-clean runtime-clean build-clean test-clean\
 	dev-clean really-clean\
+        module-list\
 	docker-clean docker-output-clean docker
 
 all: configure repository binary modules runtime
@@ -140,9 +141,16 @@ runtime:
 	$(RSCRIPT) scripts/build-runtime.R
 	touch $(VE_LOGS)/runtime.built
 
-module-list: $(VE_TEST)/VENameRegistry.json #  $(VE_TEST)/module_status.csv
+# The next two rules will build the VisionEval Name Registry (listing
+# all the modules and packages, and what their Inp and Set
+# specifications are), and the Model Packages (listing which models
+# use which modules from which packages). These are constructed
+# programmatically from the VisionEval source tree.
+# Results are place in VE_TEST
 
-$(VE_TEST)/VENameRegistry.json $(VE_TEST)/module_status.csv: scripts/build-inventory.R $(VE_LOGS)/modules.built
+module-list: $(VE_TEST)/VENameRegistry.json $(VE_TEST)/VEModelPackages.csv #  $(VE_TEST)/module_status.csv
+
+$(VE_TEST)/VENameRegistry.json $(VE_TEST)/VEModelPackages.csv: scripts/build-inventory.R $(VE_LOGS)/modules.built
 	$(RSCRIPT) scripts/build-inventory.R
 
 # The next rules build the installer .zip files
@@ -154,7 +162,7 @@ installers: installer-bin installer-src
 
 installer-bin: $(VE_LOGS)/installer-bin.built
 
-$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) all
+$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) runtime
 	bash scripts/build-installers.sh BINARY
 	touch $(VE_LOGS)/installer-bin.built
 
