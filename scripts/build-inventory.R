@@ -38,7 +38,7 @@ ve.models <- pkgs.db[pkgs.model,]$Package
 # For each module package, find the list of data elements and extract those ending with
 # "Specifications"
 
-modules <- data.frame(Item=character(0),Package=character(0))
+ve.modules <- data.frame(Item=character(0),Package=character(0))
 for ( p in ve.packages ) {
   d <- data(package=p,lib.loc=ve.lib)
   items <- d$results[,"Item"]
@@ -48,17 +48,16 @@ for ( p in ve.packages ) {
     next
   }
   items <- unlist(strsplit(items,"Specifications"))
-  modules <- rbind(modules,data.frame(Item=items,Package=p))
+  ve.modules <- rbind(ve.modules,data.frame(MODULE=items,PACKAGE=p))
 }
 
 # writeVENameRegistry weirdly requires the registry file already to exist
-NameRegistryFile <- file.path(ve.test,"VENameRegistry.json")
 NameRegistry_ls <- list(Inp=list(),Set=list())
 
 cat("Registry calls:\n")
-registry <- apply(modules,1,function(x) {
-    cat("Item=",x["Item"],"; Package=",x["Package"],"\n")
-    visioneval::writeVENameRegistry(x["Item"],x["Package"],NameRegistryList=TRUE)
+registry <- apply(ve.modules,1,function(x) {
+    cat("Item=",x["MODULE"],"; Package=",x["PACKAGE"],"\n")
+    visioneval::writeVENameRegistry(x["MODULE"],x["PACKAGE"],NameRegistryList=TRUE)
   }
 )
 
@@ -67,12 +66,26 @@ for ( m in registry ) {
   NameRegistry_ls$Set <- c(NameRegistry_ls$Set,m$Set)
 }
 
-writeLines(toJSON(NameRegistry_ls,pretty=TRUE),NameRegistryFile)
+NameRegistryFile <- file.path(ve.test,"VENameRegistry.json")
+json <- toJSON(NameRegistry_ls,pretty=TRUE)
+writeLines(json,NameRegistryFile)
+json <- readLines(NameRegistryFile) # Can't use it directly since it won't make Inp or Set into data.frames otherwise
+reg <- fromJSON(json)
 
-# TODO: go through the model run_model.R scripts and extract module calls,
-# then add to the inventory which models the modules are used in...
-# Use "TestMode" with visioneval::parseModelScript.
+model.path <- file.path(ve.runtime,"models")
+model.mods <- list()
+models <- lapply(ve.models,FUN=function(model) {
+  script <- parseModelScript(file.path(model.path,model,"run_model.R"),TestMode=TRUE)
+  df <- data.frame(MODULE=script$ModuleName,PACKAGE=script$PackageName,MODEL=TRUE)
+  names(df)[3] <- model
+  return(df)
+})
 
-# Visit each component model, and parse its Run_Model script.
-# Add a "Models" element to the "Modules" list (a character vector) and
-# append the Model name to each Module that appears in that Model's parsed run_model.R script.
+for ( m in models ) {
+  ve.modules <- merge(ve.modules,m,by=c("MODULE","PACKAGE"),all=TRUE)
+  col <- names(ve.modules)[length(ve.modules)]
+  ve.modules[[col]][which(is.na(ve.modules[[col]]))] <- FALSE
+}
+
+ModelApplicationFile <- file.path(ve.test,"VEModelPackages.csv")
+write.csv(ve.modules[order(ve.modules$MODULE,ve.modules$PACKAGE),],row.names=FALSE,file=ModelApplicationFile)
