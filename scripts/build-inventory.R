@@ -88,4 +88,4 @@ for ( m in models ) {
 }
 
 ModelApplicationFile <- file.path(ve.test,"VEModelPackages.csv")
-write.csv(ve.modules[order(ve.modules$MODULE,ve.modules$PACKAGE),],row.names=FALSE,file=ModelApplicationFile)
+write.csv(ve.modules[order(ve.modules$PACKAGE,ve.modules$MODULE),],row.names=FALSE,file=ModelApplicationFile)
