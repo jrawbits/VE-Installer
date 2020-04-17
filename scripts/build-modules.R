@@ -253,7 +253,7 @@ for ( module in seq_along(package.names) ) {
     # Then get rid of the temporary (and possibly obsolete) source package that is left behind
     # Must build again rather than use that built package, because the results of devtools::check
     #   updates (but does not include) any files in /data
-    tmp.build <- modulePath(package.names[module],build.dir)
+    tmp.build <- file.path(build.dir,modulePath(package.names[module],build.dir))
     if ( length(tmp.build)>0 && file.exists(tmp.build) ) unlink(tmp.build)
 
     # Run the tests on build.dir if requested
@@ -269,7 +269,7 @@ for ( module in seq_along(package.names) ) {
   # and place the result in built.path.src (the VE package repository we're building)
   if ( ! package.built ) {
     obsolete <- dir(built.path.src,pattern=paste0(package.names[module],"*_"))
-    cat("obsolete:",obsolete,"\n")
+    if ( length(obsolete)>0 ) cat("obsolete:",obsolete,"\n")
     unlink( file.path(built.path.src,obsolete) )
     src.module <- devtools::build(build.dir, path=built.path.src)
     num.src <- num.src + 1
@@ -288,7 +288,7 @@ for ( module in seq_along(package.names) ) {
       cat("building into",built.path.binary,"\n")
 
       obsolete <- dir(built.path.binary,pattern=paste0(package.names[module],"*_"))
-      cat("obsolete:",obsolete,"\n")
+      if ( length(obsolete)>0 ) cat("obsolete:",obsolete,"\n")
       unlink( file.path(built.path.binary,obsolete) )
       built.package <- devtools::build(build.dir,path=built.path.binary,binary=TRUE)
       if ( length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
@@ -303,7 +303,7 @@ for ( module in seq_along(package.names) ) {
       # On Windows, install from the binary package
       cat("Installing built package:",built.package,"\n")
       if ( package.names[module] %in% pkgs.installed ) {
-        cat("Removing obsolete package version:",pkgs.version[package.names[module]],"\n")
+        cat("First removing obsolete package version:",pkgs.version[package.names[module]],"\n")
         remove.packages(package.names[module])
       }
       install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type) # so they will be available for later modules
