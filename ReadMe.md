@@ -69,6 +69,17 @@ various referenced files.
     * You need an implementation of GNU bash and GNU tools to run some of the scripts
     * Having command-line git is handy for accessing repositories
     * Recommendations for setting up Git for Windows are found below
+* Install [pandoc][Pandoc]
+    * Pandoc will be installed automatically if you install Rstudio
+    * Pandoc is used by `rmarkdown` and `knitr` to build R package documentation and vignettes
+    * You can install pandoc without administrative permissions
+    * No configuration beyond installation is required
+* Install [MikTex][MixTex] *(Optional)*
+    * You only need MikTex if you plan to render documents as PDF files
+    * If you plan to build an end-user installer, you will need it to run the user-docs make target
+    * You will also need it to get PDF files from the dev-docs make target
+    * In principle, TinyTex could work (installed via `tinytex` R package), but in my experience, MikTex works better
+    * No configuration beyond installation is required
 * Clone [VE-Installer][VEInstaller] and [VisionEval-dev][VE-dev]
     * You should check out either the "master" or the "development" branch of VisionEval-dev
       * "master" is always the same as the released VisionEval repository master and is the version used to create the `.zip` installers available from the [Download Page](https://visioneval.org/category/download.html)
@@ -142,6 +153,8 @@ this builder) by installing [Git for Windows][Git4W].  On a Linux machine, GNU b
 standard command line interpreter. Installing Git for Windows does not require administrator rights.
 
 [Git4W]: https://gitforwindows.org "Git for Windows"
+[Pandoc]: https://pandoc.org/installing.html "Pandoc"
+[MikTex]: https://miktex.org/download "MikTex"
 
 ### Windows Environment
 
