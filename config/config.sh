@@ -6,19 +6,30 @@
 # It will pick out the first matching VE-config*.yml file
 # To permanently add the alias, do alias config >> ~/.profile
 
-alias config="source $(realpath $BASH_SOURCE)"
+if [ ! "$(alias config 2>/dev/null)" ]
+then
+	echo setting alias
+	echo $(realpath $BASH_SOURCE)
+	alias config="source $(realpath $BASH_SOURCE)"
+fi
+VE_INST_ROOT=$(dirname $(dirname $BASH_SOURCE))
+
 if [ -z "$1" ] 
 then
 	echo Available configurations:
-	ls -x config/VE-config-*.yml
+	ls -x $VE_INST_ROOT/config/VE-config-*.yml
 else
-	CONFIG_MATCH=$(ls config/VE-config-*$1*.yml | cut -d " " -f1)
+	CONFIG_MATCH=$(ls $VE_INST_ROOT/config/VE-config-*$1*.yml 2>/dev/null)
+	CONFIG_MATCH=$(echo $CONFIG_MATCH | cut -d " " -f1)
 	if [ -n "${CONFIG_MATCH}" ]
 	then
 		echo VE_CONFIG=${CONFIG_MATCH}
 		export VE_CONFIG=${CONFIG_MATCH}
+		cd $(dirname $(dirname $VE_CONFIG))
 	else
 		unset VE_CONFIG
-		echo VE_CONFIG not set: ${CONFIG_MATCH}
+		echo No configuration for $1
+		cd $VE_INST_ROOT
 	fi
 fi
+unset VE_INST_ROOT VE_CONFIG_FINDER
