@@ -55,7 +55,7 @@ then
 
   echo "Building base installer: ${VE_BASE}"
   rm -f "${VE_BASE}"
-  zip --recurse-paths "${VE_BASE}" . -x r-paths.bat -x '*.RData' 
+  zip --recurse-paths "${VE_BASE}" . -x r-paths.bat -x '*.RData' -x '.Renviron' -x '.Rdata' -x '.Rhistory' -x '/.Rproj.user/*'
 
   # Binary installer (for VE_PLATFORM i.e. where we're running the scripts)
   if [ -d "${VE_LIB}" ]
