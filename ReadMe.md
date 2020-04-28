@@ -97,25 +97,25 @@ various referenced files.
     * ve.root : full path in which to look for VisionEval itself (defaults to
       "../VisionEval.dev" (".." relative to home of VE-Installer)
     * ve.output : Path in which to create gigabytes of output files (in subdirectories
-      named after the version of R you used to build them, e.g. 3.6.1). "../VE-Built"
+      named after the version of R you used to build them, e.g. 3.6.3). "../VE-Built"
       will create a new directory adjacent to VE-Installer
       * The installer will make a subfolder based on the current full R version number and put its output in that subfolder
-      * So for example, subdirectory "3.6.1" will hold the built files if you choose VE_R_VERSION=3.6.1, or if R 3.6.1 is still the current R version as you read these instructions
+      * So for example, subdirectory "3.6.1" will hold the built files if you choose VE_R_VERSION=3.6.1
 * Run the build from a Git for Windows Bash window
     * Open a bash window
     * Change to the VE-Installer root folder
         * cd /path/to/VE-Installer
     * Run these commands from the Bash command prompt
-        * Build the runtime: `bash build-VE.sh 3.6.1` (defaults to 3.6.1)
-        * Build an installer: `bash build-VE-sh 3.6.1 installer`
-    * If you have the VE-Installer native version of R installed (currently 3.6.1),
+        * Build the runtime: `bash build-VE.sh 3.6.3` (defaults to 3.6.3)
+        * Build an installer: `bash build-VE-sh 3.6.3 installer`
+    * If you have the VE-Installer native version of R installed (currently 3.6.3,
       you can just run `bash build-VE.sh`, or even just `make` to assemble a
       runtime.
 * Once complete, you can run VisionEval.bat in `ve.output/3.x.x/runtime` in order to start R
   and load VisionEval.
     * ve.output is whatever you set it to in VE-Config.yml (see above)
     * If you built an installer, you'll find it in a zip file in the root
-      of the build (e.g. `ve.output/3.6.1`).
+      of the build (e.g. `ve.output/3.6.3`).
 * To launch VisionEval, just double-click `VisionEval.bat` (on Windows)
     * Or enter `bash visionval.sh` on Linux
 
@@ -235,7 +235,7 @@ VisionEval.  A simple bash script is also provided to run a "one line" build wit
 having to mess with options.  The script is useful if you want to build multiple runtimes
 for different R versions.  You can also use the script to build any of the targets
 listed below, but you do need to name the R version explicitly (e.g `bash build-VE.sh
-3.6.1 repository` - whereas `bash build-VE.sh` will do the same thing as `make` (i.e. make
+3.6.3 repository` - whereas `bash build-VE.sh` will do the same thing as `make` (i.e. make
 everything) using the version of R that VE-Installer currently prefers (not necessarily
 one you have installed!).
 

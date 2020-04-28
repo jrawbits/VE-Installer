@@ -49,7 +49,7 @@ line (e.g. via `make VE_CONFIG=config/MyVE-Config.yml`).
 VE_CONFIG?=config/VE-config.yml
 VE_RUNTESTS?=Default
 ifeq ($(OS),Windows_NT)
-  VE_R_VERSION?=3.6.1
+  VE_R_VERSION?=3.6.3
   RSCRIPT:="$(shell scripts/find-R.bat $(VE_R_VERSION))"
   WINDOWS=TRUE
 else
