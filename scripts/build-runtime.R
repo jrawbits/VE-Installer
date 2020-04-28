@@ -27,8 +27,8 @@ ve.boilerplate <- file.path(ve.installer,"boilerplate")
 # boilerplate.lst just contains a list of the files to copy to runtime separated by
 # whitespace (easiest just to do one file/directory name per line.
 
-# Abandoned using different runtimes - just add the .sh to boilerplate.lst
-# # Use .sh files for "source" and .bat files for "win.binary"
+# Too hard to use different runtimes - just added the .sh to boilerplate.lst
+# # Use .sh files for "source" or "mac" and .bat files for "win.binary"
 # build.type <- .Platform$pkgType
 # if ( build.type == "win.binary" ) {
 # } else {

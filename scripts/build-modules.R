@@ -41,9 +41,9 @@ if ( ! suppressWarnings(require(rmarkdown)) ) {
 
 # Where to put the built packages (may need to create the contrib.url)
 build.type <- .Platform$pkgType
-if ( build.type != "win.binary" ) build.type <- "source" # Skip mac binary build for now...
-# To enable mac build, we also need to fix build-repository.R and install-velib.R
-# in order to grab pre-built mac binaries if we can...
+if ( ! build.type %in% ve.binary.build.types ) {
+  build.type <- "source"
+}
 
 built.path.src <- contrib.url(ve.repository, type="source")
 if ( ! dir.exists(built.path.src) ) dir.create( built.path.src, recursive=TRUE, showWarnings=FALSE )
@@ -67,9 +67,10 @@ package.paths <- file.path(ve.packages[,"Root"], ve.packages[,"Path"], package.n
 # cat("Number of test paths:",length(package.testdir),"\n")
 # cat("Number of test scripts:",length(test.scripts),"\n")
 
-# Build the framework and modules as binary packages if the local system wants win.binary
-# We do "build" for Windows so we can get the .zip package file into the binary pkg-repository
-# On platforms other than Windows, simply installing will do the necessary build
+# Build the framework and modules as binary packages if the local system wants one of the supported
+# binary types.
+# We do "build" for Windows or Mac so we can get the .zip package file into the binary pkg-repository
+# On platforms other than Windows or Mac, simply installing will do the necessary build
 
 debug <- as.integer(Sys.getenv("VE_DEBUG_LEVEL",0)) # 0: no debug, 1: lightweight, 2: full details
 if ( is.na(debug) ) debug <- 0 # in case VE_INST_DEBUG
@@ -101,7 +102,7 @@ if (ve.runtests) {
 }
 
 # Build binary packages on systems with supported .Platform$pkgType
-# (whatever R supports, currently "win.binary" and "mac.binary.el-capitan")
+# (whatever R supports, currently "win.binary" and "mac.binary(.el-capitan)")
 
 num.src <- 0
 num.bin <- 0

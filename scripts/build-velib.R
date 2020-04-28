@@ -47,7 +47,9 @@ sought.pkgs <- setdiff(sought.pkgs, pkgs.BaseR)
 new.pkgs <- sought.pkgs[ ! (sought.pkgs %in% installed.packages(lib.loc=ve.lib)[,"Package"]) ]
 
 build.type <- .Platform$pkgType
-if ( build.type != "win.binary" ) build.type <- "source" # Skip mac build for now...
+if ( ! build.type %in% ve.binary.build.types ) {
+  build.type <- "source"
+}
 
 if( length(new.pkgs) > 0 ) {
   cat("---Still missing these packages:\n")

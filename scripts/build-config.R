@@ -21,9 +21,10 @@ if ( ! suppressWarnings(require(git2r)) ) {
   install.packages("git2r", repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
 }
 
-# Identify the platform
+# Identify the platform and supported binary package built types
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
 ve.platform <- paste(toupper(substring(ve.platform,1,1)),substring(ve.platform,2),sep="")
+ve.binary.build.types <- c("win.binary","mac.binary","mac.binary.el-capitan")
 
 # Locate the installer tree (used for boilerplate)
 # The following includes a hack to fix a common path problem if you are
@@ -33,6 +34,7 @@ if ( ve.platform == "Windows" || .Platform$pkgType == "win.binary" ) {
   ve.installer <- sub("My Documents", "Documents", ve.installer)
   ve.installer <- gsub("\\\\", "/", ve.installer)
 }
+# TODO: may encounter similar issues on Macintosh
 
 # Specify dependency repositories
 cat("Loading R versions\n")
@@ -505,6 +507,7 @@ save(
   , ve.output
   , ve.logs
   , ve.installer
+  , ve.binary.build.types
   , ve.runtests
   , ve.all.dependencies
   , CRAN.mirror

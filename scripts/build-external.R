@@ -54,13 +54,17 @@ if ( nrow(pkgs.external) > 0 ) {
   }
 
   # Set build.type which controls what exactly gets built and how
+  # TODO: One of the Mac types may be inappropriate/unavailable.   
   build.type <- .Platform$pkgType
-  if ( build.type != "win.binary" ) build.type <- "source" # Skip mac build for now...
+  if ( ! build.type %in% ve.binary.build.types ) {
+    build.type <- "source"
+  }
 
   # Where to put the built results (these should exist after build-repository.R)
+  # TODO: Verify that this works on Mac
   built.path.src <- contrib.url(ve.dependencies, type="source")
-  if ( build.type == "win.binary" ) {
-    built.path.binary <- contrib.url(ve.dependencies, type="win.binary")
+  if ( build.type %in% ve.binary.build.types ) {
+    built.path.binary <- contrib.url(ve.dependencies, type=build.type)
   }
 
   # External packages to build
@@ -104,7 +108,7 @@ if ( nrow(pkgs.external) > 0 ) {
     }
 
     # Determine if a build step is required
-    package.built <- build.type != "win.binary" ||
+    package.built <- ( ! build.type %in% ve.binary.build.types ) ||
                      (
                        moduleExists(pkg.names[pkg], built.path.binary) &&
                        ! newerThan( pkg.paths[pkg],
@@ -112,10 +116,11 @@ if ( nrow(pkgs.external) > 0 ) {
                      )
     package.installed <- package.built && pkg.names[pkg] %in% pkgs.installed
 
-    if ( build.type == "win.binary" ) {
-      # Windows: build binary package
+    if ( build.type %in% ve.binary.build.types ) {
+      # Windows or Mac: build binary package
       if ( ! package.built ) {
         cat("Building",pkg.names[pkg],"\n")
+        cat("Errors may happen if the package needs compilation and build tools are not installed\n")
         built.package <- devtools::build(pkg.paths[pkg], path=built.path.binary, binary=TRUE)
         num.built <- num.built + 1
       } else {
@@ -127,7 +132,7 @@ if ( nrow(pkgs.external) > 0 ) {
         built.package <- grep("zip$",built.package,value=TRUE)
         }
       cat("Installing ")
-      if ( build.type == "win.binary" ) { # Windows: install from binary
+      if ( build.type %in% ve.binary.build.types ) { # Windows or Mac: install from binary
         cat(built.package,"\n")
         install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type)
       } else { # Not Windows: install from source package
