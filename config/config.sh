@@ -9,8 +9,8 @@
 if [ ! "$(alias config 2>/dev/null)" ]
 then
 	echo setting alias
-	echo $(realpath $BASH_SOURCE)
 	alias config="source $(realpath $BASH_SOURCE)"
+	alias config
 fi
 VE_INST_ROOT=$(dirname $(dirname $BASH_SOURCE))
 

@@ -46,6 +46,7 @@ all: configure repository binary modules runtime
 show-defaults: $(VE_MAKEVARS)
 	: Make defaults:
 	: WINDOWS      $(WINDOWS)       # Running on Windows?
+	: VE_PLATFORM  $(VE_PLATFORM)   # Then what platform ARE we running on?
 	: VE_R_VERSION $(VE_R_VERSION)  # R Version for build
 	: RSCRIPT      $(RSCRIPT)       # Rscript (should match R Version)
 	: VE_LOGS      $(VE_LOGS)       # Location of log files
