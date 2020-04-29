@@ -33,8 +33,9 @@ ve.installer <- getwd()
 if ( ve.platform == "Windows" || .Platform$pkgType == "win.binary" ) {
   ve.installer <- sub("My Documents", "Documents", ve.installer)
   ve.installer <- gsub("\\\\", "/", ve.installer)
+} else if ( ve.platform == "Unix" && .Platform$pkgType %in% c("mac.binary","mac.binary.el-capitan") ) {
+  ve.platform <- "MacOSX"
 }
-# TODO: may encounter similar issues on Macintosh
 
 # Specify dependency repositories
 cat("Loading R versions\n")
@@ -44,7 +45,7 @@ CRAN.mirror <- rversions[[this.R]]$CRAN
 BioC.mirror <- rversions[[this.R]]$BioC
 
 # Get the logs location
-ve.logs <- Sys.getenv("VE_LOGS",normalizePath("./logs",winslash="/"))
+ve.logs <- Sys.getenv("VE_LOGS",file.path(getwd(),"logs",winslash="/"))
 
 # Read the configuration file
 ve.config.file <- Sys.getenv("VE_CONFIG","config/VE-config.yml")

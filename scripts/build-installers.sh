@@ -29,7 +29,7 @@ fi
 
 if [ -z "${VE_MAKEVARS}" ]; then
   echo VE_MAKEVARS environment variable should locate ve-output.${VE_R_VERSION}.make
-  VE_MAKEVARS=$(realpath "./logs/${VE_R_VERSION}/ve-output.make")
+  VE_MAKEVARS="${PWD}/logs/${VE_R_VERSION}/ve-output.make" # use absolute path
   echo Using "${VE_MAKEVARS}"
 fi
 
@@ -41,6 +41,10 @@ if [ "${OLD_R_VERSION}" != "${VE_R_VERSION}" ]; then
   echo "VE_R_VERSION provided ($OLD_R_VERSION) does not match built R version ($VE_R_VERSION)"
   exit 2
 fi
+
+# Fix for Macintosh to get the absolute path if VE_OUTPUT starts with ".."
+VE_OUTPUT=$(echo $VE_OUTPUT | sed s@../@$(dirname ${PWD})/@)
+
 
 VE_BUILD_DATE="(`date +%Y-%m-%d`)"
 VE_BASE="${VE_OUTPUT}/${VE_R_VERSION}/VE-Runtime-R${VE_R_VERSION}${VE_BUILD_DATE}.zip"

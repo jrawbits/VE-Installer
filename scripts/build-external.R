@@ -5,7 +5,7 @@
 # Build any Github packages (e.g. namedCapture).
 
 # Load runtime configuration
-default.config <- paste("logs/dependencies",paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
+default.config <- paste(file.path(getwd(),"logs/dependencies"),paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
 ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
 if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
   stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
