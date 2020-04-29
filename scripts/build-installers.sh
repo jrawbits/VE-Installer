@@ -42,9 +42,10 @@ if [ "${OLD_R_VERSION}" != "${VE_R_VERSION}" ]; then
   exit 2
 fi
 
-# Fix for Macintosh to get the absolute path if VE_OUTPUT starts with ".."
-VE_OUTPUT=$(echo $VE_OUTPUT | sed s@../@$(dirname ${PWD})/@)
-
+# Fix for Macintosh (or less likely, Linux) to get the absolute path if VE_OUTPUT starts with ".."
+if [ "${VE_PLATFORM}" != "Windows" ]; then
+  VE_OUTPUT=$(echo $VE_OUTPUT | sed s@../@$(dirname ${PWD})/@)
+fi
 
 VE_BUILD_DATE="(`date +%Y-%m-%d`)"
 VE_BASE="${VE_OUTPUT}/${VE_R_VERSION}/VE-Runtime-R${VE_R_VERSION}${VE_BUILD_DATE}.zip"
