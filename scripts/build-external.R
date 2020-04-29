@@ -56,8 +56,8 @@ if ( nrow(pkgs.external) > 0 ) {
   # Set build.type which controls what exactly gets built and how
   # TODO: One of the Mac types may be inappropriate/unavailable.   
   build.type <- .Platform$pkgType
-  if ( ! build.type %in% ve.binary.build.types ) {
-    build.type <- "source"
+  if ( ! platform.binary %in% ve.binary.build.types ) {
+    platform.binary <- "source"
   }
 
   # Where to put the built results (these should exist after build-repository.R)
@@ -147,8 +147,8 @@ if ( nrow(pkgs.external) > 0 ) {
   } else {
       cat("No external packages to build (source)\n")
   }
-  if ( num.built > 0 ) {
-    write_PACKAGES(built.path.binary, type="win.binary")
+  if ( build.type != "source" && num.built > 0 ) {
+    write_PACKAGES(built.path.binary, type=( if ( substr(build.type,1,4)=="mac." ) "mac.binary" else "win.binary" ) )
     cat(sprintf("Done building %d external binary packages\n",num.built))
   } else {
     cat("No external packages to build (binary)\n")

@@ -77,7 +77,7 @@ havePackages <- function() {
   if ( dir.exists(file.path(ve.dependencies, "bin")) ) {
     if ( ! file.exists(file.path(bin.contrib, "PACKAGES")) ) {
       cat("Updating VE repository ",platform.binary," PACKAGES files\n")
-      got.bin <- (write_PACKAGES(bin.contrib, type=platform.binary)>0)
+      got.bin <- (write_PACKAGES(built.path.binary, type=( if ( substr(platform.binary,1,4)=="mac." ) "mac.binary" else "win.binary" ) )>0)
     } else {
       got.bin <- TRUE
     }

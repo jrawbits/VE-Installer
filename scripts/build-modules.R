@@ -333,7 +333,7 @@ if ( num.src > 0 ) {
 if ( build.type != "source" ) {
   if ( num.bin > 0 ) {
     cat("Writing binary PACKAGES file\n")
-    write_PACKAGES(built.path.binary, type=build.type)
+    write_PACKAGES(built.path.binary, type=( if ( substr(build.type,1,4)=="mac." ) "mac.binary" else "win.binary" ) )
   } else {
     cat("No binary packages needed to be built.\n")
   }
