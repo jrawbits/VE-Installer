@@ -16,6 +16,7 @@ load(ve.all.dependencies) # use all.dependencies
 # Short circuit if platform is Windows (we'll be using "ve-lib")
 request.build <- commandArgs(trailingOnly=TRUE)
 if ( length(request.build)>0 && request.build == "source" ) {
+  cat("Source build requested\n")
   ve.build.type = "source" # override for docker build on Windows etc.
 } else if ( ve.build.type == "win.binary" ) {
   cat("Runtime packages for Windows in ve-lib:",ve.lib)
@@ -76,8 +77,7 @@ if ( ! file.exists(file.path(runtime.contrib.url,"PACKAGES")) ) {
     missing.pkgs <- file.path( pkgs.dir,modulePath( missing.pkgs, pkgs.dir ) )
     print(missing.pkgs)
     file.copy( missing.pkgs, runtime.contrib.url, recursive=TRUE, overwrite=TRUE )
-  } else {
-    cat("Runtime distribution repository VE packages are up to date\n")
   }
-  if ( length(missing.deps)>0 || length(missing.pkgs)>0 ) write_PACKAGES(runtime.contrib.url, type=ve.build.type)
+  write_PACKAGES(runtime.contrib.url, type=ve.build.type)
+  cat("Runtime distribution repository VE packages are up to date\n")
 }
