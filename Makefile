@@ -37,8 +37,8 @@ include $(VE_MAKEVARS)
 
 .PHONY: configure repository modules binary runtime installers all\
 	clean lib-clean module-clean runtime-clean build-clean test-clean\
-	dev-clean really-clean\
-        module-list\
+	dev-clean really-clean installer-clean\
+        module-list runtime-packages\
 	docker-clean docker-output-clean docker
 
 all: configure repository binary modules runtime
@@ -126,19 +126,21 @@ $(VE_LOGS)/velib.built: $(VE_LOGS)/repository.built scripts/build-velib.R
 	$(RSCRIPT) scripts/build-velib.R
 	touch $(VE_LOGS)/velib.built
 
-# This rule will check the VE modules and rebuild as needed
-# We'll almost always "build" the modules
-# but only out-of-date stuff gets built
+# This rule and the following one will check the VE modules and rebuild as needed
+# We'll almost always "build" the modules but only out-of-date stuff gets built
 # (File time stamps are checked in the R scripts)
-modules: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built
+modules: $(VE_LOGS)/modules.built
+
+$(VE_LOGS)/modules.built: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built scripts/build-modules.R
 	$(RSCRIPT) scripts/build-modules.R
 	touch $(VE_LOGS)/modules.built
 
-# This rule will (re-)copy out of date scripts and models to the runtime
-# We'll almost always "build" the runtime,
-# but only out-of-date stuff gets built
+# This rule and the following one will (re-)copy out of date scripts and models to the runtime
+# We'll almost always "build" the runtime, but only out-of-date stuff gets built
 # (File time stamps are checked in the R scripts)
-runtime: 
+runtime: $(VE_LOGS)/runtime.built
+
+$(VE_LOGS)/runtime.built: scripts/build-runtime.R $(VE_INSTALLER)/boilerplate/*
 	$(RSCRIPT) scripts/build-runtime.R
 	touch $(VE_LOGS)/runtime.built
 
@@ -157,20 +159,21 @@ $(VE_TEST)/VENameRegistry.json $(VE_TEST)/VEModelPackages.csv: scripts/build-inv
 # The next rules build the installer .zip files
 # 'bin' is the binary installer for the local architecture (e.g. Windows)
 # 'src' is a multiplatform source installer (requires rebuilding packages on client side)
-installer: installer-bin
-
 installers: installer-bin installer-src
 
-installer-bin: $(VE_LOGS)/installer-bin.built
+installer installer-bin: $(VE_LOGS)/installer-bin.built
 
-$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) runtime
+$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/runtime.built  \
+            scripts/build-runtime-packages.R scripts/build-installers.sh
+	$(RSCRIPT) scripts/build-runtime-packages.R
 	bash scripts/build-installers.sh BINARY
 	touch $(VE_LOGS)/installer-bin.built
 
 installer-src: $(VE_LOGS)/installer-src.built
 
-$(VE_LOGS)/installer-src.built: $(VE_LOGS)/installer-bin.built
-	$(RSCRIPT) scripts/build-runtime-packages.R
+$(VE_LOGS)/installer-src.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/installer-bin.built \
+            scripts/build-runtime-packages.R scripts/build-installers.sh
+	$(RSCRIPT) scripts/build-runtime-packages.R source
 	bash scripts/build-installers.sh SOURCE
 	touch $(VE_LOGS)/installer-src.built
 
@@ -191,6 +194,6 @@ docker-clean: docker-output-clean
 	rm -rf $(VE_DOCKER_OUT)/home
 	
 docker: $(VE_LOGS)/repository.built $(DOCKERFILE) $(VE_DOCKER_IN)/.dockerignore
-	$(RSCRIPT) scripts/build-runtime-packages.R
+	$(RSCRIPT) scripts/build-runtime-packages.R source
 	bash scripts/build-docker.sh
 endif

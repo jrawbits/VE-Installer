@@ -14,16 +14,7 @@
 # environment since you will not easily be able to tell if you missed one
 
 # Load runtime configuration
-default.config <- paste(file.path(getwd(),"logs/dependencies"),paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
-ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
-if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
-  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
-       "\nRun build-config.R to set up build environment")
-}
-load(ve.runtime.config)
-if ( ! checkVEEnvironment() ) {
-  stop("Run build-config.R to set up build environment")
-}
+source(file.path(getwd(),"scripts/get-runtime-config.R"))
 
 # uncomment the following line on Windows if you just want the pre-compiled
 # binaries otherwise, if RTools is installed the newer sources packages will be
@@ -46,11 +37,6 @@ sought.pkgs <- setdiff(sought.pkgs, pkgs.BaseR)
 
 new.pkgs <- sought.pkgs[ ! (sought.pkgs %in% installed.packages(lib.loc=ve.lib)[,"Package"]) ]
 
-build.type <- .Platform$pkgType
-if ( ! build.type %in% ve.binary.build.types ) {
-  build.type <- "source"
-}
-
 if( length(new.pkgs) > 0 ) {
   cat("---Still missing these packages:\n")
   print(sort(new.pkgs))
@@ -61,7 +47,7 @@ if( length(new.pkgs) > 0 ) {
       lib=ve.lib,
       repos=ve.deps.url,
       dependencies=c("Depends", "Imports", "LinkingTo"),
-      type=build.type
+      type=ve.build.type
   )
   cat("---Finished installing---\n")
 } else {

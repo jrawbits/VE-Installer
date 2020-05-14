@@ -25,15 +25,20 @@ if ( ! suppressWarnings(require(git2r)) ) {
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
 ve.platform <- paste(toupper(substring(ve.platform,1,1)),substring(ve.platform,2),sep="")
 ve.binary.build.types <- c("win.binary","mac.binary","mac.binary.el-capitan")
+ve.build.type <- .Platform$pkgType
+ve.binary.build <- ve.build.type %in% ve.binary.build.types
+if ( ! ve.binary.build ) {
+  ve.build.type <- "source"
+}
 
 # Locate the installer tree (used for boilerplate)
 # The following includes a hack to fix a common path problem if you are
 # developing on Windows in a subfolder of "My Documents"
 ve.installer <- getwd()
-if ( ve.platform == "Windows" || .Platform$pkgType == "win.binary" ) {
+if ( ve.platform == "Windows" || ve.build.type == "win.binary" ) {
   ve.installer <- sub("My Documents", "Documents", ve.installer)
   ve.installer <- gsub("\\\\", "/", ve.installer)
-} else if ( ve.platform == "Unix" && .Platform$pkgType %in% c("mac.binary","mac.binary.el-capitan") ) {
+} else if ( ve.platform == "Unix" && ve.build.type %in% c("mac.binary","mac.binary.el-capitan") ) {
   ve.platform <- "MacOSX"
 }
 
@@ -508,7 +513,8 @@ save(
   , ve.output
   , ve.logs
   , ve.installer
-  , ve.binary.build.types
+  , ve.build.type
+  , ve.binary.build
   , ve.runtests
   , ve.all.dependencies
   , CRAN.mirror

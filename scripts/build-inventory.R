@@ -5,16 +5,8 @@
 # Build the package inventory and model usage tables (in ve.test)
 
 # Load runtime configuration
-default.config <- paste(file.path(getwd(),"logs/dependencies"),paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
-ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
-if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
-  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
-       "\nRun build-config.R to set up build environment")
-}
-load(ve.runtime.config)
-if ( ! checkVEEnvironment() ) {
-  stop("Run build-config.R to set up build environment")
-}
+source(file.path(getwd(),"scripts/get-runtime-config.R"))
+
 if ( ! dir.exists(ve.test) ) {
   stop("Need to make modules before building inventory.\n")
 }

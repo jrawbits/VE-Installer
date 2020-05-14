@@ -9,16 +9,7 @@
 # VisionEval-dev).
 
 # Load runtime configuration
-default.config <- paste(file.path(getwd(),"logs/dependencies"),paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
-ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
-if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
-  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
-       "\nRun build-config.R to set up build environment")
-}
-load(ve.runtime.config)
-if ( ! checkVEEnvironment() ) {
-  stop("Run build-config.R to set up build environment")
-}
+source(file.path(getwd(),"scripts/get-runtime-config.R"))
 
 # Build tool dependencies
 require(tools)
@@ -39,18 +30,12 @@ if ( ! suppressWarnings(require(rmarkdown)) ) {
 # building
 .libPaths( c(ve.lib, .libPaths()) ) # push runtime library onto path stack
 
-# Where to put the built packages (may need to create the contrib.url)
-build.type <- .Platform$pkgType
-if ( ! build.type %in% ve.binary.build.types ) {
-  build.type <- "source"
-}
-
 built.path.src <- contrib.url(ve.repository, type="source")
 if ( ! dir.exists(built.path.src) ) dir.create( built.path.src, recursive=TRUE, showWarnings=FALSE )
 
 # Set up contrib.url for binary build, if available for this architecture
-if ( build.type != "source" ) {
-  built.path.binary <- contrib.url(ve.repository, type=build.type)
+if ( ve.binary.build ) {
+  built.path.binary <- contrib.url(ve.repository, type=ve.build.type)
   if ( ! dir.exists(built.path.binary) ) dir.create( built.path.binary, recursive=TRUE, showWarnings=FALSE )
 } else {
   built.path.binary <- NULL
@@ -176,7 +161,7 @@ for ( module in seq_along(package.names) ) {
   build.dir <- file.path(ve.test,package.names[module])
   check.dir <- file.path(build.dir,paste0(package.names[module],".Rcheck"))
   if ( debug ) cat( build.dir,"exists:",dir.exists(build.dir),"\n")
-  if ( build.type != 'source' ) {
+  if ( ve.binary.build ) {
     # On Windows, the package is built if:
     #   a. Binary package is present, and
     #   b. package source is not newer than ve.test copy of source
@@ -276,16 +261,16 @@ for ( module in seq_along(package.names) ) {
     num.src <- num.src + 1
   }
 
-  # Step 6: Build the binary package (Windows only) and install the package
-  if ( build.type != "source" ) {
-    # Windows build and install works a little differently from source
+  # Step 6: Build the binary package (Windows or Mac) and install the package
+  if ( ve.binary.build ) {
+    # Binary build and install works a little differently from source
     if ( ! package.built ) {
       # Rebuild the binary package from the ve.test folder
       # We do this on Windows (rather than building from the source package) because
       # we want to use devtools::build, but a bug in devtools prior to R 3.5.3 or so
       # prevents devtools:build from correctly building from a source package (it
       # requires an unpacked source directory, which we have in build.dir)
-      cat("building",package.names[module],"from",build.dir,"as",build.type,"\n")
+      cat("building",package.names[module],"from",build.dir,"as",ve.build.type,"\n")
       cat("building into",built.path.binary,"\n")
 
       obsolete <- dir(built.path.binary,pattern=paste0(package.names[module],"*_"))
@@ -307,10 +292,10 @@ for ( module in seq_along(package.names) ) {
         cat("First removing obsolete package version:",pkgs.version[package.names[module]],"\n")
         remove.packages(package.names[module])
       }
-      install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type) # so they will be available for later modules
+      install.packages(built.package, repos=NULL, lib=ve.lib, type=ve.build.type) # so they will be available for later modules
     }
-  } else { # build.type == "source"
-    # For source build, just do installation from source package (no binary package created)
+  } else { # source build
+    # Just do installation directly from source package (no binary package created)
     if ( ! package.installed ) {
       cat("Installing source package:",src.module,"\n")
       if ( package.names[module] %in% pkgs.installed ) remove.package(package.names[module])
@@ -330,10 +315,10 @@ if ( num.src > 0 ) {
 } else {
   cat("No source packages needed to be built\n")
 }
-if ( build.type != "source" ) {
+if ( ve.binary.build ) {
   if ( num.bin > 0 ) {
     cat("Writing binary PACKAGES file\n")
-    write_PACKAGES(built.path.binary, type=build.type)
+    write_PACKAGES(built.path.binary, type=ve.build.type)
   } else {
     cat("No binary packages needed to be built.\n")
   }

@@ -7,16 +7,7 @@
 # are not in packages.
 
 # Load runtime configuration
-default.config <- paste(file.path(getwd(),"logs/dependencies"),paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
-ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
-if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
-  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
-       "\nRun build-config.R to set up build environment")
-}
-load(ve.runtime.config)
-if ( ! checkVEEnvironment() ) {
-  stop("Run build-config.R to set up build environment")
-}
+source(file.path(getwd(),"scripts/get-runtime-config.R"))
 
 # Copy the runtime boilerplate
 
@@ -26,15 +17,6 @@ ve.boilerplate <- file.path(ve.installer,"boilerplate")
 # Get the boilerplate files from boilerplate.lst
 # boilerplate.lst just contains a list of the files to copy to runtime separated by
 # whitespace (easiest just to do one file/directory name per line.
-
-# Too hard to use different runtimes - just added the .sh to boilerplate.lst
-# # Use .sh files for "source" or "mac" and .bat files for "win.binary"
-# build.type <- .Platform$pkgType
-# if ( build.type == "win.binary" ) {
-# } else {
-#   bp.file.list <- scan(file=file.path(ve.boilerplate, "boilerplate.bash.lst"),
-#                        quiet=TRUE, what=character())
-# }  
 
 # Copy the boilerplate files, checking to see if what we expected was there.
 # WARNING: this won't work with boilerplate **directories**, only **files**
