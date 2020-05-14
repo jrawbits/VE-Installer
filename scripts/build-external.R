@@ -128,7 +128,7 @@ if ( nrow(pkgs.external) > 0 ) {
       }
     } # No binary if source build
     if ( ! package.installed ) {
-      if ( length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
+      if ( exists("built.package") && length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
         built.package <- grep("zip$",built.package,value=TRUE)
         }
       cat("Installing ")

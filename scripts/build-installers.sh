@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # This builds (and publishes) the .zip installers - they go straight
 # into the www folder
