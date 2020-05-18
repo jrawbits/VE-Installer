@@ -5,16 +5,7 @@
 # Build any Github packages (e.g. namedCapture).
 
 # Load runtime configuration
-default.config <- paste(file.path(getwd(),"logs/dependencies"),paste(R.version[c("major","minor")],collapse="."),"RData",sep=".")
-ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",default.config)
-if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
-  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
-       "\nRun build-config.R to set up build environment")
-}
-load(ve.runtime.config)
-if ( ! checkVEEnvironment() ) {
-  stop("Run build-config.R to set up build environment")
-}
+source(file.path(getwd(),"scripts/get-runtime-config.R"))
 
 # uncomment the following line on Windows if you just want the pre-compiled
 # binaries otherwise, if RTools is installed the newer sources packages will be
@@ -53,18 +44,11 @@ if ( nrow(pkgs.external) > 0 ) {
     install.packages("devtools", repos=CRAN.mirror, type=.Platform$pkgType)
   }
 
-  # Set build.type which controls what exactly gets built and how
-  # TODO: One of the Mac types may be inappropriate/unavailable.   
-  build.type <- .Platform$pkgType
-  if ( ! platform.binary %in% ve.binary.build.types ) {
-    platform.binary <- "source"
-  }
-
   # Where to put the built results (these should exist after build-repository.R)
   # TODO: Verify that this works on Mac
   built.path.src <- contrib.url(ve.dependencies, type="source")
-  if ( build.type %in% ve.binary.build.types ) {
-    built.path.binary <- contrib.url(ve.dependencies, type=build.type)
+  if ( ve.binary.build ) {
+    built.path.binary <- contrib.url(ve.dependencies, type=ve.build.type)
   }
 
   # External packages to build
@@ -107,8 +91,8 @@ if ( nrow(pkgs.external) > 0 ) {
       src.pkg <- file.path( built.path.src, modulePath(pkg.names[pkg], built.path.src) )
     }
 
-    # Determine if a build step is required
-    package.built <- ( ! build.type %in% ve.binary.build.types ) ||
+    # Determine if a binary build step is required
+    package.built <- ( ! ve.binary.build ) ||
                      (
                        moduleExists(pkg.names[pkg], built.path.binary) &&
                        ! newerThan( pkg.paths[pkg],
@@ -116,7 +100,7 @@ if ( nrow(pkgs.external) > 0 ) {
                      )
     package.installed <- package.built && pkg.names[pkg] %in% pkgs.installed
 
-    if ( build.type %in% ve.binary.build.types ) {
+    if ( ve.binary.build ) {
       # Windows or Mac: build binary package
       if ( ! package.built ) {
         cat("Building",pkg.names[pkg],"\n")
@@ -128,13 +112,13 @@ if ( nrow(pkgs.external) > 0 ) {
       }
     } # No binary if source build
     if ( ! package.installed ) {
-      if ( length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
+      if ( exists("built.package") && length(built.package) > 1 ) { # Fix weird bug that showed up in R 3.6.2 devtools::build
         built.package <- grep("zip$",built.package,value=TRUE)
         }
       cat("Installing ")
-      if ( build.type %in% ve.binary.build.types ) { # Windows or Mac: install from binary
+      if ( ve.binary.build ) { # Windows or Mac: install from binary
         cat(built.package,"\n")
-        install.packages(built.package, repos=NULL, lib=ve.lib, type=build.type)
+        install.packages(built.package, repos=NULL, lib=ve.lib, type=ve.build.type)
       } else { # Not Windows: install from source package
         cat(src.pkg,"\n")
         install.packages(src.pkg, repos=NULL, lib=ve.lib, type="source")
@@ -147,8 +131,8 @@ if ( nrow(pkgs.external) > 0 ) {
   } else {
       cat("No external packages to build (source)\n")
   }
-  if ( build.type != "source" && num.built > 0 ) {
-    write_PACKAGES(built.path.binary, type=( if ( substr(build.type,1,4)=="mac." ) "mac.binary" else "win.binary" ) )
+  if ( ve.binary.build && num.built > 0 ) {
+    write_PACKAGES(built.path.binary, type=ve.build.type)
     cat(sprintf("Done building %d external binary packages\n",num.built))
   } else {
     cat("No external packages to build (binary)\n")
