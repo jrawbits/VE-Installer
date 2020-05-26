@@ -21,7 +21,7 @@ endif
 
 export VE_R_VERSION VE_CONFIG VE_RUNTESTS RSCRIPT
 
-VE_BRANCH=$(shell basename $(VE_CONFIG) | cut -d'.' -f 1 | cut -d'-' -f 2-3)
+VE_BRANCH?=$(shell basename $(VE_CONFIG) | cut -d'.' -f 1 | cut -d'-' -f 2-3)
 VE_LOGS?=logs/VE-$(VE_R_VERSION)-$(VE_BRANCH)
 VE_RUNTIME_CONFIG:=$(VE_LOGS)/dependencies.RData
 VE_MAKEVARS:=$(VE_LOGS)/ve-output.make
