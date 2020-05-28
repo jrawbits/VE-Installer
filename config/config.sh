@@ -8,9 +8,26 @@
 
 if [ ! "$(alias config 2>/dev/null)" ]
 then
-	echo setting alias
-	alias config="source $(realpath $BASH_SOURCE)"
-	alias config
+        if [[ $SHELL == *"zsh"* ]]
+        then
+          echo setting zsh alias # for Macintosh default shell
+          BASH_SOURCE="${(%):-%N}"
+          realpath() {
+            OURPWD=$PWD
+            cd "$(dirname "$1")"
+            LINK=$(readlink "$(basename "$1")")
+            while [ "$LINK" ]; do
+              cd "$(dirname "$LINK")"
+              LINK=$(readlink "$(basename "$1")")
+            done
+            REALPATH="$PWD/$(basename "$1")"
+            cd "$OURPWD"
+            echo "$REALPATH"
+          }          
+        fi
+        THE_SCRIPT=$(realpath $BASH_SOURCE)
+        echo "${THE_SCRIPT}"
+        alias config="source \"${THE_SCRIPT}\""
 fi
 VE_INST_ROOT=$(dirname $(dirname $BASH_SOURCE))
 

@@ -69,9 +69,11 @@ build-clean: # Resets the built status of all the targets
 module-clean: $(VE_MAKEVARS) test-clean # Reset all VE modules for complete rebuild
 	[[ -n "$(VE_REPOS)" ]] && rm -rf $(VE_REPOS)/*
 	rm -rf $(VE_LIB)/visioneval $(VE_LIB)/VE*
+	rm $(VE_LOGS)/modules.built
 
 lib-clean: $(VE_MAKEVARS) # Reset installed package library for complete rebuild
 	[[ -n "$(VE_LIB)" ]] && rm -rf $(VE_LIB)/*
+	rm $(VE_LOGS)/velib.built
 
 runtime-clean: $(VE_MAKEVARS) # Reset all models and scripts for complete rebuild
 	[[ -n "$(VE_RUNTIME)" ]] && rm -rf $(VE_RUNTIME)/*

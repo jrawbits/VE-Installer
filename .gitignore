@@ -10,6 +10,7 @@ www/*.zip
 *.out
 *.built
 logs/
+setup
 dev-lib/
 ve-output.*.make
 *.asv#
