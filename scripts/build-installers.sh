@@ -44,7 +44,7 @@ fi
 
 if [ "${VE_PLATFORM}" != "Windows" ]; then
   # Fix for Macintosh (or less likely, Linux) to get the absolute path if VE_OUTPUT starts with ".."
-  VE_OUTPUT=$(echo $VE_OUTPUT | sed s@../@$(dirname ${PWD})/@)
+  VE_OUTPUT=$(echo $VE_OUTPUT | sed s@^\\.\\./@$(dirname ${PWD})/@)
 fi
 
 VE_BUILD_DATE="(`date +%Y-%m-%d`)"
