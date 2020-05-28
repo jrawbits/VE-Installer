@@ -86,11 +86,11 @@ if ( ! dir.exists(ve.lib) || length(grep("visioneval",dir(ve.lib)))==0 ) {
           type=ve.pkg.type
       )
       message("Done installing")
-      rm( ve.contrib.url, ve.lib.base, ve.pkg.name, ve.pkg.type )
+      rm( ve.lib.local, ve.contrib.url, ve.lib.base, ve.pkg.name, ve.pkg.type )
     }
   }
 }
-rm(ve.lib.local, ve.lib.name)
+rm(ve.lib.name)
 
 # Create .Renviron to support interactive package development
 # But don't overwrite if it's already there - the user may have
