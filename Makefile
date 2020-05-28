@@ -75,6 +75,7 @@ lib-clean: $(VE_MAKEVARS) # Reset installed package library for complete rebuild
 
 runtime-clean: $(VE_MAKEVARS) # Reset all models and scripts for complete rebuild
 	[[ -n "$(VE_RUNTIME)" ]] && rm -rf $(VE_RUNTIME)/*
+	[[ -n "$(VE_LOGS)" ]] && rm -f $(VE_LOGS)/runtime.built
 
 test-clean: $(VE_MAKEVARS) # Reset the test copies of the packages
 	[[ -n "$(VE_TEST)" ]] && rm -rf $(VE_TEST)/*
