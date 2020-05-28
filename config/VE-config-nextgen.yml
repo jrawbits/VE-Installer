@@ -22,8 +22,8 @@ Locations: # "Root" elements are variables defined in "Roots" section
         description: local runtime environment + base for installers
     ve.pkgs:          # Required
         root: ve.output
-        path: docker/ve-pkg
-        description: copy src tree here from ve.dependencies + ve.repository for installer/docker
+        path: ve-pkg
+        description: copy src tree here from ve.dependencies + ve.repository for Mac Installer (docker obsolete)
     ve.lib:           # Required
         root: ve.output
         path: ve-lib
