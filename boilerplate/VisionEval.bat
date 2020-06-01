@@ -59,10 +59,10 @@ rem type r-version.bat
 :Start
 %RSCRIPT% VisionEval.R
 IF %ERRORLEVEL% EQU 0 (
-        START "VisionEval" %RGUI% VisionEval.RData
+  START "VisionEval" "VisionEval.Rproj"
 ) ELSE (
-        ECHO Error Level %ERRORLEVEL%
-        DEL VisionEval.RData r-paths.bat
-        ECHO Installation failed - see error messages above
-        PAUSE
+  ECHO Error Level %ERRORLEVEL%
+  DEL VisionEval.RData r-paths.bat
+  ECHO Installation failed - see error messages above
+  PAUSE
 )
