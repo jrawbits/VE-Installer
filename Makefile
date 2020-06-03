@@ -32,7 +32,7 @@ VE_BOILERPLATE:=$(wildcard boilerplate/boilerplate*.lst)
 include $(VE_MAKEVARS)
 # $(VE_MAKEVARS) gets rebuilt (see below) if it is out of date, using build-config.R
 # Make then auto-restarts to read:
-#   VE_OUTPUT, VE_CACHE, VE_LIB, VE_INSTALLER, VE_PLATFORM, VE_TEST
+#   VE_OUTPUT, VE_CACHE, VE_LIB, VE_INSTALLER, VE_PLATFORM, VE_SRC
 #   and others
 
 .PHONY: configure repository modules binary runtime installers all\
@@ -57,7 +57,7 @@ show-defaults: $(VE_MAKEVARS)
 	: VE_REPOS     $(VE_REPOS)      # Location of build VE packages (repo)
 	: VE_LIB       $(VE_LIB)        # Location of installed packages
 	: VE_RUNTIME   $(VE_RUNTIME)    # Location of local runtime
-	: VE_TEST      $(VE_TEST)       # Location of test folder
+	: VE_SRC       $(VE_SRC)        # Location of source folder
 	: VE_PKGS      $(VE_PKGS)       # Location of runtime packages (for installer/docker)
 
 # Should have the "clean" target depend on $(VE_MAKEVARS) if it uses
@@ -78,8 +78,8 @@ runtime-clean: $(VE_MAKEVARS) # Reset all models and scripts for complete rebuil
 	[[ -n "$(VE_RUNTIME)" ]] && rm -rf $(VE_RUNTIME)/*
 	[[ -n "$(VE_LOGS)" ]] && rm -f $(VE_LOGS)/runtime.built
 
-test-clean: $(VE_MAKEVARS) # Reset the test copies of the packages
-	[[ -n "$(VE_TEST)" ]] && rm -rf $(VE_TEST)/*
+src-clean: $(VE_MAKEVARS) # Reset the build source directory for the packages
+	[[ -n "$(VE_SRC)" ]] && rm -rf $(VE_SRC)/*
 
 installer-clean: $(VE_MAKEVARS) # Reset the installers for rebuild
 	# installers have the R version coded in their .zip name
@@ -122,7 +122,7 @@ $(VE_LOGS)/repository.built: $(VE_RUNTIME_CONFIG) scripts/build-repository.R scr
 # This rule and the following one rebuild the installed library of dependencies and VE packages
 # Will skip if velib.built is up to date with the repository build and with the script itself
 # Use build-clean to reset velib.built and lib-clean to force complete rebuild of library
-binary:
+binary: $(VE_LOGS)/velib.built
 
 $(VE_LOGS)/velib.built: $(VE_LOGS)/repository.built scripts/build-velib.R
 	$(RSCRIPT) scripts/build-velib.R
@@ -151,11 +151,11 @@ $(VE_LOGS)/runtime.built: scripts/build-runtime.R $(VE_INSTALLER)/boilerplate/*
 # specifications are), and the Model Packages (listing which models
 # use which modules from which packages). These are constructed
 # programmatically from the VisionEval source tree.
-# Results are place in VE_TEST
+# Results are place in VE_SRC
 
-module-list: $(VE_TEST)/VENameRegistry.json $(VE_TEST)/VEModelPackages.csv #  $(VE_TEST)/module_status.csv
+module-list: $(VE_SRC)/VENameRegistry.json $(VE_SRC)/VEModelPackages.csv #  $(VE_SRC)/module_status.csv
 
-$(VE_TEST)/VENameRegistry.json $(VE_TEST)/VEModelPackages.csv: scripts/build-inventory.R $(VE_LOGS)/modules.built
+$(VE_SRC)/VENameRegistry.json $(VE_SRC)/VEModelPackages.csv: scripts/build-inventory.R $(VE_LOGS)/modules.built
 	$(RSCRIPT) scripts/build-inventory.R
 
 # The next rules build the installer .zip files

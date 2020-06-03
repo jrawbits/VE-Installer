@@ -2,12 +2,12 @@
 
 # Author: Jeremy Raw
 
-# Build the package inventory and model usage tables (in ve.test)
+# Build the package inventory and model usage tables (in ve.src)
 
 # Load runtime configuration
 source(file.path(getwd(),"scripts/get-runtime-config.R"))
 
-if ( ! dir.exists(ve.test) ) {
+if ( ! dir.exists(ve.src) ) {
   stop("Need to make modules before building inventory.\n")
 }
 
@@ -19,8 +19,8 @@ if ( ! dir.exists(ve.test) ) {
 require(visioneval)
 require(jsonlite)
 
-# Need to work in ve.test to support visioneval structure
-setwd(ve.test)
+# Need to work in ve.src to support visioneval structure
+setwd(ve.src)
 
 # Find module packages and models
 
@@ -58,7 +58,7 @@ for ( m in registry ) {
   NameRegistry_ls$Set <- c(NameRegistry_ls$Set,m$Set)
 }
 
-NameRegistryFile <- file.path(ve.test,"VENameRegistry.json")
+NameRegistryFile <- file.path(ve.src,"VENameRegistry.json")
 json <- toJSON(NameRegistry_ls,pretty=TRUE)
 writeLines(json,NameRegistryFile)
 json <- readLines(NameRegistryFile) # Can't use it directly since it won't make Inp or Set into data.frames otherwise
@@ -79,5 +79,5 @@ for ( m in models ) {
   ve.modules[[col]][which(is.na(ve.modules[[col]]))] <- FALSE
 }
 
-ModelApplicationFile <- file.path(ve.test,"VEModelPackages.csv")
+ModelApplicationFile <- file.path(ve.src,"VEModelPackages.csv")
 write.csv(ve.modules[order(ve.modules$PACKAGE,ve.modules$MODULE),],row.names=FALSE,file=ModelApplicationFile)

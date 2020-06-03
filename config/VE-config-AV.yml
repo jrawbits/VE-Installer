@@ -1,12 +1,12 @@
 Title: VisionEval
-Date: 2019-04-26
-Description: A minimal VE-config.yml
+Date: 2020-03-05
+Description: Config for release versions
 RunTests: FALSE
 Roots: # Require ve.root and ve.output at a minimum
     ve.root:
-        path: ../VisionEval
-        branch: master
-    ve.output: ../VE-Built
+        path: ../VisionEval-dev-AV
+        branch: odot-av
+    ve.output: ../VE-Built-AV
 Locations: # "Root" elements are variables defined in "Roots" section
     ve.dependencies:  # Required
         root: ve.output

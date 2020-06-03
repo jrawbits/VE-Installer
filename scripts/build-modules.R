@@ -71,15 +71,15 @@ if ( debug>1 ) {
 
 # Copy test elements from components, if requested in configuration
 if (ve.runtests) {
-  # Copy any additional test folders to ve.test
+  # Copy any additional test folders to ve.src
   # Mostly for "Test_Data", but any set of stuff needed for all tests
-  ve.test.files <- pkgs.db[pkgs.test,]
-  if ( nrow(ve.test.files)>0 ) {
-    test.paths <- file.path(ve.test.files$Root, ve.test.files$Path, ve.test.files$Package)
-    need.copy <- newerThan(test.paths,file.path(ve.test,ve.test.files$Package))
+  ve.src.files <- pkgs.db[pkgs.test,]
+  if ( nrow(ve.src.files)>0 ) {
+    test.paths <- file.path(ve.src.files$Root, ve.src.files$Path, ve.src.files$Package)
+    need.copy <- newerThan(test.paths,file.path(ve.src,ve.src.files$Package))
     if ( need.copy ) {
-      cat(paste(paste("Copying Test Item",test.paths,"to",ve.test,sep=" "),"\n"),sep="")
-      invisible(file.copy(test.paths, ve.test, recursive=TRUE))
+      cat(paste(paste("Copying Test Item",test.paths,"to",ve.src,sep=" "),"\n"),sep="")
+      invisible(file.copy(test.paths, ve.src, recursive=TRUE))
     } else {
       cat("Test data is up to date\n")
     }
@@ -158,13 +158,13 @@ for ( module in seq_along(package.names) ) {
   }
 
   # Step 2: Determine package status (built, installed)
-  build.dir <- file.path(ve.test,package.names[module])
+  build.dir <- file.path(ve.src,package.names[module])
   check.dir <- file.path(build.dir,paste0(package.names[module],".Rcheck"))
   if ( debug ) cat( build.dir,"exists:",dir.exists(build.dir),"\n")
   if ( ve.binary.build ) {
     # On Windows, the package is built if:
     #   a. Binary package is present, and
-    #   b. package source is not newer than ve.test copy of source
+    #   b. package source is not newer than ve.src copy of source
     #   c. check.dir exists (previous built test will verify age of check.dir)
     #   d. Binary package is newer than source package
     me <- de <- ck <- nt <- vr <- as.logical(NA)
@@ -182,7 +182,7 @@ for ( module in seq_along(package.names) ) {
     }
   } else {
     # If Source build, the package is "built" if:
-    #   a. package source is not newer than ve.test copy of source
+    #   a. package source is not newer than ve.src copy of source
     package.built <- (
       ! is.na(src.module) &&
         dir.exists(build.dir) &&
@@ -200,9 +200,9 @@ for ( module in seq_along(package.names) ) {
   )
   if ( ! package.installed ) cat(package.names[module],"is NOT installed\n")
 
-  # Step 3: If package is not built, (re-)copy package source to ve.test
-  # On Windows: ve.test copy is used to build source and binary packages and to run tests
-  # For Source build: ve.test copy is used to build source package
+  # Step 3: If package is not built, (re-)copy package source to ve.src
+  # On Windows: ve.src copy is used to build source and binary packages and to run tests
+  # For Source build: ve.src copy is used to build source package
   if ( ! package.built ) {
     if ( debug>1 ) {
       # Dump list of package source files if debugging
@@ -265,7 +265,7 @@ for ( module in seq_along(package.names) ) {
   if ( ve.binary.build ) {
     # Binary build and install works a little differently from source
     if ( ! package.built ) {
-      # Rebuild the binary package from the ve.test folder
+      # Rebuild the binary package from the ve.src folder
       # We do this on Windows (rather than building from the source package) because
       # we want to use devtools::build, but a bug in devtools prior to R 3.5.3 or so
       # prevents devtools:build from correctly building from a source package (it

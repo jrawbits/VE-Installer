@@ -83,7 +83,7 @@ definition (ther are no defaults for these).
     - ve.runtime
     - ve.pkgs
     - ve.lib
-    - ve.test
+    - ve.src
     - ve.external
 
 In addition, an optional Location `ve.components` can specify an alternate location for

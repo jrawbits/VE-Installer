@@ -64,10 +64,10 @@ Locations: # "Root" elements are variables defined in "Roots" section; path is r
         root: ve.output
         path: ve-lib
         description: install bin tree here from ve.repository
-    ve.test:          # Required, if tests are to be run
+    ve.src:           # Required
         root: ve.output
-        path: tests
-        description: run tests here if requested during build
+        path: src
+        description: build source packages here (plus tests, if requested)
     ve.external:      # Required if there are any Github packages
         root: ve.output
         path: external-packages

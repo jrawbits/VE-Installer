@@ -219,7 +219,7 @@ make.variables <- c(
   ,VE_REPOS     = ve.repository
   ,VE_PKGS      = ve.pkgs
   ,VE_RUNTIME   = ve.runtime
-  ,VE_TEST      = ve.test
+  ,VE_SRC       = ve.src
   ,VE_RUNTESTS  = ve.runtests
   ,VE_DEPS      = ve.dependencies
 )
