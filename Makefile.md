@@ -95,9 +95,9 @@ directly generate a file.  They will always get "built", but make
 won't bother to see if there's an up-to-date target.
 
 ~~~
-.PHONY: configure repository modules binary runtime installers all\
+.PHONY: configure repository modules binary runtime installers docs all\
 	clean lib-clean module-clean runtime-clean build-clean test-clean\
-	dev-clean really-clean installer-clean\
+	dev-clean really-clean docs-clean installer-clean\
         module-list runtime-packages\
 	docker-clean docker-output-clean docker
 ~~~
@@ -107,7 +107,7 @@ steps (or verifying that they are up to date).  See the subsequent
 targets for configure, repository, binary, modules and runtime
 
 ~~~
-all: configure repository binary modules runtime
+all: configure repository binary modules runtime # docs - need that for installer, but not for local runtime
 ~~~
 
 Use `make show-defaults` to dump some of make's key variables. Use to
@@ -157,6 +157,10 @@ runtime-clean: $(VE_MAKEVARS) # Reset all models and scripts for complete rebuil
 src-clean: $(VE_MAKEVARS) # Reset the build source directory for the packages
 	[[ -n "$(VE_SRC)" ]] && rm -rf $(VE_SRC)/*
 
+docs-clean: $(VE_MAKEVARS) # Clear the docs
+	[[ -n "$(VE_DOCS)" ]] && rm -rf $(VE_DOCS)/*
+	[[ -n "$(VE_LOGS)" ]] && rm -f $(VE_LOGS)/docs.built
+
 installer-clean: $(VE_MAKEVARS) # Reset the installers for rebuild
 	# installers have the R version coded in their .zip name
 	[[ -n "$(VE_OUTPUT)" ]] && [[ -n "$(VE_R_VERSION)" ]] && rm -f $(VE_OUTPUT)/$(VE_R_VERSION)/*.zip
@@ -186,6 +190,7 @@ Finally, we get down to the targets that do real work:
       ve-lib </dd>
    <dt>modules</dt><dd>Builds source and binary packages from the VE
       modules and installs them into the local library, ve-lib</dd>
+   <dt>docs</dt><dd>Builds PDF documentation from configured locations</dd>
    <dt>runtime</dt><dd>Copies non-package modules into the runtime -
       the startup scripts will locate ve-lib to complete the
       local installation.</dd>
@@ -239,6 +244,13 @@ $(VE_LOGS)/modules.built: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built scr
 	$(RSCRIPT) scripts/build-modules.R
 	touch $(VE_LOGS)/modules.built
 
+# This rule and the following one will assemble the documentation
+docs: $(VE_LOGS)/docs.built
+
+$(VE_LOGS)/docs.built: $(VE_LOGS)/modules.built $(VE_LOGS)/velib.built scripts/build-docs.R
+	$(RSCRIPT) scripts/build-docs.R
+	touch $(VE_LOGS)/docs.built
+
 # This rule and the following one will (re-)copy out of date scripts and models to the runtime
 # We'll almost always "build" the runtime, but only out-of-date stuff gets built
 # (File time stamps are checked in the R scripts)
@@ -261,8 +273,9 @@ $(VE_SRC)/VENameRegistry.json $(VE_SRC)/VEModelPackages.csv: scripts/build-inven
 	$(RSCRIPT) scripts/build-inventory.R
 
 # The next rules build the installer .zip files
-# 'bin' is the binary installer for the local architecture (e.g. Windows)
-# 'src' is a multiplatform source installer (requires rebuilding packages on client side)
+# 'bin' is the binary installer for the local architecture (e.g. Windows or MacOSX)
+#     (also package source as a separate zip file)
+# 'src' is install-from-source installer (source packages for everything, including dependencies)
 installers: installer-bin installer-src
 
 installer installer-bin: $(VE_LOGS)/installer-bin.built

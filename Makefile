@@ -41,7 +41,7 @@ include $(VE_MAKEVARS)
         module-list runtime-packages\
 	docker-clean docker-output-clean docker
 
-all: configure repository binary modules docs runtime
+all: configure repository binary modules runtime # docs - need that for installer, but not for local runtime
 
 show-defaults: $(VE_MAKEVARS)
 	: Make defaults:
@@ -173,7 +173,6 @@ $(VE_SRC)/VENameRegistry.json $(VE_SRC)/VEModelPackages.csv: scripts/build-inven
 # 'bin' is the binary installer for the local architecture (e.g. Windows or MacOSX)
 #     (also package source as a separate zip file)
 # 'src' is install-from-source installer (source packages for everything, including dependencies)
-
 installers: installer-bin installer-src
 
 installer installer-bin: $(VE_LOGS)/installer-bin.built
