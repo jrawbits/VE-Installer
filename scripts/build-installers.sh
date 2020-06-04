@@ -48,13 +48,14 @@ if [ "${VE_PLATFORM}" != "Windows" ]; then
 fi
 
 VE_BUILD_DATE="(`date +%Y-%m-%d`)"
-VE_BASE="${VE_OUTPUT}/${VE_R_VERSION}/VE-Runtime-R${VE_R_VERSION}${VE_BUILD_DATE}.zip"
-VE_BINARY="${VE_OUTPUT}/${VE_R_VERSION}/VE-installer-${VE_PLATFORM}-R${VE_R_VERSION}${VE_BUILD_DATE}.zip"
+VE_BASE="${VE_OUTPUT}/${VE_R_VERSION}/VE-Runtime-R${VE_R_VERSION}_${VE_BUILD_DATE}.zip"
+VE_BINARY="${VE_OUTPUT}/${VE_R_VERSION}/VE-Installer-${VE_PLATFORM}-R${VE_R_VERSION}_${VE_BUILD_DATE}.zip"
+VE_SOURCE="${VE_OUTPUT}/${VE_R_VERSION}/VE-PackageSources-${VE_R_VERSION}_${VE_BUILD_DATE}.zip"
 if [ "${VE_PLATFORM}" == "Windows" ]
 then
-  VE_SOURCE="${VE_OUTPUT}/${VE_R_VERSION}/VE-installer-Source-R${VE_R_VERSION}${VE_BUILD_DATE}.zip"
+  VE_PKG_BUILD="${VE_OUTPUT}/${VE_R_VERSION}/VE-Installer-Full-R${VE_R_VERSION}_${VE_BUILD_DATE}.zip"
 else
-  VE_SOURCE="${VE_BINARY}"
+  VE_PKG_BUILD="${VE_BINARY}"
 fi
 RUNTIME_PATH="${VE_RUNTIME}"
 
@@ -68,6 +69,11 @@ then
   zip --recurse-paths "${VE_BASE}" . -x r-paths.bat -x '*.RData' -x '.Renviron' -x '.Rdata' -x '.Rhistory' -x '/.Rproj.user/*'
   echo "Built Runtime base installer: ${VE_BASE}"
 
+  echo "Adding docs folder to base installer"
+  # Zip file is updated in place
+  cd ${VE_DOCS}/..
+  zip --recurse-paths "${VE_BASE}" "$(basename ${VE_DOCS})"
+
   if [ "${VE_PLATFORM}" == "Windows"  ]
   then
     # Binary installer for Windows includes ve-lib
@@ -79,10 +85,14 @@ then
       zip --recurse-paths "--output-file=${VE_BINARY}" "${VE_BASE}" "$(basename ${VE_LIB})"
     else
         echo "Missing package library: ${VE_LIB}"
-        echo "Failed to build ${VE_SOURCE}"
+        echo "Failed to build ${VE_BINARY}"
     fi
     echo "Built ${VE_PLATFORM} ${INSTALLER_TYPE} installer: ${VE_BINARY}"
   fi
+
+  echo "Creating PackageSource auxiliary installer"
+  cd ${VE_SRC}/..
+  zip --recurse-paths "${VE_SOURCE}" "$(basename ${VE_SRC})" -x '*.Rcheck*'
 
 fi
 
@@ -92,17 +102,17 @@ then
   # Add ve-pkgs instead of ve-lib
   if [ -d "${VE_PKGS}" ]
   then
-      echo "Building ${VE_PLATFORM} installer: ${VE_SOURCE}"
+      echo "Building ${VE_PLATFORM} installer: ${VE_PKG_BUILD}"
       echo "Package repository: ${VE_PKGS}"
-      rm -f "${VE_SOURCE}"
+      rm -f "${VE_PKG_BUILD}"
       cd ${VE_PKGS}/..
       pwd
-      zip --recurse-paths "--output-file=${VE_SOURCE}" "${VE_BASE}" "$(basename ${VE_PKGS})"
+      zip --recurse-paths "--output-file=${VE_PKG_BUILD}" "${VE_BASE}" "$(basename ${VE_PKGS})"
   else
       echo "Missing package repository: ${VE_PKGS}"
-      echo "Failed to build ${VE_SOURCE}"
+      echo "Failed to build ${VE_PKG_BUILD}"
   fi
-  echo "Built ${VE_PLATFORM} ${INSTALLER_TYPE} installer: ${VE_SOURCE}"
+  echo "Built ${VE_PLATFORM} ${INSTALLER_TYPE} installer: ${VE_PKG_BUILD}"
 
 fi
 echo "Done building installers."

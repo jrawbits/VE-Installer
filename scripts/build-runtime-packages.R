@@ -19,7 +19,7 @@ if ( length(request.build)>0 && request.build == "source" ) {
   cat("Source build requested\n")
   ve.build.type = "source" # override for docker build on Windows etc.
 } else if ( ve.build.type == "win.binary" ) {
-  cat("Runtime packages for Windows in ve-lib:",ve.lib)
+  cat("No runtime-packages build required: Windows packages are in ve-lib:",ve.lib)
   quit()
 }
 

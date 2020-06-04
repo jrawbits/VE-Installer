@@ -170,8 +170,10 @@ $(VE_SRC)/VENameRegistry.json $(VE_SRC)/VEModelPackages.csv: scripts/build-inven
 	$(RSCRIPT) scripts/build-inventory.R
 
 # The next rules build the installer .zip files
-# 'bin' is the binary installer for the local architecture (e.g. Windows)
-# 'src' is a multiplatform source installer (requires rebuilding packages on client side)
+# 'bin' is the binary installer for the local architecture (e.g. Windows or MacOSX)
+#     (also package source as a separate zip file)
+# 'src' is install-from-source installer (source packages for everything, including dependencies)
+
 installers: installer-bin installer-src
 
 installer installer-bin: $(VE_LOGS)/installer-bin.built
