@@ -50,4 +50,11 @@ else
         cd $VE_INST_ROOT
     fi
 fi
+if [ -n "$2" ]
+then
+    export VE_R_VERSION=$2
+    echo VE_R_VERSION=${VE_R_VERSION}
+else
+    echo VE_R_VERSION=${VE_R_VERSION:-default}
+fi
 unset VE_INST_ROOT VE_CONFIG_FINDER

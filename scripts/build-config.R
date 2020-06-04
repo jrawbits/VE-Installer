@@ -21,6 +21,8 @@ if ( ! suppressWarnings(require(git2r)) ) {
   install.packages("git2r", repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
 }
 
+cat("========================= BUILDING CONFIGURATION =========================\n")
+
 # Identify the platform and supported binary package built types
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
 ve.platform <- paste(toupper(substring(ve.platform,1,1)),substring(ve.platform,2),sep="")
@@ -43,7 +45,7 @@ if ( ve.platform == "Windows" || ve.build.type == "win.binary" ) {
 }
 
 # Specify dependency repositories
-cat("Loading R versions\n")
+cat("Loading known R versions\n")
 rversions <- yaml::yaml.load_file("R-versions.yml")
 this.R <- paste(R.version[c("major","minor")],collapse=".")
 CRAN.mirror <- rversions[[this.R]]$CRAN
@@ -220,6 +222,7 @@ make.variables <- c(
   ,VE_PKGS      = ve.pkgs
   ,VE_RUNTIME   = ve.runtime
   ,VE_SRC       = ve.src
+  ,VE_DOCS      = ve.docs
   ,VE_RUNTESTS  = ve.runtests
   ,VE_DEPS      = ve.dependencies
 )
@@ -306,6 +309,7 @@ for ( root in names(component.file) ) {
 
 # Parse the Components for Dependencies
 # Do this in a specific order:
+#   "Type: framework"
 #   "Type: module"
 #      Within Module by Test$Group
 #      Within Group in order from build.comps
@@ -313,13 +317,23 @@ for ( root in names(component.file) ) {
 #   "Type: test"
 #   "Type: script"
 
-pkgs.db <- data.frame(Type="Type",Package="Package",Root="Root",Path="Path",Group=0,Test="Test")
-save.types <- c("module","model","script","test")
+pkgs.db <- data.frame(Type="Type",Package="Package",Root="Root",Path="Path",Docs="",Group=0,Test="Test")
+save.types <- c("framework","module","model","script","test")
 # iterate over build.comps, creating dependencies
 for ( pkg in names(build.comps) ) {
   it <- build.comps[[pkg]]
   if ( it$Type %in% save.types ) {
     it.db <- data.frame(Type=it$Type,Package=pkg,Root=it$Root,Path=it$Path)
+    if ( "Docs" %in% names(it) ) {
+      it.db$Docs <- paste( it$Docs,collapse="||" ) # Docs may be a vector of paths
+    } else {
+      it.db$Docs <- ""  # blank means use default doc location for type
+      # Framework default is "ve.root/api" (but could include "ve.root/sources/framework/function_docs"
+      # Module default is "<Module>/inst/module_docs"
+      # Scripts default is "." (same folder as script)
+      # In each case, we search for ".md" files and "build" them into PDFs
+      #    in a type-based hierarchy below ve.src
+    }
     if ( "Test" %in% names(it) ) {
       tst <- names(it[["Test"]])
       if ( "Group" %in% tst ) {
@@ -339,19 +353,19 @@ for ( pkg in names(build.comps) ) {
     pkgs.db <- rbind(pkgs.db,it.db)
     if ( "CRAN" %in% names(it) ) {
       for ( dep in it$CRAN ) {
-        dep.db <- data.frame(Type="CRAN",Package=dep,Root=NA,Path=NA,Group=NA,Test=NA)
+        dep.db <- data.frame(Type="CRAN",Package=dep,Root=NA,Path=NA,Docs=NA,Group=NA,Test=NA)
         pkgs.db <- rbind(pkgs.db,dep.db)
       }
     }
     if ( "BioC" %in% names(it) ) {
       for ( dep in it$BioC ) {
-        dep.db <- data.frame(Type="BioC",Package=dep,Root=NA,Path=NA,Group=NA,Test=NA)
+        dep.db <- data.frame(Type="BioC",Package=dep,Root=NA,Path=NA,Docs=NA,Group=NA,Test=NA)
         pkgs.db <- rbind(pkgs.db,dep.db)
       }
     }
     if ( "Github" %in% names(it) ) {
       for ( dep in it$Github ) {
-        dep.db <- data.frame(Type="Github",Package=basename(dep),Root=NA,Path=dep,Group=NA,Test=NA)
+        dep.db <- data.frame(Type="Github",Package=basename(dep),Root=NA,Path=dep,Docs=NA,Group=NA,Test=NA)
         pkgs.db <- rbind(pkgs.db,dep.db)
       }
     }
@@ -366,16 +380,17 @@ for ( d in names(pkgs.db))                # Convert factors to strings
 pkgs.db <- pkgs.db[order(pkgs.db$Type,pkgs.db$Group,pkgs.db$Package),] # Sort by Group (for modules)
 
 # New strategy:
-# We'll save pkgs.db into dependencies.N.N.N.RData
+# We'll save pkgs.db into dependencies.RData
 # Also save row indices of the different types
 
-pkgs.CRAN   <- which(pkgs.db$Type=="CRAN")
-pkgs.BioC   <- which(pkgs.db$Type=="BioC")
-pkgs.Github <- which(pkgs.db$Type=="Github")
-pkgs.module <- which(pkgs.db$Type=="module")
-pkgs.model  <- which(pkgs.db$Type=="model")
-pkgs.script <- which(pkgs.db$Type=="script")
-pkgs.test   <- which(pkgs.db$Type=="test")
+pkgs.CRAN      <- which(pkgs.db$Type=="CRAN")
+pkgs.BioC      <- which(pkgs.db$Type=="BioC")
+pkgs.Github    <- which(pkgs.db$Type=="Github")
+pkgs.framework <- which(pkgs.db$Type=="framework")
+pkgs.module    <- which(pkgs.db$Type=="module")
+pkgs.model     <- which(pkgs.db$Type=="model")
+pkgs.script    <- which(pkgs.db$Type=="script")
+pkgs.test      <- which(pkgs.db$Type=="test")
 
 # catn("Sorted by Group:")
 # print(pkgs.db[,c("Type","Package","Group")])
@@ -508,6 +523,7 @@ save(
   , .First
   , checkVEEnvironment
   , checkBranchOnRoots
+  , this.R
   , ve.roots
   , ve.branches
   , ve.output
@@ -528,6 +544,7 @@ save(
   , pkgs.CRAN
   , pkgs.BioC
   , pkgs.Github
+  , pkgs.framework
   , pkgs.module
   , pkgs.model
   , pkgs.script

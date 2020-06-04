@@ -76,7 +76,7 @@ effectively be cached).
 
 The Locations key contains elements that are name:specification pairs identifying the output folders
 for each of the build steps.  The following Locations are recognized, and they should each have a
-definition (ther are no defaults for these).
+definition (there are no defaults for these).
 
     - ve.dependencies
     - ve.repository
@@ -84,6 +84,7 @@ definition (ther are no defaults for these).
     - ve.pkgs
     - ve.lib
     - ve.src
+    - ve.docs
     - ve.external
 
 In addition, an optional Location `ve.components` can specify an alternate location for

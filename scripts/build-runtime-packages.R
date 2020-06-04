@@ -30,6 +30,8 @@ if ( ! exists("all.dependencies") ) {
 # Load required Library
 require(tools)
 
+cat("========================= BUILDING PACKAGES ( for",ve.build.type,") =========================\n")
+
 # Prepare package names and output repository contriburl
 
 ve.pkgnames <- pkgs.db[pkgs.module,]$Package

@@ -28,6 +28,8 @@ if ( ! suppressWarnings(require(miniCRAN)) ) {
   install.packages("miniCRAN", repos=CRAN.mirror, type=.Platform$pkgType )
 }
 
+cat("========================= BUILDING RUNTIME LIBRARY =========================\n")
+
 sought.pkgs <- miniCRAN::pkgDep(c(pkgs.db$Package[pkgs.CRAN], pkgs.db$Package[pkgs.BioC]),
                                 repos=ve.deps.url, suggests=FALSE)
 pkgs.BaseR <- as.vector(installed.packages(lib.loc=.Library,

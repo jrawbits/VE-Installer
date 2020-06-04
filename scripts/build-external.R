@@ -21,6 +21,8 @@ if ( ! suppressWarnings(require(git2r)) ) {
 }
 require(tools) # for write_PACKAGES below
 
+cat("========================= BUILDING EXTERNAL (GITHUB) DEPENDENCIES =========================\n")
+
 # relay dependencies
 load(ve.all.dependencies) # use all.dependencies
 if ( ! exists("all.dependencies") ) {

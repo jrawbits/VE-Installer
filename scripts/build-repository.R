@@ -22,6 +22,8 @@ if ( ! suppressWarnings(require(miniCRAN)) ) {
 
 require(tools)
 
+cat("========== BUILDING DEPENDENCY REPOSITORY (CRAN / BioConductor ==========\n")
+
 # BioConductor setup
 # if ( ! requireNamespace("BiocManager") ) {
 #     install.packages("BiocManager", repos=CRAN.mirror)

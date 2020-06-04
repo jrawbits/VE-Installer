@@ -7,6 +7,9 @@ Roots: # Require ve.root and ve.output at a minimum
         path: ../VisionEval-dev-nextgen
         branch: nextgen
     ve.output: ../VE-Built-nextgen
+    ve.wiki: ../VE-wiki
+Components:
+
 Locations: # "Root" elements are variables defined in "Roots" section
     ve.dependencies:  # Required
         root: ve.output
@@ -32,6 +35,10 @@ Locations: # "Root" elements are variables defined in "Roots" section
         root: ve.output
         path: src
         description: build source packages here (plus tests, if requested)
+    ve.docs:          # Required
+        root: ve.output
+        path: docs
+        description: install framework and module docs here
     ve.external:      # Required if there are any Github packages
         root: ve.output
         path: external

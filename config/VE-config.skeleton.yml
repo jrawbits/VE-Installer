@@ -27,7 +27,7 @@ Roots: # TODO: Edit ve.root and ve.output to identify directories on the local m
     # Alternate roots will then be loaded in the order presented here
     # Components with the same name in later roots will replace components from earlier roots
     # If a new component appears in a later root it is just added to the existing set of components
-    # Adding an "Install" list reduces the root configuration to just those components before replacement
+    # Adding an "Include" list reduces the root configuration to just those components before replacement
     # Adding an "Exclude" list reduces the root configuration to everything EXCEPT those components before replacement
     # ve.root:
     #     Config: "build/VE-components.yml" # relative to ve.root
@@ -68,6 +68,10 @@ Locations: # "Root" elements are variables defined in "Roots" section; path is r
         root: ve.output
         path: src
         description: build source packages here (plus tests, if requested)
+    ve.docs:          # Required
+        root: ve.output
+        path: docs
+        description: install framework and module docs here
     ve.external:      # Required if there are any Github packages
         root: ve.output
         path: external-packages

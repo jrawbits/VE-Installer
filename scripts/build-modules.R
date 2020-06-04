@@ -26,6 +26,8 @@ if ( ! suppressWarnings(require(rmarkdown)) ) {
   install.packages("rmarkdown", repos=CRAN.mirror, type=.Platform$pkgType )
 }
 
+cat("========================= BUILDING MODULES =========================\n")
+
 # Reach for ve.lib first when seeking packages used by the ones we're
 # building
 .libPaths( c(ve.lib, .libPaths()) ) # push runtime library onto path stack
@@ -42,7 +44,11 @@ if ( ve.binary.build ) {
 }
 
 # Where to find the package sources (in the VisionEval repository)
-ve.packages <- pkgs.db[pkgs.module,]
+# note that we're classifying 'framework' and 'module' differently, though they
+# are treated the same here (visioneval always goes first).  They get different
+# treatment when we assemble the documentation
+ve.framework <- pkgs.db[pkgs.framework,]
+ve.packages  <- rbind(ve.framework,pkgs.db[pkgs.module,])
 
 package.names <- ve.packages$Package
 package.paths <- file.path(ve.packages[,"Root"], ve.packages[,"Path"], package.names)

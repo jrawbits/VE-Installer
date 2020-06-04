@@ -4,7 +4,7 @@
 ve.runtime.config <- Sys.getenv("VE_RUNTIME_CONFIG",
   paste(file.path(getwd(),"logs/dependencies"),paste(R.version[c("major","minor")],collapse="."),"RData",sep="."))
 if ( ! file.exists(normalizePath(ve.runtime.config,winslash="/")) ) {
-  stop("Missing VE_RUNTIME_CONFIG",ve.runtime.config,
+  stop("Missing VE_RUNTIME_CONFIG ",ve.runtime.config,
        "\nRun build-config.R to set up build environment")
 }
 load(ve.runtime.config)

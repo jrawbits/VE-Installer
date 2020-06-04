@@ -35,13 +35,13 @@ include $(VE_MAKEVARS)
 #   VE_OUTPUT, VE_CACHE, VE_LIB, VE_INSTALLER, VE_PLATFORM, VE_SRC
 #   and others
 
-.PHONY: configure repository modules binary runtime installers all\
+.PHONY: configure repository modules binary runtime installers docs all\
 	clean lib-clean module-clean runtime-clean build-clean test-clean\
-	dev-clean really-clean installer-clean\
+	dev-clean really-clean docs-clean installer-clean\
         module-list runtime-packages\
 	docker-clean docker-output-clean docker
 
-all: configure repository binary modules runtime
+all: configure repository binary modules docs runtime
 
 show-defaults: $(VE_MAKEVARS)
 	: Make defaults:
@@ -80,6 +80,10 @@ runtime-clean: $(VE_MAKEVARS) # Reset all models and scripts for complete rebuil
 
 src-clean: $(VE_MAKEVARS) # Reset the build source directory for the packages
 	[[ -n "$(VE_SRC)" ]] && rm -rf $(VE_SRC)/*
+
+docs-clean: $(VE_MAKEVARS) # Clear the docs
+	[[ -n "$(VE_DOCS)" ]] && rm -rf $(VE_DOCS)/*
+	[[ -n "$(VE_LOGS)" ]] && rm -f $(VE_LOGS)/docs.built
 
 installer-clean: $(VE_MAKEVARS) # Reset the installers for rebuild
 	# installers have the R version coded in their .zip name
@@ -136,6 +140,13 @@ modules: $(VE_LOGS)/modules.built
 $(VE_LOGS)/modules.built: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built scripts/build-modules.R
 	$(RSCRIPT) scripts/build-modules.R
 	touch $(VE_LOGS)/modules.built
+
+# This rule and the following one will assemble the documentation
+docs: $(VE_LOGS)/docs.built
+
+$(VE_LOGS)/docs.built: $(VE_LOGS)/modules.built $(VE_LOGS)/velib.built scripts/build-docs.R
+	$(RSCRIPT) scripts/build-docs.R
+	touch $(VE_LOGS)/docs.built
 
 # This rule and the following one will (re-)copy out of date scripts and models to the runtime
 # We'll almost always "build" the runtime, but only out-of-date stuff gets built
