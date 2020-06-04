@@ -1,7 +1,7 @@
 Components:
-  Getting-Started:
+  GettingStarted:
     Type: docs
     Path: "Getting-Started.md"
-  VE-Concepts:
+  VEConcepts:
     Type: docs
     Path: "VE-Concepts-Primer.md"

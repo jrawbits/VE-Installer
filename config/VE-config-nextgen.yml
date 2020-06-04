@@ -9,6 +9,9 @@ Roots: # Require ve.root and ve.output at a minimum
     ve.output: ../VE-Built-nextgen
     ve.wiki: ../VE-wiki
 Components:
+    ve.wiki:
+        Root: ve.installer
+        Config: config/VE-wiki-components.yml
 
 Locations: # "Root" elements are variables defined in "Roots" section
     ve.dependencies:  # Required

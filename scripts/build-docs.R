@@ -38,7 +38,8 @@ doc.file.pattern <- "\\.[Mm]d$"
 
 def.inputs <- c(framework="/api",module="inst/module_docs",model=".",script=".")
 
-ve.getdocs <-                  pkgs.db[pkgs.framework,]
+ve.getdocs <-                  pkgs.db[pkgs.docs,]
+ve.getdocs <- rbind(ve.getdocs,pkgs.db[pkgs.framework,])
 ve.getdocs <- rbind(ve.getdocs,pkgs.db[pkgs.module,])
 ve.getdocs <- rbind(ve.getdocs,pkgs.db[pkgs.model,])
 ve.getdocs <- rbind(ve.getdocs,pkgs.db[pkgs.script,])
@@ -90,6 +91,8 @@ for ( i in 1:nrow(ve.getdocs) ) {
     # Need to use just root + docs$Package + input for module
     if ( type=='module' ) {
       doc.dir = file.path(root,docs$Package,input)
+    } else if ( type=='docs' ) { # Path must include file name
+      doc.dir = file.path(root,docs$Path)
     } else {
       doc.dir = file.path(root,docs$Path,docs$Package,input)
     }
@@ -115,10 +118,20 @@ for ( i in 1:nrow(ve.getdocs) ) {
 
   # Debug: find documentation files
   doc.files <- character(0)
-  for (d in doc.dir) {
-    these.files <- dir(d,pattern=doc.file.pattern,full.names=TRUE)
-    if ( length(these.files)>0 ) {
-      doc.files <- c(doc.files,these.files)
+  if ( type=='docs' && ! dir.exists(doc.dir) ) {
+    # if docs$Path is a directory, do directory processing
+    # otherwise, docs$Path can just be the name of one specific file
+    if ( !file.exists(doc.dir) ) {
+      stop("Could not find 'docs' Path (",doc.dir,") for ",docs$Package)
+    } else {
+      doc.files = doc.dir
+    }
+  } else { 
+    for (d in doc.dir) {
+      these.files <- dir(d,pattern=doc.file.pattern,full.names=TRUE)
+      if ( length(these.files)>0 ) {
+        doc.files <- c(doc.files,these.files)
+      }
     }
   }
   if ( length(doc.files)>0 ) {

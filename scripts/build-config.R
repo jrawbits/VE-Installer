@@ -45,7 +45,7 @@ if ( ve.platform == "Windows" || ve.build.type == "win.binary" ) {
 }
 
 # Specify dependency repositories
-cat("Loading known R versions\n")
+# cat("Loading known R versions\n")
 rversions <- yaml::yaml.load_file("R-versions.yml")
 this.R <- paste(R.version[c("major","minor")],collapse=".")
 CRAN.mirror <- rversions[[this.R]]$CRAN
@@ -103,7 +103,7 @@ checkBranchOnRoots <- function(roots,branches) {
     br <- branches[rt]
     if ( length(br)==1 && !is.null(br) && !is.na(br) && nchar(br)>0 ) {
       repopath <- get(rt)
-      cat("Examining branch for root",rt,paste0("<",repopath,">"),"which should be",paste0("'",br,"'"),"\n")
+#       cat("Examining branch for",rt,"which should be",paste0("'",br,"'"),"\n")
       if ( git2r::in_repository(repopath) ) {
         # Find the currently checked out branch by looking at HEAD for local branches
         # cat("Need branch",paste0("<",br,">"),"on repository",repopath,"\n")
@@ -242,8 +242,9 @@ ve.deps.url <- paste("file:", ve.dependencies, sep="")
 ve.repo.url <- paste("file:", ve.repository, sep="")
 
 # Load the Components
+cat("Loading Components...\n")
 
-# catn <- function(...) { cat(...); cat("\n") }
+catn <- function(...) { cat(...); cat("\n") }
 
 # ve.components can be set as a location in VE-config.yml
 if ( ! exists("ve.components") ) ve.components <- file.path( ve.root,"build/VE-components.yml" )
@@ -264,7 +265,12 @@ if ( "Components" %in% names(ve.cfg) ) {
     }
 #     catn("Root:",root,"is",get(root))
 #     print(names(comps[[root]]))
-    component.file[root] <- file.path( get(root),comps[[root]]$Config )
+    if ( "Root" %in% names(comps[[root]]) ) {
+      comps.root <- comps[[root]]$Root
+    } else {
+      comps.root <- root
+    }
+    component.file[root] <- file.path( get(comps.root),comps[[root]]$Config )
     if ( "Include" %in% names(comps[[root]]) ) {
       includes[[root]] <- comps[[root]]$Include
 #       cat("Includes from",root,"\n")
@@ -288,6 +294,8 @@ if ( "Components" %in% names(ve.cfg) ) {
 #   3. Else skip component if it's in "Exclude"
 #   4. Put each remaining element of temporary list into final
 #      component list (by component name, so there is replacement)
+
+# cat("Processing component.file\n")
 
 build.comps <- list()
 for ( root in names(component.file) ) {
@@ -317,8 +325,10 @@ for ( root in names(component.file) ) {
 #   "Type: test"
 #   "Type: script"
 
+catn("Parsing dependencies...\n")
+
 pkgs.db <- data.frame(Type="Type",Package="Package",Root="Root",Path="Path",Docs="",Group=0,Test="Test")
-save.types <- c("framework","module","model","script","test")
+save.types <- c("framework","module","model","script","test","docs")
 # iterate over build.comps, creating dependencies
 for ( pkg in names(build.comps) ) {
   it <- build.comps[[pkg]]
@@ -391,6 +401,7 @@ pkgs.module    <- which(pkgs.db$Type=="module")
 pkgs.model     <- which(pkgs.db$Type=="model")
 pkgs.script    <- which(pkgs.db$Type=="script")
 pkgs.test      <- which(pkgs.db$Type=="test")
+pkgs.docs      <- which(pkgs.db$Type=="docs")
 
 # catn("Sorted by Group:")
 # print(pkgs.db[,c("Type","Package","Group")])
@@ -549,4 +560,5 @@ save(
   , pkgs.model
   , pkgs.script
   , pkgs.test
+  , pkgs.docs
 )
