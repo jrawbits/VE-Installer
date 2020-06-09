@@ -13,8 +13,7 @@ if ( ! dir.exists(ve.src) ) {
 
 cat("========================= BUILDING PACKAGE SPEC INVENTORY =========================\n")
 
-# Reach for ve.lib first when seeking packages used by the ones we're
-# building
+# Reach for ve.lib first when seeking packages used by the ones we're building
 .libPaths( c(ve.lib, .libPaths()) ) # push runtime library onto path stack
 
 # Libraries from ve.lib:

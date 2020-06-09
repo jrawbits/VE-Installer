@@ -66,7 +66,7 @@ then
 
   echo "Building Runtime base installer: ${VE_BASE}"
   rm -f "${VE_BASE}"
-  zip --recurse-paths "${VE_BASE}" . -x r-paths.bat -x '*.RData' -x '.Renviron' -x '.Rdata' -x '.Rhistory' -x '/.Rproj.user/*'
+  zip --recurse-paths "${VE_BASE}" . -x r-paths.bat -x '*.RData' -x '.Renviron' -x '.Rdata' -x '.Rhistory' -x '/.Rproj.user/*' -x '*/*.Rproj'
   echo "Built Runtime base installer: ${VE_BASE}"
 
   echo "Adding docs folder to base installer"
@@ -92,7 +92,7 @@ then
 
   echo "Creating PackageSource auxiliary installer"
   cd ${VE_SRC}/..
-  zip --recurse-paths "${VE_SOURCE}" "$(basename ${VE_SRC})" -x '*.Rcheck*'
+  zip --recurse-paths "${VE_SOURCE}" "$(basename ${VE_SRC})" -x '*.Rcheck*' -x '*.Rproj'
 
 fi
 

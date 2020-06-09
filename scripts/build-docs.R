@@ -139,9 +139,9 @@ for ( i in 1:nrow(ve.getdocs) ) {
     for ( f in doc.files ) {
       # Note that rmarkdown will create output_dir and its components if they
       # do not already exist, so we don't need
-      cat("Rendering",sub(root,"",f),"...")
       expected.of <- file.path(out.dir,sub(doc.file.pattern,".pdf",basename(f)))
       if ( newerThan(f,expected.of) ) {
+        cat("Rendering",sub(root,"",f),"...")
         of <- rmarkdown::render(
           f
           , output_dir=out.dir
@@ -156,8 +156,7 @@ for ( i in 1:nrow(ve.getdocs) ) {
           cat(expected.of,"\n")
         }
       } else {
-        cat("\nExisting",sub(file.path(ve.output,this.R),"",expected.of),"\n")
-        cat("Output Up to Date\n")
+        cat("Up to date: ",sub(file.path(ve.output,this.R),"",expected.of),"\n")
       }
     }
     cat("======================\n")

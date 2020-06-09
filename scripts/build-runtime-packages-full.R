@@ -15,13 +15,8 @@ load(ve.all.dependencies) # use all.dependencies
 
 # Short circuit if platform is Windows (we'll be using "ve-lib")
 request.build <- commandArgs(trailingOnly=TRUE)
-if ( length(request.build)>0 && request.build == "source" ) {
-  cat("Source build requested\n")
-  ve.build.type = "source" # override for docker build on Windows etc.
-} else if ( ve.build.type == "win.binary" ) {
-  cat("No runtime-packages build required: Windows packages are in ve-lib:",ve.lib)
-  quit()
-}
+cat("Source build requested\n")
+ve.build.type = "source" # override for docker build on Windows etc.
 
 if ( ! exists("all.dependencies") ) {
   stop("Run build-config.R to set up build environment")

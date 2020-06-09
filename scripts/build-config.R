@@ -47,18 +47,22 @@ if ( ve.platform == "Windows" || ve.build.type == "win.binary" ) {
 # Specify dependency repositories
 # cat("Loading known R versions\n")
 rversions <- yaml::yaml.load_file("R-versions.yml")
-this.R <- paste(R.version[c("major","minor")],collapse=".")
+
+if ( ! exists("this.R") ) this.R <- paste(R.version[c("major","minor")],collapse=".")
+cat("Building for R version",this.R,"\n")
+if ( ! this.R %in% names(rversions) ) {
+  cat("Supported R versions:\n")
+  print(names(rversions))
+  stop("R version ",this.R,"is not supported",call.=FALSE)
+}
 CRAN.mirror <- rversions[[this.R]]$CRAN
 BioC.mirror <- rversions[[this.R]]$BioC
-
-# Get the logs location
-ve.logs <- Sys.getenv("VE_LOGS",file.path(getwd(),"logs",winslash="/"))
 
 # Read the configuration file
 ve.config.file <- Sys.getenv("VE_CONFIG","config/VE-config.yml")
 cat(paste("Loading Configuration File:",ve.config.file,"\n",sep=" "))
 if ( !file.exists(ve.config.file) ) {
-  stop("Configuration file",ve.config.file,"not found.")
+  stop("Configuration file",ve.config.file,"not found.",call.=FALSE)
 }
 ve.cfg <- yaml::yaml.load_file(ve.config.file)
 
@@ -75,7 +79,8 @@ if ( "Roots" %in% names(ve.cfg) ) {
         nt <- names(rt)
         br <- ""
         rtp <- ifelse ( "path" %in% nt , rt$path , rt )
-        assign(x,normalizePath(rtp,winslash="/"),pos=venv);
+        cat("Normalizing",rtp,"\n")
+        assign(x,normalizePath(rtp,winslash="/",mustWork=FALSE),pos=venv);
         if ( "branch" %in% nt ) {
             br <- rt$branch     # Vector element is branch
             cat("Root",x,"requires branch",paste0("'",rt$branch,"'"),"\n")
@@ -83,20 +88,26 @@ if ( "Roots" %in% names(ve.cfg) ) {
         names(br) = x       # Vector name is root
         return(br)
       },
-      venv=sys.frame(),
+      venv=environment(), # current environment for this script execution
       USE.NAMES=FALSE
     )
   )
 } else {
-  stop("No roots in",ve.config.file,"- Check file format.")
+  stop("No roots in",ve.config.file,"- Check file format.",call.=FALSE)
 }
 
 # Check if branch is correct for roots that specify it
 # branches is a named vector - name is the root, value is the branch
 
-# Helper function
+# Helper functions
+localBranch <- function(repopath) {
+  localbr <- git2r::branches(repopath,flags="local")
+  hd <- which(sapply(localbr,FUN=git2r::is_head,simplify=TRUE))
+  return( localbr[[hd]]$name )
+}
+
 checkBranchOnRoots <- function(roots,branches) {
-  rtb <- names(branches)
+#  rtb <- names(branches)
   for ( rt in roots ) {
     # It's okay if there is not branch (i.e. not github)
     # but it's an error if there is a local branch name and it doesn't match
@@ -104,19 +115,17 @@ checkBranchOnRoots <- function(roots,branches) {
     if ( length(br)==1 && !is.null(br) && !is.na(br) && nchar(br)>0 ) {
       repopath <- get(rt)
 #       cat("Examining branch for",rt,"which should be",paste0("'",br,"'"),"\n")
-      if ( git2r::in_repository(repopath) ) {
+      if ( dir.exists(rt) && git2r::in_repository(repopath) ) {
         # Find the currently checked out branch by looking at HEAD for local branches
         # cat("Need branch",paste0("<",br,">"),"on repository",repopath,"\n")
-        localbr <- git2r::branches(repopath,flags="local")
-        hd <- which(sapply(localbr,FUN=git2r::is_head,simplify=TRUE))
-        hd <- localbr[[hd]]$name
+        hd <- localBranch(repopath)
         # cat("Have branch",paste0("<",hd,">"),"on repository",repopath,"\n")
         if ( hd != br) {
           cat(paste("Root",rt,"wants branch",paste0("<",br,">"),"but has",paste0("<",hd,">")),"\n")
           return(FALSE)
         }
       } else {
-        cat(paste("Branch",paste0("'",br,"'"),"specified, but",repopath,"is not a Git repository.\n"),"\n")
+        cat(paste("Branch",paste0("'",br,"'"),"specified, but",repopath,"is not a Git repository."),"\n")
         return(FALSE)
       }
     }
@@ -125,45 +134,26 @@ checkBranchOnRoots <- function(roots,branches) {
 }
 
 # Invoke helper function before continuing to apply branch constraint
-if ( checkBranchOnRoots(ve.roots,ve.branches) ) {
-  for ( b in branches ) {
-    if ( length(b)==1 && nchar(b)>0 ) cat("Building root",paste0("'",names(b),"'"),"from branch",paste0("'",b,"'"),"\n")
-  }
-  rm(b)
-} else {
-  stop("Incorrect branch specified for root.\n")
+if ( ! checkBranchOnRoots(ve.roots,ve.branches) ) {
+  stop("Incorrect branch specified for root.\n",call.=FALSE)
 }
 
-# rtb <- names(branches)
-# # cat("names of branches:\n")
-# # print(rtb)
-# for ( rt in ve.roots ) {
-#   if ( rt %in% rtb ) {
-#     # It's okay if there is not branch (i.e. not github)
-#     # but it's an error if there is a local branch name and it doesn't match
-#     br <- branches[rt]
-#     if ( length(br)==1 && !is.null(br) && !is.na(br) && nchar(br)>0 ) {
-#       repopath <- get(rt)
-#       cat("Examining branch for root",rt,paste0("<",repopath,">"),"which should be",paste0("'",br,"'"),"\n")
-#       if ( git2r::in_repository(repopath) ) {
-#         # Find the currently checked out branch by looking at HEAD for local branches
-#         # cat("Need branch",paste0("<",br,">"),"on repository",repopath,"\n")
-#         localbr <- git2r::branches(repopath,flags="local")
-#         hd <- which(sapply(localbr,FUN=git2r::is_head,simplify=TRUE))
-#         hd <- localbr[[hd]]$name
-#         # cat("Have branch",paste0("<",hd,">"),"on repository",repopath,"\n")
-#         if ( hd != br) {
-#           stop(paste("Config",ve.config.file,"wants branch",paste0("<",br,">"),"but has",paste0("<",hd,">")))
-#         } else {
-#           cat("Building from branch",paste0("'",hd,"'"),"\n")
-#         }
-#       } else {
-#         stop(paste("Branch",paste0("'",br,"'"),"specified, but",repopath,"is not a Git repository.\n"))
-#       }
-#     }
-#   }
-# }
+# Default ve.output to "built/branch" subdirectory of wherever we started from
+if ( ! "ve.output" %in% ve.roots ) ve.output = normalizePath("./built",winslash="/",mustWork=FALSE)
+if ( ! exists("ve.logs") ) {
+  if ( ! exists("ve.dev") ) ve.dev <- normalizePath("./dev",winslash="/")
+  ve.logs <- Sys.getenv("VE_LOGS",file.path(ve.dev,"logs"))
+  cat("loaded ve.logs:",ve.logs,"\n")
+} else {
+  cat("Existing ve.logs:",ve.logs,"\n")
+}
+ve.branch <- if ( ve.root %in% names(ve.branches) ) ve.branch <- ve.branches[ve.root] else ve.branch <- "visioneval"
+ve.output <- file.path(ve.output,ve.branch)
+ve.logs <- file.path(ve.logs,ve.branch)
+if ( ! dir.exists(ve.logs) ) dir.create( ve.logs, recursive=TRUE, showWarnings=FALSE )
+
 cat("Building into",ve.output,"\n")
+cat("Logging into",ve.logs,"\n")
 
 # Extracting location paths:
 locs.lst <- names(ve.cfg$Locations)
@@ -179,7 +169,7 @@ makepath <- function(x,venv) {
   loc <- ve.cfg$Locations[[x]]
   assign(x,file.path(get(loc$root),this.R,loc$path),pos=venv)
 }
-invisible(sapply(locs.lst,FUN=makepath,venv=sys.frame()))
+invisible(sapply(locs.lst,FUN=makepath,venv=environment()))
 
 # Create the locations
 # Packages and libraries are distinguished by R versions since the
@@ -248,7 +238,7 @@ catn <- function(...) { cat(...); cat("\n") }
 
 # ve.components can be set as a location in VE-config.yml
 if ( ! exists("ve.components") ) ve.components <- file.path( ve.root,"build/VE-components.yml" )
-if ( ! file.exists(ve.components) ) stop("Cannot find VE-components.yml in VisionEval build folder")
+if ( ! file.exists(ve.components) ) stop("Cannot find VE-components.yml in VisionEval build folder",call.=FALSE)
 component.file <- c( ve.root = ve.components )
 includes <- list()
 excludes <- list()
@@ -261,7 +251,7 @@ if ( "Components" %in% names(ve.cfg) ) {
 #   print(components.lst)
   for ( root in components.lst ) {
     if ( ! exists(root) ) {
-      stop(paste("Undefined",root,"in Roots: section of",ve.config.file,sep=" "))
+      stop(paste("Undefined",root,"in Roots: section of",ve.config.file,sep=" "),call.=FALSE)
     }
 #     catn("Root:",root,"is",get(root))
 #     print(names(comps[[root]]))
@@ -301,7 +291,7 @@ build.comps <- list()
 for ( root in names(component.file) ) {
 #   catn("Processing components for",root,"from",component.file[root])
   comps <- ve.cfg <- yaml::yaml.load_file(component.file[root])$Components
-  if ( is.null(comps) ) stop("Failed to find components in",component.file[root])
+  if ( is.null(comps) ) stop("Failed to find components in",component.file[root],call.=FALSE)
   for ( cn in names(comps) ) {
     comp <- comps[[cn]]
     if ( ( length(excludes[[root]])==0 || ! cn %in% excludes[[root]] ) &&
@@ -447,7 +437,7 @@ checkVEEnvironment <- function() {
   # the environment, or if you damage the environment by changing the name
   # of the VisionEval source tree root).
   if ( ! exists("checkVEEnvironment") || ! checkVEEnvironment() ) {
-    stop("Please configure VE-config.yml, then source('build-config.R')")
+    stop("Please configure VE-config.yml, then source('build-config.R')",call.=FALSE)
   }
 }
 
@@ -540,6 +530,7 @@ save(
   , ve.output
   , ve.logs
   , ve.installer
+  , ve.platform
   , ve.build.type
   , ve.binary.build
   , ve.runtests

@@ -11,7 +11,7 @@ Roots: # TODO: Edit ve.root and ve.output to identify directories on the local m
     # ve.root:
     #     path: ../VisionEval-Dev
     #     branch: my_branch
-    ve.output: ../VE-built     # Required
+    ve.output: ../VE-built     # Optional, defaults to "./built"
     # ve.cache: e:/VE-built/VE-Cache  # Optional
     # However ve.cache is "special" in that, if defined, anything stored there will require
     #    extra effort to remove between builds

@@ -9,6 +9,7 @@ www/*.zip
 *.RData
 *.out
 *.built
+built/
 logs/
 setup
 dev-lib/

@@ -177,18 +177,19 @@ installers: installer-bin installer-src
 
 installer installer-bin: $(VE_LOGS)/installer-bin.built
 
-$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/runtime.built  \
-            scripts/build-runtime-packages.R scripts/build-installers.sh
-	$(RSCRIPT) scripts/build-runtime-packages.R
-	bash scripts/build-installers.sh BINARY
+$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/docs.built $(VE_LOGS)/runtime.built  \
+            scripts/build-runtime-packages-bin.R scripts/build-installer-base.R scripts/build-installer-bin.R
+	$(RSCRIPT) scripts/build-runtime-packages-bin.R
+        $(RSCRIPT) scripts/build-installer-base.R
+	$(RSCRIPT) scripts/build-installer-bin.R
 	touch $(VE_LOGS)/installer-bin.built
 
 installer-src: $(VE_LOGS)/installer-src.built
 
 $(VE_LOGS)/installer-src.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/installer-bin.built \
-            scripts/build-runtime-packages.R scripts/build-installers.sh
-	$(RSCRIPT) scripts/build-runtime-packages.R source
-	bash scripts/build-installers.sh SOURCE
+            scripts/build-runtime-packages-full.R scripts/build-installer-full.R
+	$(RSCRIPT) scripts/build-runtime-packages-full.R
+	$(RSCRIPT) scripts/build-installers-full.R
 	touch $(VE_LOGS)/installer-src.built
 
 # Experimental Docker installation

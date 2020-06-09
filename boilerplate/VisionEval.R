@@ -5,29 +5,30 @@
 
 require(utils)
 
-ve.install <- function() {
-  # Check the R version (redundant on Windows, but saves having to
-  # have a separate VisionEval.R for Linux/Mac
-  this.R <- paste(R.version[c("major","minor")],collapse=".")
-  that.R <- scan("r.version",what=character())
-  if ( this.R != that.R ) {
-    stop("Incorrect R version for this VisionEval installation: expecting R",that.R)
-  } else {
-    message("Loading VisionEval for R version",this.R,"\n")
-  }
-  rm(this.R,that.R)
+# Check the R version (redundant on Windows, but saves having to
+# have a separate VisionEval.R for Linux/Mac
+this.R <- paste(R.version[c("major","minor")],collapse=".")
+that.R <- scan("r.version",what=character())
+if ( this.R != that.R ) {
+stop("Incorrect R version for this VisionEval installation: expecting R",that.R)
+} else {
+message("Loading VisionEval for R version",this.R,"\n")
+}
+rm(this.R,that.R)
 
-  # Put the current directory into ve.root
-  if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
-    ve.root <- getwd()
-  } else {
-    ve.root <- normalizePath(ve.root,winslash="/")
-  }
+# Put the current directory into ve.root
+if ( (ve.root <- Sys.getenv("VE_ROOT",unset="" )) == "" ) {
+ve.root <- getwd()
+} else {
+ve.root <- normalizePath(ve.root,winslash="/")
+}
+
+ve.install <- function() {
 
   # Put the library directory into ve.lib
   # Note that ve.lib is already present and fully provisioned in the Windows offline installer
 
-  ve.lib.name <- "ve-lib" # TODO: Will be a problem if build VE-config uses something elese
+  ve.lib.name <- "ve-lib" # TODO: Will be a problem if build VE-config uses some other name
   ve.lib <- file.path(ve.root,ve.lib.name)
 
   if ( ! dir.exists(ve.lib) || length(grep("visioneval",dir(ve.lib)))==0 ) {
@@ -103,49 +104,12 @@ ve.install <- function() {
     if ( file.exists(r.environ.dev) ) {
       file.copy( r.environ.dev, "./.Renviron" )
     } else {
-      write(paste0("R_LIBS_USER=",ve.lib),file=r.environ)
+      write(paste0("R_LIBS_USER=",ve.lib,"\n"),file=r.environ)
     }
     rm( r.environ.dev )
   }
   rm( r.environ )
 
-  # Construct "VisionEval.Rdata" from the following objects
-  # Something to "double-click" in windows for a rapid happy start in RGui...
-
-  .First <- function() {
-    if ( ! ve.lib %in% .libPaths() ) {
-      .libPaths(c(ve.lib,.libPaths()))
-      # cat(".libPaths() inside .First\n")
-      # print(.libPaths())
-    }
-    if ( install.success <- require(visioneval) ) {
-      setwd(ve.root)
-      message("Welcome to VisionEval!\n")
-    } else {
-      message("VisionEval is not present: please re-run the installation")
-    }
-    install.success
-  }
-
-  # Load tools (helper functions) from their subdirectory
-  ve.tools <- file.path(ve.root,"tools",fsep="/")
-  tool.files <- file.path(ve.tools,dir(ve.tools,pattern="\\.R$"),fsep="/")
-  tools <- character(0)
-  if ( length(tool.files)>0 ) {
-    for ( tf in tool.files ) {
-      if ( ! ve.lib %in% .libPaths() ) .libPaths(c(ve.lib,.libPaths()))
-      # Add error checking for tool.contents not present
-      eval(parse(text=paste0("import::here(tool.contents,.from='",tf,"')")))
-      tools <- c(tools,tool.contents)
-      eval(parse(text=paste0("import::here(",paste(tool.contents,collapse=","),",.from='",tf,"')")))
-      rm(tool.contents,tf)
-    }
-  }
-  rm(tool.files,ve.tools)
-
-  # Write objects to RunVisionEval.RData configuration file
-
-  install.success <- .First()
   if ( install.success ) {
     save(file="VisionEval.RData"
       ,ve.root
@@ -153,14 +117,51 @@ ve.install <- function() {
       ,.First
       ,list=tools
     )
-    rm(tools)
   } else {
     stop("Installation failed - check error and warning messages.")
   }
 }
 
+# Construct "VisionEval.Rdata" from the following objects
+# Something to "double-click" in windows for a rapid happy start in RGui...
+
+.First <- function() {
+  if ( ! ve.lib %in% .libPaths() ) {
+    .libPaths(c(ve.lib,.libPaths()))
+    # cat(".libPaths() inside .First\n")
+    # print(.libPaths())
+  }
+  if ( install.success <- require(visioneval) ) {
+    setwd(ve.root)
+    message("Welcome to VisionEval!\n")
+  } else {
+    message("VisionEval is not present: please re-run the installation")
+  }
+  install.success
+}
+
+# Load tools (helper functions) from their subdirectory
+ve.tools <- file.path(ve.root,"tools",fsep="/")
+tool.files <- file.path(ve.tools,dir(ve.tools,pattern="\\.R$"),fsep="/")
+tools <- character(0)
+if ( length(tool.files)>0 ) {
+  for ( tf in tool.files ) {
+    if ( ! ve.lib %in% .libPaths() ) .libPaths(c(ve.lib,.libPaths()))
+    # Add error checking for tool.contents not present
+    eval(parse(text=paste0("import::here(tool.contents,.from='",tf,"')")))
+    tools <- c(tools,tool.contents)
+    eval(parse(text=paste0("import::here(",paste(tool.contents,collapse=","),",.from='",tf,"')")))
+    rm(tool.contents,tf)
+  }
+}
+rm(tool.files,ve.tools)
+
+# Write objects to RunVisionEval.RData configuration file
+
 if ( .Platform$OS.type == 'windows' ) {
   ve.install()
+  install.success <- .First()
+
 } else {
   message("Please run ve.install() to complete installation.")
 }
