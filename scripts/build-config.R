@@ -19,7 +19,9 @@ if ( ! exists("ve.dev") ) {
 }
 if ( ! exists("dev.lib") ) {
   dev.lib <- file.path(ve.dev,"lib",this.R)
-}
+} else {
+  cat("dev.lib is",dev.lib,"\n")
+}|
 
 # Bootstrap development packages by loading current CRAN version of yaml from cloud.r-project.org
 if ( ! suppressWarnings(require(yaml)) ) {
