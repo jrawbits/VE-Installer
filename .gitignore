@@ -11,6 +11,7 @@ www/*.zip
 *.built
 built/
 logs/
+dev/
 setup
 dev-lib/
 ve-output.*.make

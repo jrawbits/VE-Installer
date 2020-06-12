@@ -28,6 +28,7 @@ local(
   }
 )
 if ( exists("dev.lib") ) {
+  .libPaths(c(dev.lib,.libPaths()))
   if ( ! suppressWarnings(require(git2r)) ) {
     install.packages("git2r",
       lib=dev.lib,

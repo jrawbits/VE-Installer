@@ -19,9 +19,11 @@ if ( ! exists("ve.dev") ) {
 }
 if ( ! exists("dev.lib") ) {
   dev.lib <- file.path(ve.dev,"lib",this.R)
+  dir.create(dev.lib, recursive=TRUE, showWarnings=FALSE )
 } else {
-  cat("dev.lib is",dev.lib,"\n")
-}|
+  if ( ! dir.exists(dev.lib) ) dir.create(dev.lib, recursive=TRUE, showWarnings=FALSE )
+}
+.libPaths(dev.lib)
 
 # Bootstrap development packages by loading current CRAN version of yaml from cloud.r-project.org
 if ( ! suppressWarnings(require(yaml)) ) {
@@ -166,7 +168,6 @@ if ( ! exists("ve.logs") ) {
   cat("Existing ve.logs:",normalizePath(ve.logs,winslash="/",mustWork=FALSE),"\n")
 }
 ve.output <- file.path(ve.output,ve.branch)
-ve.logs <- file.path(ve.logs,ve.branch)
 if ( ! dir.exists(ve.logs) ) dir.create( ve.logs, recursive=TRUE, showWarnings=FALSE )
 
 cat("Building into",ve.output,"\n")

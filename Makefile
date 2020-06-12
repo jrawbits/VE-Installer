@@ -21,7 +21,7 @@ endif
 
 export VE_R_VERSION VE_CONFIG VE_RUNTESTS RSCRIPT
 
-VE_BRANCH?=$(shell basename $(VE_CONFIG) | cut -d'.' -f 1 | cut -d'-' -f 2-3)
+VE_BRANCH?=$(shell basename $(VE_CONFIG) | cut -d'.' -f 1 | cut -d'-' -f 3)
 VE_LOGS?=dev/logs/$(VE_BRANCH)/$(VE_R_VERSION)
 VE_RUNTIME_CONFIG:=$(VE_LOGS)/dependencies.RData
 VE_MAKEVARS:=$(VE_LOGS)/ve-output.make
@@ -110,8 +110,6 @@ configure: $(VE_RUNTIME_CONFIG) $(VE_MAKEVARS)
 # This rule reads the configuration about what to build. Use build-clean to reset
 # Note: build-config.R identifies VE_CONFIG via the exported environment variable
 $(VE_MAKEVARS) $(VE_RUNTIME_CONFIG): scripts/build-config.R $(VE_CONFIG) R-versions.yml
-	mkdir -p $(VE_LOGS)
-	mkdir -p dev-lib/$(VE_R_VERSION)
 	[[ $(RSCRIPT) != "" ]] && $(RSCRIPT) scripts/build-config.R
 
 # This rule and the following one rebuild the repository of dependencies for VE_R_VERSION
