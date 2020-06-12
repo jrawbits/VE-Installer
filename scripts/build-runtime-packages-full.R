@@ -25,40 +25,32 @@ if ( ! exists("all.dependencies") ) {
 # Load required Library
 require(tools)
 
-cat("========================= BUILDING PACKAGES ( for",ve.build.type,") =========================\n")
+cat("========================= BUILDING PACKAGES ( for Full Source Installation) =========================\n")
 
 # Prepare package names and output repository contriburl
 
 ve.pkgnames <- pkgs.db[pkgs.module,]$Package
 
-# Save out lists of dependencies and packages
-cat(file=file.path(ve.pkgs,"dependencies.lst"),paste(all.dependencies,collapse=" "),"\n")
-cat(file=file.path(ve.pkgs,"visioneval.lst"),paste(ve.pkgnames,collapse=" "),"\n")
-
 # Start work...
 
-cat("Preparing",ve.build.type,"distribution repository\n")
-runtime.contrib.url <- contrib.url(ve.pkgs, type=ve.build.type)
+cat("Preparing source distribution repository\n")
+runtime.contrib.url <- contrib.url(ve.pkgs, type="source")
 if ( ! dir.exists(runtime.contrib.url ) ) dir.create(runtime.contrib.url, recursive=TRUE, showWarnings=FALSE)
 if ( ! file.exists(file.path(runtime.contrib.url,"PACKAGES")) ) {
   cat("Building fresh runtime distribution repository\n")
   for ( repo in c(ve.dependencies,ve.repository) ) {
-    contriburl <- contrib.url(repo,type=ve.build.type)
+    contriburl <- contrib.url(repo,type="source")
     pkgs <- dir(contriburl,full.names=TRUE)
     invisible( file.copy( pkgs, runtime.contrib.url, recursive=TRUE, overwrite=TRUE ) )
   }
-  write_PACKAGES(runtime.contrib.url, type=ve.build.type)
+  write_PACKAGES(runtime.contrib.url, type="source")
 } else {
   cat("Checking if required packages are present\n")
-  if ( ! any( file.exists(file.path(runtime.contrib.url,dir(runtime.contrib.url,pattern="PACKAGES.*"))) ) ) {
-    # Probably no way for packages to sneak in unannounced, but just in case...
-    write_PACKAGES(runtime.contrib.url, type=ve.build.type)
-  }
-  ap <- available.packages(repos=paste("file:", ve.pkgs, sep=""), type=ve.build.type)
+  ap <- available.packages(repos=paste("file:", ve.pkgs, sep=""), type="source")
   missing.deps <- setdiff( all.dependencies, ap[,"Package"])
   if ( length(missing.deps) > 0 ) {
     cat("Adding missing dependencies to runtime distribution repository\n")
-    deps.dir <- contrib.url(ve.dependencies,type=ve.build.type)
+    deps.dir <- contrib.url(ve.dependencies,type="source")
     print(missing.deps)
     missing.deps <- file.path( deps.dir,modulePath( missing.deps, deps.dir ) )
     print(missing.deps)
@@ -69,12 +61,12 @@ if ( ! file.exists(file.path(runtime.contrib.url,"PACKAGES")) ) {
   missing.pkgs <- setdiff( ve.pkgnames, ap[,"Package"])
   if ( length(missing.pkgs) > 0 ) {
     cat("Adding missing VE packages to runtime distribution repository\n")
-    pkgs.dir <- contrib.url(ve.repository,type=ve.build.type)
+    pkgs.dir <- contrib.url(ve.repository,type="source")
     print(missing.pkgs)
     missing.pkgs <- file.path( pkgs.dir,modulePath( missing.pkgs, pkgs.dir ) )
     print(missing.pkgs)
     file.copy( missing.pkgs, runtime.contrib.url, recursive=TRUE, overwrite=TRUE )
   }
-  write_PACKAGES(runtime.contrib.url, type=ve.build.type)
-  cat("Runtime distribution repository VE packages are up to date\n")
+  write_PACKAGES(runtime.contrib.url, type="source")
 }
+cat("Runtime distribution repository VE packages are up to date\n")

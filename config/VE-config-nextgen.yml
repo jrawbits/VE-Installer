@@ -6,7 +6,7 @@ Roots: # Require ve.root and ve.output at a minimum
     ve.root:
         path: ../VisionEval-dev-nextgen
         branch: nextgen
-    ve.output: ../VE-Built-nextgen
+    # defaulting ve.output: ./build (under VE-Installer)
     ve.wiki: ../VE-wiki
 Components:
     ve.wiki:

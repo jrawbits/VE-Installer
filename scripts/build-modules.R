@@ -14,16 +14,16 @@ source(file.path(getwd(),"scripts/get-runtime-config.R"))
 # Build tool dependencies
 require(tools)
 if ( ! suppressWarnings(require(devtools)) ) {
-  install.packages("devtools", repos=CRAN.mirror, type=.Platform$pkgType )
+  install.packages("devtools", lib=dev.lib, type=.Platform$pkgType )
 }
 if ( ! suppressWarnings(require(roxygen2)) ) {
-  install.packages("roxygen2", repos=CRAN.mirror, type=.Platform$pkgType )
+  install.packages("roxygen2", lib=dev.lib, type=.Platform$pkgType )
 }
 if ( ! suppressWarnings(require(rcmdcheck)) ) {
-  install.packages("rcmdcheck", repos=CRAN.mirror, type=.Platform$pkgType )
+  install.packages("rcmdcheck", lib=dev.lib, type=.Platform$pkgType )
 }
 if ( ! suppressWarnings(require(rmarkdown)) ) {
-  install.packages("rmarkdown", repos=CRAN.mirror, type=.Platform$pkgType )
+  install.packages("rmarkdown", lib=dev.lib, type=.Platform$pkgType )
 }
 
 cat("========================= BUILDING MODULES =========================\n")

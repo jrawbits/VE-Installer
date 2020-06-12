@@ -2,19 +2,6 @@
 # Your chances of a successful build go down with older versions
 # or with a version different from what the Makefile reports as
 # the default.
-3.4.4:
-    BioC:      https://www.bioconductor.org/packages/3.6/bioc
-    CRAN:      https://cloud.r-project.org
-3.5.1:
-    BioC:      https://www.bioconductor.org/packages/3.8/bioc
-    CRAN:      https://cran.microsoft.com/snapshot/2018-12-20
-3.5.2:
-    BioC:      https://www.bioconductor.org/packages/3.8/bioc
-    CRAN:      https://cran.microsoft.com/snapshot/2019-03-11
-3.5.3:
-    BioC:      https://www.bioconductor.org/packages/3.8/bioc
-    CRAN:      https://cran.microsoft.com/snapshot/2019-04-26
-# As of December 2019, VEReports will not build with R<3.6.0
 3.6.0:
     BioC:      https://www.bioconductor.org/packages/3.9/bioc
     CRAN:      https://cran.microsoft.com/snapshot/2019-07-05
@@ -28,5 +15,8 @@
     BioC:      https://www.bioconductor.org/packages/3.10/bioc
     CRAN:      https://cran.microsoft.com/snapshot/2020-04-24
 4.0.0:
+    BioC:      https://www.bioconductor.org/packages/3.11/bioc
+    CRAN:      https://cran.microsoft.com/snapshot/2020-06-06
+4.0.1:
     BioC:      https://www.bioconductor.org/packages/3.11/bioc
     CRAN:      https://cloud.r-project.org

@@ -6,7 +6,6 @@
 local({r <- getOption("repos")
       r["CRAN"] <- "https://cloud.r-project.org"
       options(repos=r)})
-this.R <- 
 dev.lib <- file.path(getwd(),"dev-lib",paste(R.version[c("major","minor")],collapse="."))
 if ( ! dir.exists(dev.lib) ) dir.create( dev.lib, recursive=TRUE, showWarnings=FALSE )
 .libPaths(c(dev.lib,.libPaths()))

@@ -17,7 +17,7 @@ options(install.packages.compile.from.source="never")
 # Load required libraries (install as needed)
 
 if ( ! suppressWarnings(require(git2r)) ) {
-  install.packages("git2r", repos=CRAN.mirror, dependencies=NA, type=.Platform$pkgType)
+  install.packages("git2r", lib=dev.lib, dependencies=NA, type=.Platform$pkgType)
 }
 require(tools) # for write_PACKAGES below
 
@@ -43,7 +43,7 @@ if ( nrow(pkgs.external) > 0 ) {
   cat("Building external packages\n")
 
   if ( ! suppressWarnings(require(devtools)) ) {
-    install.packages("devtools", repos=CRAN.mirror, type=.Platform$pkgType)
+    install.packages("devtools", lib=dev.lib, type=.Platform$pkgType)
   }
 
   # Where to put the built results (these should exist after build-repository.R)

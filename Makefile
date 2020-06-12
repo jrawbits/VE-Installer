@@ -22,7 +22,7 @@ endif
 export VE_R_VERSION VE_CONFIG VE_RUNTESTS RSCRIPT
 
 VE_BRANCH?=$(shell basename $(VE_CONFIG) | cut -d'.' -f 1 | cut -d'-' -f 2-3)
-VE_LOGS?=logs/VE-$(VE_R_VERSION)-$(VE_BRANCH)
+VE_LOGS?=dev/logs/$(VE_BRANCH)/$(VE_R_VERSION)
 VE_RUNTIME_CONFIG:=$(VE_LOGS)/dependencies.RData
 VE_MAKEVARS:=$(VE_LOGS)/ve-output.make
 export VE_LOGS VE_RUNTIME_CONFIG VE_MAKEVARS
@@ -91,7 +91,7 @@ installer-clean: $(VE_MAKEVARS) # Reset the installers for rebuild
 	[[ -n "$(VE_PKGS)" ]] && rm -rf $(VE_PKGS)/*
 	[[ -n "$(VE_LOGS)" ]] && rm -f $(VE_LOGS)/installer*.built
 
-depends-clean: clean # Reset the CRAN, BioConductor and Github dependency packages for fresh download
+repository-clean: clean # Reset the CRAN, BioConductor and Github dependency packages for fresh download
 	[[ -n "$(VE_DEPS)" ]] && rm -rf $(VE_DEPS)/*
 
 dev-clean: $(VE_MAKEVARS) # Reset the developer packages for VE-Installer itself

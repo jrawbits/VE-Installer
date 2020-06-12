@@ -25,13 +25,22 @@ options(install.packages.compile.from.source="never")
 
 # you will need miniCRAN and dependencies installed in your local R environment
 if ( ! suppressWarnings(require(miniCRAN)) ) {
-  install.packages("miniCRAN", repos=CRAN.mirror, type=.Platform$pkgType )
+  install.packages("miniCRAN", lib=dev.lib, type=.Platform$pkgType )
 }
 
 cat("========================= BUILDING RUNTIME LIBRARY =========================\n")
 
+cat("pkgs.db$Package:\n")
+print(pkgs.db$Package)
+cat("pkgs.CRAN:\n")
+print(pkgs.CRAN)
+cat("pkgs.BioC:\n")
+print(pkgs.BioC)
+cat("c(pkgs.db$Package[pkgs.CRAN], pkgs.db$Package[pkgs.BioC])\n")
+print(c(pkgs.db$Package[pkgs.CRAN], pkgs.db$Package[pkgs.BioC]))
+
 sought.pkgs <- miniCRAN::pkgDep(c(pkgs.db$Package[pkgs.CRAN], pkgs.db$Package[pkgs.BioC]),
-                                repos=ve.deps.url, suggests=FALSE)
+                                repos=ve.deps.url, suggests=FALSE, type=ve.build.type)
 pkgs.BaseR <- as.vector(installed.packages(lib.loc=.Library,
                                            priority=c("base", "recommended"))[,"Package"])
 

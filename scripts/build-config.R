@@ -9,19 +9,42 @@
 # installation
 options(install.packages.compile.from.source="never")
 
-# Load the yaml library
-# Note: hardwire installation source to the cloud of CRAN repository mirrors
-# Subsequent package installations will come from the dependency repository for this
-# R version, contained in R-versions.yml
-
-if ( ! suppressWarnings(require(yaml)) ) {
-  install.packages("yaml", repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
-}
-if ( ! suppressWarnings(require(git2r)) ) {
-  install.packages("git2r", repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
-}
-
 cat("========================= BUILDING CONFIGURATION =========================\n")
+
+if ( ! exists("this.R") ) {
+  this.R <- paste(R.version[c("major","minor")],collapse=".")
+}
+if ( ! exists("ve.dev") ) {
+  ve.dev <- normalizePath("./dev",winslash="/",mustWork=FALSE)
+}
+if ( ! exists("dev.lib") ) {
+  dev.lib <- file.path(ve.dev,"lib",this.R)
+}
+
+# Bootstrap development packages by loading current CRAN version of yaml from cloud.r-project.org
+if ( ! suppressWarnings(require(yaml)) ) {
+  install.packages("yaml", lib=dev.lib, repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
+}
+
+# Specify dependency repositories for known R versions
+rversions <- yaml::yaml.load_file("R-versions.yml")
+
+cat("Building for R version",this.R,"\n")
+if ( ! this.R %in% names(rversions) ) {
+  cat("Supported R versions:\n")
+  print(names(rversions))
+  stop("R version ",this.R,"is not supported",call.=FALSE)
+}
+CRAN.mirror <- rversions[[this.R]]$CRAN
+BioC.mirror <- rversions[[this.R]]$BioC
+
+local({r <- getOption("repos")
+      r["CRAN"] <- CRAN.mirror
+      options(repos=r)})
+
+if ( ! suppressWarnings(require(git2r)) ) {
+  install.packages("git2r", lib=dev.lib, dependencies=NA, type=.Platform$pkgType )
+}
 
 # Identify the platform and supported binary package built types
 ve.platform <- .Platform$OS.type # Used to better identify binary installer type
@@ -43,20 +66,6 @@ if ( ve.platform == "Windows" || ve.build.type == "win.binary" ) {
 } else if ( ve.platform == "Unix" && ve.build.type %in% c("mac.binary","mac.binary.el-capitan") ) {
   ve.platform <- "MacOSX"
 }
-
-# Specify dependency repositories
-# cat("Loading known R versions\n")
-rversions <- yaml::yaml.load_file("R-versions.yml")
-
-if ( ! exists("this.R") ) this.R <- paste(R.version[c("major","minor")],collapse=".")
-cat("Building for R version",this.R,"\n")
-if ( ! this.R %in% names(rversions) ) {
-  cat("Supported R versions:\n")
-  print(names(rversions))
-  stop("R version ",this.R,"is not supported",call.=FALSE)
-}
-CRAN.mirror <- rversions[[this.R]]$CRAN
-BioC.mirror <- rversions[[this.R]]$BioC
 
 # Read the configuration file
 ve.config.file <- Sys.getenv("VE_CONFIG","config/VE-config.yml")
@@ -115,7 +124,7 @@ checkBranchOnRoots <- function(roots,branches) {
     if ( length(br)==1 && !is.null(br) && !is.na(br) && nchar(br)>0 ) {
       repopath <- get(rt)
 #       cat("Examining branch for",rt,"which should be",paste0("'",br,"'"),"\n")
-      if ( dir.exists(rt) && git2r::in_repository(repopath) ) {
+      if ( dir.exists(repopath) && git2r::in_repository(repopath) ) {
         # Find the currently checked out branch by looking at HEAD for local branches
         # cat("Need branch",paste0("<",br,">"),"on repository",repopath,"\n")
         hd <- localBranch(repopath)
@@ -125,7 +134,14 @@ checkBranchOnRoots <- function(roots,branches) {
           return(FALSE)
         }
       } else {
-        cat(paste("Branch",paste0("'",br,"'"),"specified, but",repopath,"is not a Git repository."),"\n")
+        end.message <- if ( ! dir.exists(repopath) ) {
+          "does not exist"
+        } else if ( ! git2r::in_repository(repopath) ) {
+          "is not a Git repository"
+        } else {
+          "is bad for an unknown reason"
+        }
+        cat("Branch",paste0("'",br,"'"),"specified, but",repopath,end.message,".\n")
         return(FALSE)
       }
     }
@@ -139,15 +155,14 @@ if ( ! checkBranchOnRoots(ve.roots,ve.branches) ) {
 }
 
 # Default ve.output to "built/branch" subdirectory of wherever we started from
+ve.branch <- if ( "ve.root" %in% names(ve.branches) ) ve.branch <- ve.branches["ve.root"] else ve.branch <- "visioneval"
+
 if ( ! "ve.output" %in% ve.roots ) ve.output = normalizePath("./built",winslash="/",mustWork=FALSE)
 if ( ! exists("ve.logs") ) {
-  if ( ! exists("ve.dev") ) ve.dev <- normalizePath("./dev",winslash="/")
-  ve.logs <- Sys.getenv("VE_LOGS",file.path(ve.dev,"logs"))
-  cat("loaded ve.logs:",ve.logs,"\n")
+  ve.logs <- Sys.getenv("VE_LOGS",file.path(ve.dev,"logs",ve.branch,this.R))
 } else {
-  cat("Existing ve.logs:",ve.logs,"\n")
+  cat("Existing ve.logs:",normalizePath(ve.logs,winslash="/",mustWork=FALSE),"\n")
 }
-ve.branch <- if ( ve.root %in% names(ve.branches) ) ve.branch <- ve.branches[ve.root] else ve.branch <- "visioneval"
 ve.output <- file.path(ve.output,ve.branch)
 ve.logs <- file.path(ve.logs,ve.branch)
 if ( ! dir.exists(ve.logs) ) dir.create( ve.logs, recursive=TRUE, showWarnings=FALSE )
@@ -164,12 +179,12 @@ makepath <- function(x,venv) {
   #
   # Args:
   #   x - the name of a Location (and its veriable)
-  #   venv - the environment in which to create the variable
+  #   venv - the environment in which to create the variable (current)
   #
   loc <- ve.cfg$Locations[[x]]
   assign(x,file.path(get(loc$root),this.R,loc$path),pos=venv)
 }
-invisible(sapply(locs.lst,FUN=makepath,venv=environment()))
+invisible(sapply(locs.lst,FUN=makepath,venv=environment())) # venv is current environment
 
 # Create the locations
 # Packages and libraries are distinguished by R versions since the
@@ -401,44 +416,29 @@ pkgs.docs      <- which(pkgs.db$Type=="docs")
 checkVEEnvironment <- function() {
   # Check for situational awareness, and report if we are lost
   # Returns 0 or 1
-  if ( ! suppressWarnings(requireNamespace("git2r")) ) {
-    cat("Cannot find git2r - needed to check repository branch")
-    return(FALSE)
-  }
   if ( ! exists("ve.installer") || is.na(ve.installer) || ! file.exists(ve.installer) ) {
-    cat("Missing ve.installer; run build-config.R\n")
+    message("Missing ve.installer; run build-config.R\n")
     return(FALSE)
   } else if ( ! exists("ve.repository") || is.na(ve.repository) ) {
-    cat("Missing ve.repository definition; run build-config.R\n")
+    message("Missing ve.repository definition; run build-config.R\n")
     return(FALSE)
   } else if ( ! exists("ve.dependencies") || is.na(ve.dependencies) ) {
-    cat("Missing ve.dependencies definition; run build-config.R\n")
+    message("Missing ve.dependencies definition; run build-config.R\n")
     return(FALSE)
   } else if ( ! exists("ve.runtime") || is.na(ve.runtime) ) {
-    cat("Missing ve.runtime definition; run build-config.R\n")
+    message("Missing ve.runtime definition; run build-config.R\n")
     return(FALSE)
   } else if ( ! exists("ve.pkgs") || is.na(ve.pkgs) ) {
-    cat("Missing ve.pkgs definition; run build-config.R\n")
+    message("Missing ve.pkgs definition; run build-config.R\n")
     return(FALSE)
   } else if ( ! exists("ve.lib") || is.na(ve.lib) ) {
-    cat("Missing ve.lib definition; run build-config.R\n")
+    message("Missing ve.lib definition; run build-config.R\n")
     return(FALSE)
   } else if ( ! exists("ve.roots") || ! exists("ve.branches") || ! checkBranchOnRoots(ve.roots,ve.branches) ) {
-    cat("Missing roots, or incorrect branches\n")
+    message("Missing roots, or incorrect branches\n")
     return(FALSE)
   }
   return(TRUE)
-}
-
-.First <- function() {
-  # If you try to load dependencies.N.N.N.RData interactively in an incomplete
-  # environment, you will be busted (e.g. by checking it accidentally into
-  # your repository and then checking out somewhere else without setting up
-  # the environment, or if you damage the environment by changing the name
-  # of the VisionEval source tree root).
-  if ( ! exists("checkVEEnvironment") || ! checkVEEnvironment() ) {
-    stop("Please configure VE-config.yml, then source('build-config.R')",call.=FALSE)
-  }
 }
 
 # The following two helpers extract modules from built packages
@@ -521,9 +521,9 @@ ve.all.dependencies <- file.path(ve.logs,"all-dependencies.RData")
 save(
   file=ve.runtime.config,
   list=c(ve.roots,locs.lst)
-  , .First
   , checkVEEnvironment
   , checkBranchOnRoots
+  , localBranch
   , this.R
   , ve.roots
   , ve.branches

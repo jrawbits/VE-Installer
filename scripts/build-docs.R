@@ -8,7 +8,7 @@
 source(file.path(getwd(),"scripts/get-runtime-config.R"))
 
 if ( ! suppressWarnings(require(rmarkdown)) ) {
-  install.packages("rmarkdown", repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
+  install.packages("rmarkdown", lib=dev.lib, dependencies=NA, type=.Platform$pkgType )
 }
 
 cat("========================= BUILDING DOCS =========================\n")

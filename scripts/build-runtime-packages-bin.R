@@ -21,8 +21,8 @@ stop("Run build-config.R to set up build environment")
 request.build <- commandArgs(trailingOnly=TRUE)
 if ( ve.build.type == "win.binary" ) {
   cat("No runtime-packages build required.\nWindows packages are in ve-lib:\n",ve.lib,"\n",sep="")
-} else if ( ve.build.type != "source" ( {
-  # Macintosh build
+} else {
+  # Copy the suitable packages to ve.pkgs (binary if MacOSX, or source)
 
   # Load required Library
   require(tools)
@@ -52,10 +52,6 @@ if ( ve.build.type == "win.binary" ) {
     write_PACKAGES(runtime.contrib.url, type=ve.build.type)
   } else {
     cat("Checking if required packages are present\n")
-    if ( ! any( file.exists(file.path(runtime.contrib.url,dir(runtime.contrib.url,pattern="PACKAGES.*"))) ) ) {
-      # Probably no way for packages to sneak in unannounced, but just in case...
-      write_PACKAGES(runtime.contrib.url, type=ve.build.type)
-    }
     ap <- available.packages(repos=paste("file:", ve.pkgs, sep=""), type=ve.build.type)
     missing.deps <- setdiff( all.dependencies, ap[,"Package"])
     if ( length(missing.deps) > 0 ) {
